@@ -5,6 +5,7 @@ import $ from 'jquery';
 window.$ = $;
 
 import Score from './components/score';
+import MediaPlayer from "./components/mediaPlayer";
 
 class App extends Component { 
 
@@ -16,6 +17,7 @@ class App extends Component {
 		}
 	}
 	
+		/*
 	componentDidMount() { 
 		$.post(
 			"http://meld.linkedmusic.org/collection",
@@ -37,12 +39,16 @@ class App extends Component {
 			});
 		});
 	}
+		*/
 
 	render() { 
+		/*
 		if(!$.isEmptyObject(this.state.annotationGraph)) {
 			return <Score oaTarget={this.state.annotationGraph["@graph"][0]["oa:hasTarget"][0]["@id"]} />;
 		}
 		return <div>Loading...</div>;
+		*/
+		return <MediaPlayer />;
 	}
 };
 
