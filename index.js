@@ -12,16 +12,8 @@ class App extends Component {
 		super(props);
 		
 		this.state = {
-			annotationGraph: []
+			annotationGraph: {} 
 		}
-/*
-		updateAnnotationGraph({rdfuri: RDF_URI}, (graph) => { 
-			this.setState({
-				annotationGraph: graph,
-				annotationGraphId: graph["@graph"][0]["@id"]
-			});
-		});
-*/
 	}
 	
 	componentDidMount() { 
@@ -44,34 +36,13 @@ class App extends Component {
 				});
 			});
 		});
-/*		$.post(CREATE_ANNOSTATE_URI).done(
-			(data, textStatus, xhr) => { 
-				console.log("Got it! ", data);
-				$.getJSON(RDF_URI).done(res => { 
-					this.setState({
-						annotationGraph: res,
-						annotationGraphId: res["@graph"][0]["@id"]
-					});
-					console.log(res);
-				})
-			}
-		);
-*/
 	}
-	
-/*
-	updateAnnotationGraph(rdfuri) {
-		$.getJSON(rdfuri).done(
-			function(graph) { 
-				this.setState({
-					annotationGraph: graph
-				});
-			}
-		);
-	}
-*/
+
 	render() { 
-		return <Score />;
+		if(!$.isEmptyObject(this.state.annotationGraph)) {
+			return <Score oaTarget={this.state.annotationGraph["@graph"][0]["oa:hasTarget"][0]["@id"]} />;
+		}
+		return <div>Loading...</div>;
 	}
 };
 

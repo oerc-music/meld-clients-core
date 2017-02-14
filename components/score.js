@@ -1,7 +1,7 @@
 import React from 'react';
 
-const Score = () => {
-	return <div>Loading...</div>;
+const Score = (props) => {
+	return <div>Target: {props.oaTarget}</div>;
 }
 
 export default Score;
