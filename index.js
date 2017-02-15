@@ -1,5 +1,6 @@
 import React, { Component }  from 'react';
 import ReactDOM from 'react-dom';
+import IIIFImage from 'react-iiif-image';
 import $ from 'jquery';
 
 window.$ = $;
@@ -48,7 +49,13 @@ class App extends Component {
 		}
 		return <div>Loading...</div>;
 		*/
-		return <MediaPlayer />;
+		return (
+			<div>
+				<MediaPlayer />
+				<IIIFImage server="http://sanddragon.bl.uk" id="SanddragonImageService/RoyalMS" region="pct:33,20,40,70" size="200,"/>
+			</div>
+		)
+		
 	}
 };
 
