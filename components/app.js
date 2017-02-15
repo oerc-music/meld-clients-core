@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import IIIFImage from 'react-iiif-image';
-import MediaPlayer from "../components/mediaPlayer";
+import MediaPlayer from '../components/mediaPlayer';
+import ScoreList from '../containers/score-list';
 
 export default class App extends Component { 
 
@@ -11,8 +12,7 @@ export default class App extends Component {
 			annotationGraph: {} 
 		}
 	}
-	
-		/*
+	/*	
 	componentDidMount() { 
 		$.post(
 			"http://meld.linkedmusic.org/collection",
@@ -47,6 +47,7 @@ export default class App extends Component {
 			<div>
 				<MediaPlayer />
 				<IIIFImage server="http://sanddragon.bl.uk" id="SanddragonImageService/RoyalMS" region="pct:33,20,40,70" size="200,"/>
+				<ScoreList />
 			</div>
 		)
 		

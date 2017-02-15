@@ -2,30 +2,6 @@ import React, {Component} from 'react';
 import {Media, Player, controls} from 'react-media-player';
 const { PlayPause, CurrentTime, Progress, SeekBar, Duration, MuteUnmute, Volume, Fullscreen} = controls;
 
-/*
-const MediaPlayer = (props) => {
-		return (
-			<Media>
-				<div className="media">
-					<div className = "media-player">
-						<Player src="./video/test.mp4" />
-					</div>
-					<div className="media-controls">
-						<PlayPause/>
-						<CurrentTime/>
-						<Progress/>
-						<SeekBar/>
-						<Duration/>
-						<MuteUnmute/>
-						<Volume/>
-						<Fullscreen/>
-					</div>
-				</div>
-			</Media>
-			)
-}
-*/
-
 class MediaPlayer extends Component { 
 	constructor(props) { 
 		super(props);
@@ -43,7 +19,7 @@ class MediaPlayer extends Component {
 					<div className="media-controls">
 						<PlayPause/>
 						<CurrentTime/>
-						<Progress/>
+						{/* <Progress/> */} 
 						<SeekBar/>
 						<Duration/>
 						<MuteUnmute/>
