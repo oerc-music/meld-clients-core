@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import IIIFImage from 'react-iiif-image';
 import MediaPlayer from '../components/mediaPlayer';
-import ScoreList from '../containers/score-list';
+import Score from '../containers/score';
 
 export default class App extends Component { 
 
@@ -9,7 +9,7 @@ export default class App extends Component {
 		super(props);
 		
 		this.state = {
-			annotationGraph: {} 
+			meiUri: "http://meld.linkedmusic.org/mei/DavidLewis-F1.mei"
 		}
 	}
 	/*	
@@ -47,7 +47,7 @@ export default class App extends Component {
 			<div>
 				<MediaPlayer />
 				<IIIFImage server="http://sanddragon.bl.uk" id="SanddragonImageService/RoyalMS" region="pct:33,20,40,70" size="200,"/>
-				<ScoreList />
+				<Score meiUri={this.state.meiUri}/>
 			</div>
 		)
 		

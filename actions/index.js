@@ -1,6 +1,11 @@
-export function fetchScore(uri) { 
+import axios from 'axios';
+
+export const FETCH_SCORE = 'FETCH_SCORE';
+
+export function fetchScore(meiUri) { 
+	const request = axios.get(meiUri);
 	return { 
-		type: 'SCORE_FETCHED',
-		payload: uri
+		type: FETCH_SCORE,
+		payload: request
 	}
 }
