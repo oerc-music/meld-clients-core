@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import IIIFImage from 'react-iiif-image';
 import MediaPlayer from '../components/mediaPlayer';
 import Score from '../containers/score';
+import TEI from '../containers/tei';
 
 export default class App extends Component { 
 
@@ -9,7 +10,8 @@ export default class App extends Component {
 		super(props);
 		
 		this.state = {
-			meiUri: "http://meld.linkedmusic.org/mei/DavidLewis-F1.mei"
+			meiUri: "http://meld.linkedmusic.org/mei/DavidLewis-F1.mei",
+			teiUri: "http://meld.linkedmusic.org/resources/Lohengrin-libretto.xml"
 		}
 	}
 	/*	
@@ -47,7 +49,8 @@ export default class App extends Component {
 			<div>
 				<MediaPlayer />
 				<IIIFImage server="http://sanddragon.bl.uk" id="SanddragonImageService/RoyalMS" region="pct:33,20,40,70" size="200,"/>
-				<Score meiUri={this.state.meiUri} />
+				<Score meiUri={ this.state.meiUri } />
+				<TEI teiUri={ this.state.teiUri } />
 			</div>
 		)
 		
