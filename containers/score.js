@@ -19,7 +19,7 @@ class Score extends Component {
 	}
 
 	componentDidMount() { 
-		this.props.fetchScore(this.props.meiUri);
+		this.props.fetchScore(this.props.uri);
 	}
 }
 

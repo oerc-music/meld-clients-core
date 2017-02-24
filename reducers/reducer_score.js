@@ -13,6 +13,6 @@ export default function(state = null, action) {
             });
 		return svg;
 	default: 
-		return state
+		return state;
 	};
 };

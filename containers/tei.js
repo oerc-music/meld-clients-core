@@ -22,7 +22,7 @@ class TEI extends Component {
 	}
 
 	componentDidMount() { 
-		this.props.fetchTEI(this.props.teiUri);
+		this.props.fetchTEI(this.props.uri);
 	}
 }
 
