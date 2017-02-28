@@ -15,7 +15,13 @@ class Score extends Component {
 
 	render() {
 		if(Object.keys(this.props.score).length) { 
-			return (<InlineSVG src={ this.props.score[this.props.uri] } />);
+			return (
+				<div id={this.props.uri} className="scorepane">
+					<div className="controls" />
+					<div className="annotations" />
+					<InlineSVG className="score" src={ this.props.score[this.props.uri] } />
+				</div>
+			);
 		}
 		return <div>Loading...</div>;
 	}
