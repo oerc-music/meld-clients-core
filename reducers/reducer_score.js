@@ -1,9 +1,11 @@
+import update from 'immutability-helper';
+import { vrvTk }  from '../containers/app';
 import { FETCH_SCORE } from '../actions/index'
 
-export default function(state = null, action) { 
+export default function(state = {}, action) { 
 	switch(action.type) {
 	case FETCH_SCORE:
-        const svg = new verovio.toolkit().renderData(action.payload.data, {
+        const svg = vrvTk.renderData(action.payload.data, {
                 pageHeight: 1200,
                 pageWidth: 2000,
 				spacingLinear: 0.1,
@@ -11,7 +13,7 @@ export default function(state = null, action) {
                 adjustPageHeight: true,
                 scale: 30 
             });
-		return svg;
+		return update(state, { $merge: { [action.payload.config.url]: svg } });
 	default: 
 		return state;
 	};

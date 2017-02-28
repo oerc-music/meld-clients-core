@@ -8,12 +8,14 @@ class Score extends Component {
 	constructor(props) { 
 		super(props);
 
-		this.state = { score: "Loading score..." };
+		this.state = { 
+			score: {}
+		};
 	}
 
 	render() {
-		if(this.props.score) { 
-			return (<InlineSVG src={this.props.score} />);
+		if(Object.keys(this.props.score).length) { 
+			return (<InlineSVG src={ this.props.score[this.props.uri] } />);
 		}
 		return <div>Loading...</div>;
 	}

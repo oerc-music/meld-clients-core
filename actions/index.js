@@ -5,6 +5,7 @@ export const FETCH_TEI = 'FETCH_TEI';
 export const FETCH_GRAPH = 'FETCH_GRAPH';
 
 export function fetchScore(uri) { 
+	console.log("FETCH_SCORE ACTION on URI: ", uri);
 	const promise = axios.get(uri);
 	return { 
 		type: FETCH_SCORE,
