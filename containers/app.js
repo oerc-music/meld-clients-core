@@ -22,15 +22,6 @@ class App extends Component {
 		this.state = {
 			graph: {},
 			graphUri: "./worksets/AskingForbidden.json-ld",
-			meiUri: "",
-			//meiUri: "./resources/mei/F1-numbered.mei",
-			teiUri: "./resources/libretto/lohengrin-libretto-numbered.tei",
-			videoUri: "https://www.youtube.com/watch?v=VN83SBGSAWg",
-			audioUri: "./audio/test.mp3",
-			imageServer: "http://sanddragon.bl.uk",
-			imageId: "SanddragonImageService/RoyalMS",
-			imageSize: "200,",
-			imageRegion: "pct:33,20,40,70" 
 		}
 	}
 	
@@ -84,8 +75,8 @@ class App extends Component {
 };
 
 
-function mapStateToProps({ graph, graphUri, meiUri, teiUri, videoUri, audioUri, imageServer, imageId, imageSize, imageRegion }) {
-	return { graph, graphUri, meiUri, teiUri, videoUri, audioUri, imageServer, imageId, imageSize, imageRegion }
+function mapStateToProps({ graph, graphUri }) {
+	return { graph, graphUri }
 }
 
 function mapDispatchToProps(dispatch) { 
