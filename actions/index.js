@@ -4,6 +4,7 @@ export const FETCH_SCORE = 'FETCH_SCORE';
 export const FETCH_TEI = 'FETCH_TEI';
 export const FETCH_GRAPH = 'FETCH_GRAPH';
 export const FETCH_COMPONENT_TARGET = 'FETCH_COMPONENT_TARGET';
+export const PROCESS_ANNOTATION = 'PROCESS_ANNOTATION';
 
 export function fetchScore(uri) { 
 	console.log("FETCH_SCORE ACTION on URI: ", uri);
@@ -36,8 +37,18 @@ export function fetchGraph(uri) {
             });
             // fetch component annotation targets
             // TODO cater to multiple topLevels
-            data["@graph"]["ldp:contains"][0]["oa:hasBody"][0]["oa:hasTarget"].map(function (t) { 
-                fetchComponentTarget(t["@id"]);
+            data["@graph"]["ldp:contains"].map( (topLevel) => { 
+                topLevel["oa:hasBody"].map( (annotation) => { 
+                    dispatch( { 
+                        type: PROCESS_ANNOTATION,
+                        payload: annotation
+                    })
+                    ;
+                });
+
+
+            //data["@graph"]["ldp:contains"][0]["oa:hasBody"][0]["oa:hasTarget"].map(function (t) { 
+            //    dispatch(fetchComponentTarget(t["@id"]));
             });
         });
     }
@@ -52,3 +63,4 @@ export function fetchComponentTarget(uri) {
         payload: promise
     }
 }
+

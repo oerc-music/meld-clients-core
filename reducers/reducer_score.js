@@ -1,6 +1,6 @@
 import update from 'immutability-helper';
 import { vrvTk }  from '../containers/app';
-import { FETCH_SCORE } from '../actions/index'
+import { FETCH_SCORE, FETCH_COMPONENT_TARGET, PROCESS_ANNOTATION } from '../actions/index'
 
 export default function(state = {}, action) { 
 	switch(action.type) {
@@ -14,6 +14,9 @@ export default function(state = {}, action) {
                 scale: 30 
             });
 		return update(state, { $merge: { [action.payload.config.url]: svg } });
+    case PROCESS_ANNOTATION:
+        console.log("GOT PROCESS_ANNOTATION: ", action.payload);
+        return state;
 	default: 
 		return state;
 	};

@@ -20,8 +20,7 @@ class App extends Component {
 		super(props);
 		
 		this.state = {
-			graph: {},
-			graphUri: "./worksets/AskingForbidden.json-ld",
+			graphUri: "./worksets/AskingForbidden.json-ld"
 		}
 	}
 	
@@ -31,44 +30,30 @@ class App extends Component {
 		
 	render() { 
 		// Build an array of JSX objects corresponding to the annotation targets in our topLevel
-		if(this.props.graph) { 
+		if(this.props.graph.targetsById) { 
+            const byId = this.props.graph.targetsById;
 			return ( 
 				<div className="wrapper">
-					{this.props.graph["@graph"]["ldp:contains"][0]["oa:hasTarget"].map(function (t) { 
-						switch(t["@type"]) { 
+                {/*		{this.props.graph.annoGraph["@graph"]["ldp:contains"][0]["oa:hasTarget"].map(function (t) { */}
+                    {Object.keys(byId).map( (id) => { 
+                        console.log(byId[id]);
+						switch(byId[id]) { 
 						case MEIManifestation:
-							return <Score key={ t["@id"] } uri={ t["@id"] } />;
+                            console.log("Trying to return the score...");
+							return <Score key={ id } uri={ id } />;
 						case TEIManifestation:
-							return <TEI key={ t["@id"] } uri={ t["@id"] } />;
+							return <TEI key={ id } uri={ id } />;
 						case VideoManifestation: 
-							return <MediaPlayer key={ t["@id"] } uri={ t["@id"] } />;
+							return <MediaPlayer key={ id } uri={ id } />;
 						case AudioManifestation: 
-							return <MediaPlayer key={ t["@id"] } uri={ t["@id"] } />;
+							return <MediaPlayer key={ id } uri={ id } />;
 						default: 
-							return <div key={ t["@id"] }>Unhandled target type: {t["@type"]}</div>
+							return <div key={ id }>Unhandled target type: { byId[id] }</div>
 						}
 					})}
 				</div>
 			);
 		}
-		/*
-			return (
-				<div>
-					<MediaPlayer uri={this.state.videoUri} />
-					<div>Keys: {this.props.graph["@graph"]["ldp:contains"][0]["oa:hasTarget"]["@id"]}</div>
-					<MediaPlayer uri={this.state.audioUri} />
-					<IIIFImage 
-							server=	{this.state.imageServer} 
-							id=		{this.state.imageId}
-							region=	{this.state.imageRegion}
-							size=	{this.state.imageSize}
-						/>	
-					<Score uri={ this.state.meiUri } />
-					<TEI uri={ this.state.teiUri } />
-				</div>
-			)
-		}
-		*/
 		return <div>Loading...</div>
 	}
 	

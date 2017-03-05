@@ -9,7 +9,8 @@ class Score extends Component {
 		super(props);
 
 		this.state = { 
-			score: {}
+			score: {},
+            annotations:{}
 		};
 	}
 
