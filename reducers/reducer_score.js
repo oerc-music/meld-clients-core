@@ -15,7 +15,9 @@ export default function(state = {}, action) {
             });
 		return update(state, { $merge: { [action.payload.config.url]: svg } });
     case PROCESS_ANNOTATION:
-        console.log("GOT PROCESS_ANNOTATION: ", action.payload);
+        action.payload.targets[0].data.then(({data}) => {
+            console.log("GOT PROCESS_ANNOTATION: ", data);
+        })
         return state;
 	default: 
 		return state;

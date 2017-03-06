@@ -35,15 +35,10 @@ export function fetchGraph(uri) {
                 type: FETCH_GRAPH,
                 payload: data
             });
-            // fetch component annotation targets
-            // TODO cater to multiple topLevels
+            // walk through component annotations
             data["@graph"]["ldp:contains"].map( (topLevel) => { 
                 topLevel["oa:hasBody"].map( (annotation) => { 
-                    dispatch( { 
-                        type: PROCESS_ANNOTATION,
-                        payload: annotation
-                    })
-                    ;
+                    dispatch(processComponentAnnotation(annotation)); 
                 });
 
 
@@ -51,6 +46,25 @@ export function fetchGraph(uri) {
             //    dispatch(fetchComponentTarget(t["@id"]));
             });
         });
+    }
+}
+
+function processComponentAnnotation(annotation) { 
+    const targets = annotation["oa:hasTarget"].map( (target) => { 
+              return { 
+                "@id": target["@id"],
+                "@type": target["@type"], 
+                "data": axios.get(target["@id"])
+              }
+            });
+
+    return { 
+        type: PROCESS_ANNOTATION,
+        payload: { 
+            id: annotation["@id"],
+            bodies: annotation["oa:hasBody"],
+            targets: targets
+        }
     }
 }
 
