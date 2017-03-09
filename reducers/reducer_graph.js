@@ -16,7 +16,16 @@ export default function(state = INIT_STATE, action) {
         let byType = {};
         action.payload["@graph"]["ldp:contains"].map( (a) => {
             a["oa:hasTarget"].map( (targetResource) => { 
-                byId[targetResource["@id"]] = targetResource["@type"];
+				// lookup target IDs to get types and component annotations
+				if(targetResource["@id"] in byId) { 
+					byId[targetResource["@id"]]["annotations"].push(a["oa:hasBody"]);
+				} else { 
+					byId[targetResource["@id"]] = {
+						"type": targetResource["@type"],
+						"annotations": a["oa:hasBody"]
+					}
+				}
+				// lookup target type to get target ID
                 if(targetResource["@type"] in byType) { 
                     byType[targetResource["@type"]].push({ [targetResource["@id"]]: true });
                 } else { 
@@ -29,8 +38,6 @@ export default function(state = INIT_STATE, action) {
             targetsById: { $set: byId },
             targetsByType: { $set: byType }
         });
-    case FETCH_COMPONENT_TARGET:
-        console.log(action.payload);
 	default:
 		return state;
 	}

@@ -36,19 +36,18 @@ class App extends Component {
 				<div className="wrapper">
                 {/*		{this.props.graph.annoGraph["@graph"]["ldp:contains"][0]["oa:hasTarget"].map(function (t) { */}
                     {Object.keys(byId).map( (id) => { 
-                        console.log(byId[id]);
-						switch(byId[id]) { 
+						switch(byId[id]["type"]) { 
 						case MEIManifestation:
                             console.log("Trying to return the score...");
-							return <Score key={ id } uri={ id } />;
+							return <Score key={ id } uri={ id } annotations={ byId[id]["annotations"] } />;
 						case TEIManifestation:
-							return <TEI key={ id } uri={ id } />;
+							return <TEI key={ id } uri={ id } annotations={ byId[id]["annotations"] } />;
 						case VideoManifestation: 
 							return <MediaPlayer key={ id } uri={ id } />;
 						case AudioManifestation: 
 							return <MediaPlayer key={ id } uri={ id } />;
 						default: 
-							return <div key={ id }>Unhandled target type: { byId[id] }</div>
+							return <div key={ id }>Unhandled target type: { byId[id]["type"] }</div>
 						}
 					})}
 				</div>

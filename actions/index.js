@@ -1,4 +1,6 @@
 import axios from 'axios';
+import n3 from 'n3';
+import jsonld from 'jsonld'
 
 export const FETCH_SCORE = 'FETCH_SCORE';
 export const FETCH_TEI = 'FETCH_TEI';
@@ -50,31 +52,48 @@ export function fetchGraph(uri) {
 }
 
 function processComponentAnnotation(annotation) { 
-    const targets = annotation["oa:hasTarget"].map( (target) => { 
-              return { 
-                "@id": target["@id"],
-                "@type": target["@type"], 
-                "data": axios.get(target["@id"])
-              }
-            });
-
-    return { 
-        type: PROCESS_ANNOTATION,
-        payload: { 
-            id: annotation["@id"],
-            bodies: annotation["oa:hasBody"],
-            targets: targets
-        }
+    const targets = annotation["oa:hasTarget"].map( (target) => {
+			return { 
+				"@id": target["@id"],
+				"@type": target["@type"], 
+			}
+	});
+    return (dispatch) => { 
+		targets.map( (target) => {
+			dispatch(fetchComponentTarget(target["@id"]))
+		});
+		dispatch( { 
+			type: PROCESS_ANNOTATION,
+			payload: { 
+				id: annotation["@id"],
+				bodies: annotation["oa:hasBody"],
+				targets: targets
+			}
+		});
     }
 }
 
-export function fetchComponentTarget(uri) { 
-    const promise = axios.get(uri);
-    console.log("FETCH_COMPONENT_TARGET ACTION ON URI: ", uri);
 
-    return {
-        type: FETCH_COMPONENT_TARGET,
-        payload: promise
-    }
+export function fetchComponentTarget(uri) { 
+    console.log("FETCH_COMPONENT_TARGET ACTION ON URI: ", uri);
+	return (dispatch) => {
+		axios.get(uri).then((data) => { 
+			jsonld.fromRDF(data.data, (err, doc) => {
+				if(err) { console.log("ERROR TRANSLATING NQUADS TO JSONLD: ", err) }
+				else { 
+					jsonld.frame(doc, { "@id":uri }, (err, framed) => {
+						if(err) { console.log("FRAMING ERROR: ", err) }
+						else { 
+							dispatch( {
+								type: FETCH_COMPONENT_TARGET,
+								payload:framed
+							});
+						}
+						
+					});
+				}
+			});
+		});
+	}
 }
 
