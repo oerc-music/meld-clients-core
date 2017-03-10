@@ -14,7 +14,11 @@ export default function(state = INIT_STATE, action) {
 	case FETCH_GRAPH:
         let byId = {};
         let byType = {};
-        action.payload["@graph"]["ldp:contains"].map( (a) => {
+		let payload = action.payload;
+		if(typeof payload === "string") { 
+			payload = JSON.parse(payload);
+		}
+        payload["@graph"]["ldp:contains"].map( (a) => {
             a["oa:hasTarget"].map( (targetResource) => { 
 				// lookup target IDs to get types and component annotations
 				if(targetResource["@id"] in byId) { 
@@ -34,7 +38,7 @@ export default function(state = INIT_STATE, action) {
             });
         });
 		return update(state, {
-            annoGraph: { $set: action.payload },
+            annoGraph: { $set: payload },
             targetsById: { $set: byId },
             targetsByType: { $set: byType }
         });
