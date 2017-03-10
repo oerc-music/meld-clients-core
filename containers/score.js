@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import ReactDOM from 'react-dom'
 import { connect } from 'react-redux';
 import { bindActionCreators} from 'redux';
 import { fetchScore } from '../actions/index';
@@ -61,7 +62,7 @@ class Score extends Component {
 	handleMELDActions(bodies, fragments) { 
 		bodies.map( (b) => { 
 			if(b["@id"] === MARKUP_EMPHASIS) { 
-				this.props.handleEmphasis(this.props.uri, fragments);
+				this.props.handleEmphasis(ReactDOM.findDOMNode(this), this.props.uri, fragments);
 			}
 		});
 	}
