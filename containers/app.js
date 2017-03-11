@@ -20,12 +20,15 @@ class App extends Component {
 		super(props);
 		
 		this.state = {
-			graphUri: "./worksets/AskingForbidden.json-ld"
+			graphUri: ""
 		}
 	}
 	
 	componentDidMount() { 
-		this.props.fetchGraph(this.state.graphUri);
+		//TODO get the graphUri properly
+		const graphUri = window.location.href.substr(window.location.href.indexOf("?annotations=")+13);
+		this.props.fetchGraph(graphUri);
+		
 	}
 		
 	render() { 

@@ -79,7 +79,7 @@ export function fetchComponentTarget(uri) {
 	return (dispatch) => {
 		axios.get(uri).then((data) => { 
 			jsonld.fromRDF(data.data, (err, doc) => {
-				if(err) { console.log("ERROR TRANSLATING NQUADS TO JSONLD: ", err) }
+				if(err) { console.log("ERROR TRANSLATING NQUADS TO JSONLD: ", err, data.data) }
 				else { 
 					jsonld.frame(doc, { "@id":uri }, (err, framed) => {
 						if(err) { console.log("FRAMING ERROR: ", err) }
