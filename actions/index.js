@@ -18,12 +18,18 @@ export function fetchScore(uri) {
 }
 
 export function fetchTEI(uri) { 
-	console.log("FETCH_TEI ACTION on URI: ", uri);
 	const promise = new CETEI().getHTML5(uri);
-	return {
-		type: FETCH_TEI,
-		payload: promise
-	}
+    return (dispatch) =>  {
+        promise.then( (data)  => { 
+            dispatch( {
+                type: FETCH_TEI,
+                payload: {
+                    data: data,
+                    uri: uri
+                }
+            });
+        });
+    }
 }
 
 export function fetchGraph(uri) {
@@ -43,9 +49,6 @@ export function fetchGraph(uri) {
                     dispatch(processComponentAnnotation(annotation)); 
                 });
 
-
-            //data["@graph"]["ldp:contains"][0]["oa:hasBody"][0]["oa:hasTarget"].map(function (t) { 
-            //    dispatch(fetchComponentTarget(t["@id"]));
             });
         });
     }
