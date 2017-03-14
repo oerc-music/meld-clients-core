@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { fetchTEI } from '../actions/index';
+import { MARKUP_EMPHASIS, handleEmphasis } from '../actions/meldActions';
 
 class TEI extends Component { 
 	constructor(props) { 
@@ -56,6 +57,14 @@ class TEI extends Component {
 		});
 	}
 		
+	handleMELDActions(bodies, fragments) { 
+		//TODO consider refactoring this (copy exists in score container)
+		bodies.map( (b) => { 
+			if(b["@id"] === MARKUP_EMPHASIS) { 
+				this.props.handleEmphasis(ReactDOM.findDOMNode(this), this.props.uri, fragments);
+			}
+		});
+	}
 
 
 }
@@ -65,7 +74,7 @@ function mapStateToProps({ tei }) {
 }
 
 function mapDispatchToProps(dispatch) { 
-	return bindActionCreators({ fetchTEI }, dispatch);
+	return bindActionCreators({ fetchTEI, handleEmphasis }, dispatch);
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(TEI);

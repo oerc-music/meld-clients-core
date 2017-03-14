@@ -5,9 +5,12 @@ export function handleEmphasis(component, uri, fragments) {
 	console.log("Got component: ", component);
 	fragments.map((f) => {  
 		const fLocalId = f.substr(f.indexOf("#"))
-		const svgElement = component.querySelector(fLocalId);
-		if (svgElement) { 
-			component.querySelector(fLocalId).style.fill = "red";
+		const element = component.querySelector(fLocalId);
+		if (element) { 
+			if(!element.classList.contains("meld-emphasis")) {
+				element.classList.add("meld-emphasis");
+			}
+			console.log("HANDLED ELEMENT: ", element);
 		}
 	});
 	return {
