@@ -13,7 +13,7 @@ class MediaPlayer extends Component {
 					<div className="media-controls">
 						<PlayPause/>
 						<CurrentTime/>
-						<Progress/>  
+						{/* <Progress/> */}
 						<SeekBar/>
 						<Duration/>
 						<MuteUnmute/>

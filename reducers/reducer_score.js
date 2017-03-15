@@ -9,10 +9,13 @@ export default function(state = {MEI: {}, componentTargets: {}}, action) {
 	switch(action.type) {
 	case FETCH_SCORE:
         const svg = vrvTk.renderData(action.payload.data, {
-                pageHeight: 1200,
+                pageHeight: 1500,
                 pageWidth: 2000,
 				spacingLinear: 0.1,
 				spacingNonLinear: 0.3,
+				spacingStaff: 0.1,
+				spacingSystem: 0.1,
+				noLayout: true,
                 adjustPageHeight: true,
                 scale: 30 
             });
