@@ -18,10 +18,6 @@ export const vrvTk = new verovio.toolkit();
 class App extends Component { 
 	constructor(props) {
 		super(props);
-		
-		this.state = {
-			//graphUri: ""
-		}
 	}
 	
 	componentDidMount() { 
@@ -49,7 +45,7 @@ class App extends Component {
 						case VideoManifestation: 
 							return <MediaPlayer key={ id } uri={ id } />;
 						case AudioManifestation: 
-							return <MediaPlayer key={ id } uri={ id } />;
+							return <MediaPlayer key={ id } uri={ id } ref={ audio => this.audio = audio } />;
 						default: 
 							return <div key={ id }>Unhandled target type: { byId[id]["type"] }</div>
 						}
@@ -62,6 +58,11 @@ class App extends Component {
 	
 };
 
+
+function componentWillReceiveProps(nextProps) { 
+	console.log("NEXT PROPS: ", nextProps);
+}
+	
 
 function mapStateToProps({ graph, graphUri }) {
 	return { graph, graphUri }

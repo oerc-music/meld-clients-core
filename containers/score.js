@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom'
 import { connect } from 'react-redux';
 import { bindActionCreators} from 'redux';
 import { fetchScore } from '../actions/index';
-import { MARKUP_EMPHASIS, handleEmphasis } from '../actions/meldActions';
+import { MARKUP_EMPHASIS, handleEmphasis, CUE_AUDIO, handleCueAudio } from '../actions/meldActions';
 import InlineSVG from 'svg-inline-react';
 
 
@@ -62,9 +62,14 @@ class Score extends Component {
 
 	handleMELDActions(annotation, fragments) { 
 		if("oa:hasBody" in annotation) { 
-			annotation["oa:hasBody"].map( (b) => { 
+			annotation["oa:hasBody"].map( (b) => {
+				// TODO convert to switch statement
 				if(b["@id"] === MARKUP_EMPHASIS) { 
 					this.props.handleEmphasis(ReactDOM.findDOMNode(this), annotation, this.props.uri, fragments);
+				} else if(b["@id"] === CUE_AUDIO) { 
+					this.props.handleCueAudio(ReactDOM.findDOMNode(this), annotation, b, this.props.uri, fragments);
+				} else {
+					console.log("Score component unable to handle meld action: ", b);
 				}
 			});
 		}
@@ -77,7 +82,7 @@ function mapStateToProps({ score }) {
 }
 
 function mapDispatchToProps(dispatch) { 
-	return bindActionCreators({ fetchScore, handleEmphasis }, dispatch);
+	return bindActionCreators({ fetchScore, handleEmphasis, handleCueAudio }, dispatch);
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(Score);

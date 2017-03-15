@@ -23,12 +23,18 @@ export default function(state = {MEI: {}, componentTargets: {}}, action) {
 
     case FETCH_COMPONENT_TARGET:
 		// find the embodibag
+		let fragments;
 		const target = action.payload["@graph"][0];
 		if(EMBODIMENT in target && MEMBER in target[EMBODIMENT] ) { 
 			// extract set of target fragments
-			const fragments = target[EMBODIMENT][MEMBER].map( (member) => {
-				return member["@id"];
-			});
+			console.log("LOOKING AT TARGET: ", target[EMBODIMENT]);
+			if(Array.isArray(target[EMBODIMENT][MEMBER])) { 
+				fragments = target[EMBODIMENT][MEMBER].map( (member) => {
+					return member["@id"];
+				});
+			} else { 
+				fragments = [ target[EMBODIMENT][MEMBER]["@id"] ]; // only one fragment
+			}
 			return update(state, {componentTargets: { $merge: { [target["@id"]]: fragments } } });
 		}
 		console.log("FETCH_COMPONENT_TARGET: Unembodied target! ", target);
