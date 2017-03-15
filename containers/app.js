@@ -20,7 +20,7 @@ class App extends Component {
 		super(props);
 		
 		this.state = {
-			graphUri: ""
+			//graphUri: ""
 		}
 	}
 	
@@ -37,6 +37,7 @@ class App extends Component {
             const byId = this.props.graph.targetsById;
 			return ( 
 				<div className="wrapper">
+					<div className="controls" />
                 {/*		{this.props.graph.annoGraph["@graph"]["ldp:contains"][0]["oa:hasTarget"].map(function (t) { */}
                     {Object.keys(byId).map( (id) => { 
 						switch(byId[id]["type"]) { 

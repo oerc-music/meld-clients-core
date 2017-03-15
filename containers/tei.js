@@ -37,6 +37,7 @@ class TEI extends Component {
 			const frags = annotation["oa:hasTarget"].map( (annotationTarget) => { 
                 console.log("Looking at annotation target ", annotationTarget);
 				// each annotation target
+				console.log("HELLO FM TEI", annotationTarget, this.props.tei.componentTargets);
 				if(annotationTarget["@id"] in this.props.tei.componentTargets) {
 					// if this is my target, grab any of MY fragment IDs
 					const myFrags = this.props.tei.componentTargets[annotationTarget["@id"]]
@@ -46,24 +47,26 @@ class TEI extends Component {
 					});
 					if(myFrags.length) {
 						// and apply any annotations
-						this.handleMELDActions(annotation["oa:hasBody"], myFrags);
+						this.handleMELDActions(annotation, myFrags);
 					}
 				}
 			});
-			const myFrags = frags.filter( (f) => {return typeof f !== "undefined"});
-			if(myFrags.length) { 
-				this.handleMELDActions(annotation["oa:hasBody"], myFrags);
-			}
+		//	const myFrags = frags.filter( (f) => {return typeof f !== "undefined"});
+		//	if(myFrags.length) { 
+		//		this.handleMELDActions(annotation["oa:hasBody"], myFrags);
+		//	}
 		});
 	}
 		
-	handleMELDActions(bodies, fragments) { 
-		//TODO consider refactoring this (copy exists in score container)
-		bodies.map( (b) => { 
-			if(b["@id"] === MARKUP_EMPHASIS) { 
-				this.props.handleEmphasis(ReactDOM.findDOMNode(this), this.props.uri, fragments);
-			}
-		});
+	handleMELDActions(annotation, fragments) { 
+		//TODO refactoring this (copy exists in score container)
+		if("oa:hasBody" in annotation) {
+			annotation["oa:hasBody"].map( (b) => { 
+				if(b["@id"] === MARKUP_EMPHASIS) { 
+					this.props.handleEmphasis(ReactDOM.findDOMNode(this), annotation, this.props.uri, fragments);
+				}
+			});
+		} else { console.log("Skipping annotation without body: ", annotation) }
 	}
 
 
