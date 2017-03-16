@@ -61,7 +61,16 @@ export function handleEmphasis(component, annotation, uri, fragments) {
 				element.classList.add("meld-emphasis");
 			}
 			applyAnnotationId(element, annotation);
+			element.onmouseover = function(){ 
+				let emphasised = document.querySelectorAll(".meld-emphasis");
+				Array.prototype.map.call(emphasised, function(em) { em.classList.add("infocus")});
+			}
+			element.onmouseleave = function(){ 
+				let emphasised = document.querySelectorAll(".meld-emphasis");
+				Array.prototype.map.call(emphasised, function(em) { em.classList.remove("infocus")});
+			}
 		}
+
 	});
 	return annotationHandled();
 }
@@ -75,6 +84,14 @@ export function handleHighlight(component, annotation, uri, fragments) {
 				element.classList.add("meld-highlight");
 			}
 			applyAnnotationId(element, annotation);
+			element.onmouseover = function(){ 
+				let highlighted = document.querySelectorAll(".meld-highlight");
+				Array.prototype.map.call(highlighted, function(em) { em.classList.add("infocus")});
+			}
+			element.onmouseleave = function(){ 
+				let highlighted= document.querySelectorAll(".meld-highlight");
+				Array.prototype.map.call(highlighted, function(em) { em.classList.remove("infocus")});
+			}
 		}
 	});
 	return annotationHandled();
