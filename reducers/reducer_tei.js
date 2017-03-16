@@ -11,6 +11,7 @@ export default function(state = {TEI: {}, componentTargets: {}, fragImages:{}}, 
 	case FETCH_COMPONENT_TARGET:
 		// find associated TEI
 		const target = action.payload["@graph"][0];
+		console.log("In F_C_T TEI, target is: ", target);
         if(ASSOCIATED in target) { 
 			if(!Array.isArray(target[ASSOCIATED])) { 
 				target[ASSOCIATED] = [target[ASSOCIATED]];
@@ -21,7 +22,6 @@ export default function(state = {TEI: {}, componentTargets: {}, fragImages:{}}, 
                 return assoc["@id"];
             });
             const targetid = target["@id"];
-			console.log("Setting tei fragments: ", fragments);
 			// are there any associated images?
 			const fragImages = {};
 		    target[ASSOCIATED].filter( (assoc) => {
@@ -29,7 +29,6 @@ export default function(state = {TEI: {}, componentTargets: {}, fragImages:{}}, 
 			}).map( (assoc) => { 
 				fragImages[assoc["@id"]] = assoc[EMBODIMENT]["@id"];
 			})
-			console.log("TARGET ID IS ", target["@id"]);
             return update(state, {
 				componentTargets: { $set: { [target["@id"]]: fragments }},
 				fragImages: { $merge: fragImages }

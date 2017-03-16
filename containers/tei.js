@@ -45,13 +45,10 @@ class TEI extends Component {
 				// each annotation target
 				if(annotationTarget["@id"] in this.props.tei.componentTargets) {
 					// if this is my target, grab any of MY fragment IDs
-					console.log("TEI container updating. My component targets: ", this.props.tei.componentTargets, " annotation target:", annotationTarget);
-					console.log("This props uri", this.props.uri);
 					const myFrags = this.props.tei.componentTargets[annotationTarget["@id"]]
 					.filter( (frag) => {;
 							return frag.substr(0, frag.indexOf("#")) === this.props.uri;
 					});
-					console.log("And finally myFrags: ", myFrags);
 					if(myFrags.length) {
 						// and apply any annotations
 						this.handleMELDActions(annotation, myFrags);
@@ -73,7 +70,7 @@ class TEI extends Component {
 					this.props.handleCueImage(ReactDOM.findDOMNode(this), annotation, this.props.uri, fragments, this.props.tei.fragImages);
 				}
 				else {
-					console.log("Score component unable to handle meld action: ", b);
+					console.log("TEI component unable to handle meld action: ", b);
 				}
 			});
 		}
@@ -86,7 +83,7 @@ function mapStateToProps({ tei }) {
 }
 
 function mapDispatchToProps(dispatch) { 
-	return bindActionCreators({ fetchTEI, handleEmphasis, handleCueImage }, dispatch);
+	return bindActionCreators({ fetchTEI, handleEmphasis, handleCueImage, handleHighlight }, dispatch);
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(TEI);

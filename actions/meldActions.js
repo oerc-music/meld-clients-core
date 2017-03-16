@@ -22,15 +22,14 @@ export function handleCueImage(component, annotation, uri, fragments, fragImages
 			let images = document.querySelectorAll("img");
 			Array.prototype.map.call(images, function(i) { i.style.visibility="hidden" });
 			const query = "img[src='" + myImage + "']";
-			console.log("Query: ", query);
 			document.querySelector(query).style.visibility ="visible";
 		}
 	});
+	return annotationHandled(annotation)
 }	
 
 export function handleCueAudio(component, annotation, body, uri, fragments) { 
     if("MEI" in fragments && "Audio" in fragments) { 
-        console.log(fragments);
         fragments.MEI.map((f) => { 
             const fLocalId = f.substr(f.indexOf("#"))
             const element = component.querySelector(fLocalId);
@@ -54,7 +53,6 @@ export function handleCueAudio(component, annotation, body, uri, fragments) {
 }
 
 export function handleEmphasis(component, annotation, uri, fragments) {
-	console.log("Trying emphasis. Fragments: ", fragments);
 	fragments.map((f) => {  
 		const fLocalId = f.substr(f.indexOf("#"))
 		const element = component.querySelector(fLocalId);
@@ -69,7 +67,6 @@ export function handleEmphasis(component, annotation, uri, fragments) {
 }
 
 export function handleHighlight(component, annotation, uri, fragments) {
-	console.log("handleHighlight got frags", fragments);
 	fragments.map((f) => {  
 		const fLocalId = f.substr(f.indexOf("#"))
 		const element = component.querySelector(fLocalId);
