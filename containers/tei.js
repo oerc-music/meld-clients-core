@@ -3,7 +3,14 @@ import ReactDOM from 'react-dom';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { fetchTEI } from '../actions/index';
-import { MARKUP_EMPHASIS, handleEmphasis } from '../actions/meldActions';
+import { 
+	MARKUP_EMPHASIS, 
+	handleEmphasis,
+	MARKUP_HIGHLIGHT,
+	handleHighlight,
+	CUE_IMAGE,
+	handleCueImage
+} from '../actions/meldActions';
 
 class TEI extends Component { 
 	constructor(props) { 
@@ -38,35 +45,40 @@ class TEI extends Component {
 				// each annotation target
 				if(annotationTarget["@id"] in this.props.tei.componentTargets) {
 					// if this is my target, grab any of MY fragment IDs
+					console.log("TEI container updating. My component targets: ", this.props.tei.componentTargets, " annotation target:", annotationTarget);
+					console.log("This props uri", this.props.uri);
 					const myFrags = this.props.tei.componentTargets[annotationTarget["@id"]]
 					.filter( (frag) => {;
 							return frag.substr(0, frag.indexOf("#")) === this.props.uri;
 					});
+					console.log("And finally myFrags: ", myFrags);
 					if(myFrags.length) {
 						// and apply any annotations
 						this.handleMELDActions(annotation, myFrags);
 					}
 				}
 			});
-		//	const myFrags = frags.filter( (f) => {return typeof f !== "undefined"});
-		//	if(myFrags.length) { 
-		//		this.handleMELDActions(annotation["oa:hasBody"], myFrags);
-		//	}
 		});
 	}
 		
 	handleMELDActions(annotation, fragments) { 
-		//TODO refactoring this (copy exists in score container)
-		if("oa:hasBody" in annotation) {
-			annotation["oa:hasBody"].map( (b) => { 
+		if("oa:hasBody" in annotation) { 
+			annotation["oa:hasBody"].map( (b) => {
+				// TODO convert to switch statement
 				if(b["@id"] === MARKUP_EMPHASIS) { 
 					this.props.handleEmphasis(ReactDOM.findDOMNode(this), annotation, this.props.uri, fragments);
+				} else if(b["@id"] === MARKUP_HIGHLIGHT) { 
+					this.props.handleHighlight(ReactDOM.findDOMNode(this), annotation, this.props.uri, fragments);
+				} else if(b["@id"] === CUE_IMAGE) {
+					this.props.handleCueImage(ReactDOM.findDOMNode(this), annotation, this.props.uri, fragments, this.props.tei.fragImages);
+				}
+				else {
+					console.log("Score component unable to handle meld action: ", b);
 				}
 			});
-		} else { console.log("Skipping annotation without body: ", annotation) }
+		}
+		else { console.log("Skipping annotation without body: ", annotation) }
 	}
-
-
 }
 
 function mapStateToProps({ tei }) { 
@@ -74,7 +86,7 @@ function mapStateToProps({ tei }) {
 }
 
 function mapDispatchToProps(dispatch) { 
-	return bindActionCreators({ fetchTEI, handleEmphasis }, dispatch);
+	return bindActionCreators({ fetchTEI, handleEmphasis, handleCueImage }, dispatch);
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(TEI);

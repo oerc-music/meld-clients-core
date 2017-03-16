@@ -4,8 +4,29 @@ export const MARKUP_EMPHASIS = "meldterm:emphasis";
 export const MARKUP_HIGHLIGHT = "meldterm:highlight";
 export const CUE_AUDIO = "meldterm:CueAudio";
 export const CUE_AUDIO_HANDLED = "CUE_AUDIO_HANDLED";
+export const CUE_IMAGE = "meldterm:CueImage";
+export const CUE_IMAGE_HANDLED = "CUE_IMAGE_HANDLED";
 export const ANNOTATION_HANDLED = "ANNOTATION_HANDLED";
 export const ANNOTATION_NOT_HANDLED = "ANNOTATION_NOT_HANDLED";
+
+export function handleCueImage(component, annotation, uri, fragments, fragImages) {
+	const haveImages = fragments.filter((f) => f in fragImages);
+	if(!haveImages.length) { 
+		return annotationNotHandled(annotation)
+	}
+	haveImages.map((f) => {
+		const fLocalId = f.substr(f.indexOf("#"))
+		const element = component.querySelector(fLocalId);
+		const myImage = fragImages[f];
+		element.onclick = function() { 
+			let images = document.querySelectorAll("img");
+			Array.prototype.map.call(images, function(i) { i.style.visibility="hidden" });
+			const query = "img[src='" + myImage + "']";
+			console.log("Query: ", query);
+			document.querySelector(query).style.visibility ="visible";
+		}
+	});
+}	
 
 export function handleCueAudio(component, annotation, body, uri, fragments) { 
     if("MEI" in fragments && "Audio" in fragments) { 
@@ -48,6 +69,7 @@ export function handleEmphasis(component, annotation, uri, fragments) {
 }
 
 export function handleHighlight(component, annotation, uri, fragments) {
+	console.log("handleHighlight got frags", fragments);
 	fragments.map((f) => {  
 		const fLocalId = f.substr(f.indexOf("#"))
 		const element = component.querySelector(fLocalId);
