@@ -40,22 +40,26 @@ class Score extends Component {
 			const frags = annotation["oa:hasTarget"].map( (annotationTarget) => { 
 				// each annotation target
 				if(annotationTarget["@id"] in this.props.score.componentTargets) {
-					// if this is my target, grab any of MY fragment IDs
-					const myFrags = this.props.score.componentTargets[annotationTarget["@id"]]
-					.filter( (frag) => {;
-							return frag.substr(0, frag.indexOf("#")) === this.props.uri;
-					});
-					if(myFrags.length) {
-						// and apply any annotations
-						console.log("Calling handleMELDActions with frags", myFrags);
-						this.handleMELDActions(annotation, myFrags);
-					}
+                    console.log("In score componentDidUpdate: ", 
+                        this.props.score.componentTargets[annotationTarget["@id"]], annotation);
+                    // if this is my target, grab frag ids according to media type
+                    const mediaTypes = Object.keys(this.props.score.componentTargets[annotationTarget["@id"]]);
+                    let myFrags = {};
+                    mediaTypes.map( (type) => {
+                        if(type === "MEI") { 
+                            // only grab MY frag IDs, for THIS mei file
+                            myFrags[type] = this.props.score.componentTargets[annotationTarget["@id"]][type].filter( (frag) => {
+                                return frag.substr(0, frag.indexOf("#")) === this.props.uri;
+                            })
+                        } else {
+                           //TODO think about what to do here to filter (e.g. multiple audios) 
+                            myFrags[type] = this.props.score.componentTargets[annotationTarget["@id"]][type]; 
+                        }
+                    });
+                    // and apply any annotations
+                    this.handleMELDActions(annotation, myFrags);
 				}
 			});
-			//const myFrags = frags.filter( (f) => {return typeof f !== "undefined"});
-			//if(myFrags.length) { 
-				//this.handleMELDActions(annotation["oa:hasBody"], myFrags);
-			//}
 		});
 			
 	}
@@ -65,7 +69,7 @@ class Score extends Component {
 			annotation["oa:hasBody"].map( (b) => {
 				// TODO convert to switch statement
 				if(b["@id"] === MARKUP_EMPHASIS) { 
-					this.props.handleEmphasis(ReactDOM.findDOMNode(this), annotation, this.props.uri, fragments);
+					this.props.handleEmphasis(ReactDOM.findDOMNode(this), annotation, this.props.uri, fragments["MEI"]);
 				} else if(b["@id"] === CUE_AUDIO) { 
 					this.props.handleCueAudio(ReactDOM.findDOMNode(this), annotation, b, this.props.uri, fragments);
 				} else {

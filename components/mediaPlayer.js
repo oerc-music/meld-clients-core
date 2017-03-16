@@ -4,6 +4,7 @@ const { PlayPause, CurrentTime, Progress, SeekBar, Duration, MuteUnmute, Volume,
 
 class MediaPlayer extends Component { 
 	render() {
+        console.log("MEDIA PLAYER HAS PROPS: ", this.props);
 		return (
 			<Media>
 				<div className="media">

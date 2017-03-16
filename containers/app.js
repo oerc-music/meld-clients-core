@@ -3,6 +3,7 @@ import { connect } from 'react-redux' ;
 import { bindActionCreators } from 'redux';
 import IIIFImage from 'react-iiif-image';
 import MediaPlayer from '../components/mediaPlayer';
+import AudioPlayer from '../components/audioPlayer';
 import Score from '../containers/score';
 import TEI from '../containers/tei';
 import { fetchGraph } from '../actions/index';
@@ -45,7 +46,8 @@ class App extends Component {
 						case VideoManifestation: 
 							return <MediaPlayer key={ id } uri={ id } />;
 						case AudioManifestation: 
-							return <MediaPlayer key={ id } uri={ id } ref={ audio => this.audio = audio } />;
+                            {/*return <MediaPlayer key={ id } uri={ id } cueAudio={ this.state.cueAudio } />; */}
+                            return <AudioPlayer key={ id } uri={ id } />;
 						default: 
 							return <div key={ id }>Unhandled target type: { byId[id]["type"] }</div>
 						}
