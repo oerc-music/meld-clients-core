@@ -10,7 +10,6 @@ export default function(state = {TEI: {}, componentTargets: {}}, action) {
 	case FETCH_COMPONENT_TARGET:
 		// find associated TEI
 		const target = action.payload["@graph"][0];
-        console.log("In F_C_T target is: ", target);
         if(ASSOCIATED in target) { 
             // extract target fragments
             // TODO properly ontologize ASSOCIATED, including differentiating TEI and others

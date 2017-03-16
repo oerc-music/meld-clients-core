@@ -3,7 +3,15 @@ import ReactDOM from 'react-dom'
 import { connect } from 'react-redux';
 import { bindActionCreators} from 'redux';
 import { fetchScore } from '../actions/index';
-import { MARKUP_EMPHASIS, handleEmphasis, CUE_AUDIO, handleCueAudio } from '../actions/meldActions';
+import { 
+	MARKUP_EMPHASIS, 
+	handleEmphasis,
+	MARKUP_HIGHLIGHT,
+	handleHighlight,  
+	CUE_AUDIO, 
+	handleCueAudio 
+} from '../actions/meldActions';
+
 import InlineSVG from 'svg-inline-react';
 
 
@@ -40,8 +48,6 @@ class Score extends Component {
 			const frags = annotation["oa:hasTarget"].map( (annotationTarget) => { 
 				// each annotation target
 				if(annotationTarget["@id"] in this.props.score.componentTargets) {
-                    console.log("In score componentDidUpdate: ", 
-                        this.props.score.componentTargets[annotationTarget["@id"]], annotation);
                     // if this is my target, grab frag ids according to media type
                     const mediaTypes = Object.keys(this.props.score.componentTargets[annotationTarget["@id"]]);
                     let myFrags = {};
@@ -70,7 +76,9 @@ class Score extends Component {
 				// TODO convert to switch statement
 				if(b["@id"] === MARKUP_EMPHASIS) { 
 					this.props.handleEmphasis(ReactDOM.findDOMNode(this), annotation, this.props.uri, fragments["MEI"]);
-				} else if(b["@id"] === CUE_AUDIO) { 
+				} else if(b["@id"] === MARKUP_HIGHLIGHT) { 
+					this.props.handleHighlight(ReactDOM.findDOMNode(this), annotation, this.props.uri, fragments["MEI"]);
+				}  else if(b["@id"] === CUE_AUDIO) { 
 					this.props.handleCueAudio(ReactDOM.findDOMNode(this), annotation, b, this.props.uri, fragments);
 				} else {
 					console.log("Score component unable to handle meld action: ", b);
@@ -86,7 +94,7 @@ function mapStateToProps({ score }) {
 }
 
 function mapDispatchToProps(dispatch) { 
-	return bindActionCreators({ fetchScore, handleEmphasis, handleCueAudio }, dispatch);
+	return bindActionCreators({ fetchScore, handleEmphasis, handleHighlight, handleCueAudio }, dispatch);
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(Score);

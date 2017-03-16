@@ -39,7 +39,6 @@ class App extends Component {
                     {Object.keys(byId).map( (id) => { 
 						switch(byId[id]["type"]) { 
 						case MEIManifestation:
-                            console.log("Trying to return the score...");
 							return <Score key={ id } uri={ id } annotations={ byId[id]["annotations"] } />;
 						case TEIManifestation:
 							return <TEI key={ id } uri={ id } annotations={ byId[id]["annotations"] } />;
@@ -60,11 +59,6 @@ class App extends Component {
 	
 };
 
-
-function componentWillReceiveProps(nextProps) { 
-	console.log("NEXT PROPS: ", nextProps);
-}
-	
 
 function mapStateToProps({ graph, graphUri }) {
 	return { graph, graphUri }

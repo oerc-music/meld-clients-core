@@ -1,6 +1,7 @@
 import ReactDOM from 'react-dom';
 
-export const MARKUP_EMPHASIS = "meldterm:highlight";
+export const MARKUP_EMPHASIS = "meldterm:emphasis";
+export const MARKUP_HIGHLIGHT = "meldterm:highlight";
 export const CUE_AUDIO = "meldterm:CueAudio";
 export const CUE_AUDIO_HANDLED = "CUE_AUDIO_HANDLED";
 export const ANNOTATION_HANDLED = "ANNOTATION_HANDLED";
@@ -32,6 +33,7 @@ export function handleCueAudio(component, annotation, body, uri, fragments) {
 }
 
 export function handleEmphasis(component, annotation, uri, fragments) {
+	console.log("Trying emphasis. Fragments: ", fragments);
 	fragments.map((f) => {  
 		const fLocalId = f.substr(f.indexOf("#"))
 		const element = component.querySelector(fLocalId);
@@ -45,6 +47,19 @@ export function handleEmphasis(component, annotation, uri, fragments) {
 	return annotationHandled();
 }
 
+export function handleHighlight(component, annotation, uri, fragments) {
+	fragments.map((f) => {  
+		const fLocalId = f.substr(f.indexOf("#"))
+		const element = component.querySelector(fLocalId);
+		if (element) { 
+			if(!element.classList.contains("meld-highlight")) {
+				element.classList.add("meld-highlight");
+			}
+			applyAnnotationId(element, annotation);
+		}
+	});
+	return annotationHandled();
+}
 function annotationHandled(annotation) {
 	return {
 		type: ANNOTATION_HANDLED,

@@ -35,14 +35,11 @@ class TEI extends Component {
 		this.props.annotations.map( (annotation) => {
 			// each annotation...
 			const frags = annotation["oa:hasTarget"].map( (annotationTarget) => { 
-                console.log("Looking at annotation target ", annotationTarget);
 				// each annotation target
-				console.log("HELLO FM TEI", annotationTarget, this.props.tei.componentTargets);
 				if(annotationTarget["@id"] in this.props.tei.componentTargets) {
 					// if this is my target, grab any of MY fragment IDs
 					const myFrags = this.props.tei.componentTargets[annotationTarget["@id"]]
 					.filter( (frag) => {;
-                            console.log("Comparing ", this.props.uri, "and frag ", frag);
 							return frag.substr(0, frag.indexOf("#")) === this.props.uri;
 					});
 					if(myFrags.length) {

@@ -28,7 +28,6 @@ export default function(state = {MEI: {}, componentTargets: {}}, action) {
 		let fragments={};
         let fragtype;
 		const target = action.payload["@graph"][0];
-        console.log("I'm looking at the target: ", target);
         if(EMBODIMENT in target) { 
             if(!Array.isArray(target[EMBODIMENT])) { 
                 target[EMBODIMENT] = [target[EMBODIMENT]];
@@ -36,17 +35,13 @@ export default function(state = {MEI: {}, componentTargets: {}}, action) {
             target[EMBODIMENT].map( (embodiment) => { 
                 if(MEMBER in embodiment) {
                 // extract set of target fragments
-                    console.log("LOOKING AT embodiment: ", embodiment); 
                     // we want to separate out different types of media fragments
                     if(!Array.isArray(embodiment["@type"])) { 
                         embodiment["@type"] = [embodiment["@type"]];
                     }
-                    console.log("TYPES ARRAY: ", embodiment["@type"]);
                     if (embodiment["@type"].includes(MEITYPE)) {
-                        console.log("FOUND MEI TYPE", embodiment)
                         fragtype="MEI";
                     } else if (embodiment["@type"].includes(AUDIOTYPE)) { 
-                        console.log("FOUND AUDIO TYPE", embodiment)
                         fragtype="Audio";
                     } else { console.log("Embodiment with unknown type", embodiment); }
                     if(!Array.isArray(embodiment[MEMBER])) { 
@@ -55,9 +50,8 @@ export default function(state = {MEI: {}, componentTargets: {}}, action) {
                     fragments[fragtype] = embodiment[MEMBER].map( (member) => {
                         return member["@id"];
                     });
-                } else { console.log("Embodiment without members: ", embodiment); }
+                } else { console.log("Embodiment without members: ", target, embodiment); }
             });
-            console.log("Updating with ", target["@id"], fragments);
 			return update(state, {componentTargets: { $merge: { [target["@id"]]: fragments } } });
 		}
 		console.log("FETCH_COMPONENT_TARGET: Unembodied target! ", target);
