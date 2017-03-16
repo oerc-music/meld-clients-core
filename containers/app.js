@@ -6,6 +6,7 @@ import MediaPlayer from '../components/mediaPlayer';
 import AudioPlayer from '../components/audioPlayer';
 import Score from '../containers/score';
 import TEI from '../containers/tei';
+import MyImage from '../containers/image';
 import { fetchGraph } from '../actions/index';
 
 const MEIManifestation = "meldterm:MEIManifestation";
@@ -13,6 +14,7 @@ const TEIManifestation = "meldterm:TEIManifestation";
 const IIIFManifestation = "meldterm:IIIFManifestation";
 const VideoManifestation = "meldterm:VideoManifestation";
 const AudioManifestation = "meldterm:AudioManifestation";
+const ImageManifestation = "meldterm:ImageManifestation";
 
 export const vrvTk = new verovio.toolkit();
 
@@ -45,8 +47,9 @@ class App extends Component {
 						case VideoManifestation: 
 							return <MediaPlayer key={ id } uri={ id } />;
 						case AudioManifestation: 
-                            {/*return <MediaPlayer key={ id } uri={ id } cueAudio={ this.state.cueAudio } />; */}
                             return <AudioPlayer key={ id } uri={ id } />;
+						case ImageManifestation: 
+                            return <MyImage key={ id } uri={ id } />;
 						default: 
 							return <div key={ id }>Unhandled target type: { byId[id]["type"] }</div>
 						}
