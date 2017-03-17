@@ -27,7 +27,13 @@ class TEI extends Component {
 
 	render() { 
 		if(Object.keys(this.props.tei.TEI).length) { 
-			return <div dangerouslySetInnerHTML={ this.returnHTMLizedTEI() } className="TEIContainer" />;
+			// HACK //
+			if(this.props.uri.indexOf("commentaries") > -1) { 
+				return <div dangerouslySetInnerHTML={ this.returnHTMLizedTEI() } className="TEIContainer commentary" id={this.props.uri.substr(this.props.uri.indexOf("commentaries/")+13)} />;
+			} else { 
+				return <div dangerouslySetInnerHTML={ this.returnHTMLizedTEI() } className="TEIContainer" />;
+			}
+			// END HACK //
 		}
 		return <div> Loading TEI... </div>;
 	}
