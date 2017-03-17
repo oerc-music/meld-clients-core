@@ -7,6 +7,7 @@ import AudioPlayer from '../components/audioPlayer';
 import Score from '../containers/score';
 import TEI from '../containers/tei';
 import MyImage from '../containers/image';
+import MEICarousel from '../containers/carousel';
 import { fetchGraph } from '../actions/index';
 
 const MEIManifestation = "meldterm:MEIManifestation";
@@ -37,6 +38,8 @@ class App extends Component {
 			return ( 
 				<div className="wrapper">
 					<div className="controls" />
+                        <MEICarousel />
+
                 {/*		{this.props.graph.annoGraph["@graph"]["ldp:contains"][0]["oa:hasTarget"].map(function (t) { */}
                     {Object.keys(byId).map( (id) => { 
 						switch(byId[id]["type"]) { 
@@ -57,7 +60,7 @@ class App extends Component {
 				</div>
 			);
 		}
-		return <div>Loading...</div>
+		return (<div> Loading...  </div>);
 	}
 	
 };
