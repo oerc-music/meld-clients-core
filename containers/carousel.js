@@ -9,7 +9,7 @@ class MEICarousel extends Component {
         this.state = { 
             score: {},
             width: 400,
-            layout: 'prism',
+            layout: this.props.layout,
             ease: 'linear',
             duration: 400
         };

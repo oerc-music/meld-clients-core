@@ -8,6 +8,8 @@ import {
 	handleEmphasis,
 	MARKUP_HIGHLIGHT,
 	handleHighlight,  
+	MARKUP_HIGHLIGHT2,
+	handleHighlight2,  
 	CUE_AUDIO, 
 	handleCueAudio 
 } from '../actions/meldActions';
@@ -78,6 +80,8 @@ class Score extends Component {
 					this.props.handleEmphasis(ReactDOM.findDOMNode(this), annotation, this.props.uri, fragments["MEI"]);
 				} else if(b["@id"] === MARKUP_HIGHLIGHT) { 
 					this.props.handleHighlight(ReactDOM.findDOMNode(this), annotation, this.props.uri, fragments["MEI"]);
+				} else if(b["@id"] === MARKUP_HIGHLIGHT2) { 
+					this.props.handleHighlight2(ReactDOM.findDOMNode(this), annotation, this.props.uri, fragments["MEI"]);
 				}  else if(b["@id"] === CUE_AUDIO) { 
 					this.props.handleCueAudio(ReactDOM.findDOMNode(this), annotation, b, this.props.uri, fragments);
 				} else {
@@ -94,7 +98,7 @@ function mapStateToProps({ score }) {
 }
 
 function mapDispatchToProps(dispatch) { 
-	return bindActionCreators({ fetchScore, handleEmphasis, handleHighlight, handleCueAudio }, dispatch);
+	return bindActionCreators({ fetchScore, handleEmphasis, handleHighlight, handleHighlight2, handleCueAudio }, dispatch);
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(Score);

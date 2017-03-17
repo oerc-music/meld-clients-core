@@ -17,6 +17,7 @@ const VideoManifestation = "meldterm:VideoManifestation";
 const AudioManifestation = "meldterm:AudioManifestation";
 const ImageManifestation = "meldterm:ImageManifestation";
 const Carousel= "meldterm:MEICarousel";
+const CarouselClassic= "meldterm:MEIClassicCarousel";
 
 export const vrvTk = new verovio.toolkit();
 
@@ -43,8 +44,14 @@ class App extends Component {
                 {/*		{this.props.graph.annoGraph["@graph"]["ldp:contains"][0]["oa:hasTarget"].map(function (t) { */}
                     {Object.keys(byId).map( (id) => { 
 						switch(byId[id]["type"]) { 
+						case CarouselClassic:
+							return(<div>
+								<MEICarousel layout="classic"/>
+							</div>)
 						case Carousel:
-							return <MEICarousel />;
+							return(<div>
+								<MEICarousel layout="prism"/>
+							</div>)
 						case MEIManifestation:
 							return <Score key={ id } uri={ id } annotations={ byId[id]["annotations"] } />;
 						case TEIManifestation:

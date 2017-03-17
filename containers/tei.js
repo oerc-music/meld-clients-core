@@ -8,6 +8,8 @@ import {
 	handleEmphasis,
 	MARKUP_HIGHLIGHT,
 	handleHighlight,
+	MARKUP_HIGHLIGHT2,
+	handleHighlight2,
 	CUE_IMAGE,
 	handleCueImage
 } from '../actions/meldActions';
@@ -66,6 +68,8 @@ class TEI extends Component {
 					this.props.handleEmphasis(ReactDOM.findDOMNode(this), annotation, this.props.uri, fragments);
 				} else if(b["@id"] === MARKUP_HIGHLIGHT) { 
 					this.props.handleHighlight(ReactDOM.findDOMNode(this), annotation, this.props.uri, fragments);
+				} else if(b["@id"] === MARKUP_HIGHLIGHT2) { 
+					this.props.handleHighlight2(ReactDOM.findDOMNode(this), annotation, this.props.uri, fragments);
 				} else if(b["@id"] === CUE_IMAGE) {
 					this.props.handleCueImage(ReactDOM.findDOMNode(this), annotation, this.props.uri, fragments, this.props.tei.fragImages);
 				}
@@ -83,7 +87,7 @@ function mapStateToProps({ tei }) {
 }
 
 function mapDispatchToProps(dispatch) { 
-	return bindActionCreators({ fetchTEI, handleEmphasis, handleCueImage, handleHighlight }, dispatch);
+	return bindActionCreators({ fetchTEI, handleEmphasis, handleCueImage, handleHighlight, handleHighlight2 }, dispatch);
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(TEI);

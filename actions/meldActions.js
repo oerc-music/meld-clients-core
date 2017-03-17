@@ -2,6 +2,7 @@ import ReactDOM from 'react-dom';
 
 export const MARKUP_EMPHASIS = "meldterm:emphasis";
 export const MARKUP_HIGHLIGHT = "meldterm:highlight";
+export const MARKUP_HIGHLIGHT2 = "meldterm:highlight2";
 export const CUE_AUDIO = "meldterm:CueAudio";
 export const CUE_AUDIO_HANDLED = "CUE_AUDIO_HANDLED";
 export const CUE_IMAGE = "meldterm:CueImage";
@@ -41,6 +42,7 @@ export function handleCueAudio(component, annotation, body, uri, fragments) {
                 element.onclick = function() { 
                     const query = "audio[data-uri='" + audioUri + "']";
                     let myPlayers = document.querySelectorAll(query);
+					console.log(query, audioFragTime);
                     Array.prototype.map.call(myPlayers, function(p) { p.currentTime = audioFragTime });
                 };
                 applyAnnotationId(element, annotation);
@@ -90,6 +92,28 @@ export function handleHighlight(component, annotation, uri, fragments) {
 			}
 			element.onmouseleave = function(){ 
 				let highlighted= document.querySelectorAll(".meld-highlight");
+				Array.prototype.map.call(highlighted, function(em) { em.classList.remove("infocus")});
+			}
+		}
+	});
+	return annotationHandled();
+}
+
+export function handleHighlight2(component, annotation, uri, fragments) {
+	fragments.map((f) => {  
+		const fLocalId = f.substr(f.indexOf("#"))
+		const element = component.querySelector(fLocalId);
+		if (element) { 
+			if(!element.classList.contains("meld-highlight2")) {
+				element.classList.add("meld-highlight2");
+			}
+			applyAnnotationId(element, annotation);
+			element.onmouseover = function(){ 
+				let highlighted = document.querySelectorAll(".meld-highlight2");
+				Array.prototype.map.call(highlighted, function(em) { em.classList.add("infocus")});
+			}
+			element.onmouseleave = function(){ 
+				let highlighted= document.querySelectorAll(".meld-highlight2");
 				Array.prototype.map.call(highlighted, function(em) { em.classList.remove("infocus")});
 			}
 		}
