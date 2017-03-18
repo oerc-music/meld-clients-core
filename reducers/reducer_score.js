@@ -19,7 +19,7 @@ export default function(state = {MEI: {}, componentTargets: {}}, action) {
 				spacingSystem: 0.05,
 				ignoreLayout: true,
                 adjustPageHeight: true,
-                scale: 38 
+                scale: 36 
             });
 		return update(state, {MEI: { $merge: { [action.payload.config.url]: svg } } });
 

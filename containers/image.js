@@ -17,7 +17,10 @@ export default class MyImage extends Component {
 	}
 
     handleClick() {
-        window.open(this.props.uri);
+        let fullFatImage = this.props.uri;
+        fullFatImage = fullFatImage.replace("_thumb", "");
+        console.log("Thumb:", this.props.uri, "Full fat: ", fullFatImage);
+        window.open(fullFatImage);
     }
 }
 
