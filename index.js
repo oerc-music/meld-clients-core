@@ -7,7 +7,6 @@ import ReduxPromise from 'redux-promise';
 import { Router, Route, browserHistory } from 'react-router'
 
 import App from './containers/app';
-import fooApp from './containers/fooapp';
 import reducers from './reducers';
 
 const createStoreWithMiddleware = applyMiddleware(thunk, ReduxPromise)(createStore);
