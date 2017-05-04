@@ -39,6 +39,8 @@ class App extends Component {
             const byId = this.props.graph.targetsById;
 			return ( 
 				<div className="wrapper">
+					<link rel="stylesheet" href="../style/style.css"/>
+					<link rel="stylesheet" href="../style/CETEIcean.css"/>
 					<div className="controls" />
 
                 {/*		{this.props.graph.annoGraph["@graph"]["ldp:contains"][0]["oa:hasTarget"].map(function (t) { */}
