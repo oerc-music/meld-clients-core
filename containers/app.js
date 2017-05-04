@@ -27,9 +27,11 @@ class App extends Component {
 	}
 	
 	componentDidMount() { 
-		//TODO get the graphUri properly
-		const graphUri = window.location.href.substr(window.location.href.indexOf("?annotations=")+13);
-		this.props.fetchGraph(graphUri);
+		console.log(this.props.location.query.annotations)
+		if(this.props.location.query.annotations) { 
+			const graphUri = this.props.location.query.annotations;
+			this.props.fetchGraph(graphUri);
+		}
 		
 	}
 		
