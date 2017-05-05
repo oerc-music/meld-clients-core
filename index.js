@@ -8,6 +8,8 @@ import { Router, Route, browserHistory } from 'react-router'
 
 import App from './containers/app';
 import Jam from './containers/jam';
+import ForbiddenQuestion from './containers/musicology/forbiddenQuestion';
+import Rheingold from './containers/musicology/rheingold';
 import reducers from './reducers';
 
 const createStoreWithMiddleware = applyMiddleware(thunk, ReduxPromise)(createStore);
@@ -17,6 +19,8 @@ ReactDOM.render(
 		<Router history={browserHistory}> 
 			<Route path="/" component={App} />
 			<Route path="/jam" component={Jam} />
+			<Route path="/Demo/Rheingold" component={Rheingold}/>
+			<Route path="/ForbiddenQuestion" component={ForbiddenQuestion}/>
 		</Router>
 	</Provider>
 	, document.querySelector('.container'));

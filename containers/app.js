@@ -19,17 +19,14 @@ const ImageManifestation = "meldterm:ImageManifestation";
 const Carousel= "meldterm:MEICarousel";
 const CarouselClassic= "meldterm:MEIClassicCarousel";
 
-export const vrvTk = new verovio.toolkit();
-
 class App extends Component { 
 	constructor(props) {
 		super(props);
 	}
 	
 	componentDidMount() { 
-		console.log(this.props.location.query.annotations)
-		if(this.props.location.query.annotations) { 
-			const graphUri = this.props.location.query.annotations;
+		if(this.props.graphUri) { 
+			const graphUri = this.props.graphUri;
 			this.props.fetchGraph(graphUri);
 		}
 		
@@ -79,8 +76,8 @@ class App extends Component {
 };
 
 
-function mapStateToProps({ graph, graphUri }) {
-	return { graph, graphUri }
+function mapStateToProps({ graph }) {
+	return { graph }
 }
 
 function mapDispatchToProps(dispatch) { 

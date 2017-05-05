@@ -1,11 +1,13 @@
 import update from 'immutability-helper';
-import { vrvTk }  from '../containers/app';
 import { FETCH_SCORE, FETCH_COMPONENT_TARGET, PROCESS_ANNOTATION } from '../actions/index'
 
 const EMBODIMENT = 'http://purl.org/vocab/frbr/core#embodiment';
 const MEITYPE = 'http://meld.linkedmusic.org/companion/vocab/MEIEmbodiment';
 const AUDIOTYPE ='http://meld.linkedmusic.org/companion/vocab/AudioEmbodiment';
 const MEMBER = 'http://www.w3.org/2000/01/rdf-schema#member';
+
+const vrvTk = new verovio.toolkit();
+
 
 export default function(state = {MEI: {}, componentTargets: {}}, action) { 
 	switch(action.type) {
