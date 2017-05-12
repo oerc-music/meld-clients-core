@@ -1,13 +1,24 @@
 import React, { Component } from 'react';
+import { fetchSessionGraph } from '../actions/index';
+import { connect } from 'react-redux' ;
+import { bindActionCreators } from 'redux';
+
 //import Score from '../containers/score';
 
-export default class Jam extends Component {
+class Jam extends Component {
 	constructor(props) { 
 		super(props);
 	}
+	
+	componentDidMount() { 
+		if(this.props.location.query.session) { 
+			const graphUri = this.props.location.query.session;
+			this.props.fetchSessionGraph(graphUri);
+		}
+		
+	}
 
 	render() {
-		console.log("Hello ", this.props.location.query.q);
 		if(this.props.graph && this.props.graph.targetsById) { 
 			const byId = this.props.graph.targetsById;
 			return(
@@ -21,3 +32,13 @@ export default class Jam extends Component {
 		return (<div>Loading...</div>);
 	}
 }
+
+function mapStateToProps({ graph }) {
+	return { graph }
+}
+
+function mapDispatchToProps(dispatch) { 
+	return bindActionCreators({ fetchSessionGraph }, dispatch);
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(Jam);
