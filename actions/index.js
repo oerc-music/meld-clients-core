@@ -5,7 +5,11 @@ import jsonld from 'jsonld'
 export const FETCH_SCORE = 'FETCH_SCORE';
 export const FETCH_TEI = 'FETCH_TEI';
 export const FETCH_GRAPH = 'FETCH_GRAPH';
+export const FETCH_WORK = 'FETCH_WORK';
+export const FETCH_TARGET_EXPRESSION = 'FETCH_TARGET_EXPRESSION';
 export const FETCH_COMPONENT_TARGET = 'FETCH_COMPONENT_TARGET';
+export const FETCH_STRUCTURE = 'FETCH_STRUCTURE';
+export const FETCH_MANIFESTATIONS = 'FETCH_MANIFESTATIONS';
 export const PROCESS_ANNOTATION = 'PROCESS_ANNOTATION';
 export const REALIZATION_OF = 'http://purl.org/vocab/frbr/core#realizationOf';
 export const EXPRESSION = 'http://purl.org/vocab/frbr/core#Expression';
@@ -14,6 +18,7 @@ export const PART = 'http://purl.org/vocab/frbr/core#part';
 export const HAS_STRUCTURE= 'http://meld.linkedmusic.org/terms/hasStructure';
 export const SEQ = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#Seq';
 export const SEQPART = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#_';
+export const SCORE = 'http://purl.org/ontology/mo/Score';
 
 export function fetchScore(uri) { 
 	console.log("FETCH_SCORE ACTION on URI: ", uri);
@@ -45,7 +50,6 @@ export function fetchSessionGraph(uri) {
 
     return (dispatch) => { 
         promise.then( ({data}) => { 
-			console.log("Dispatching: ", data);
             // dispatch the graph data
             dispatch( { 
                 type: FETCH_SESSION_GRAPH,
@@ -113,13 +117,17 @@ export function fetchComponentTarget(uri) {
     console.log("FETCH_COMPONENT_TARGET ACTION ON URI: ", uri);
 	return (dispatch) => {
 		axios.get(uri).then((data) => { 
+			dispatch( { 
+				type: FETCH_COMPONENT_TARGET,
+				payload: data
+			});
 			jsonld.fromRDF(data.data, (err, doc) => {
 				if(err) { console.log("ERROR TRANSLATING NQUADS TO JSONLD: ", err, data.data) }
 				else { 
 					jsonld.frame(doc, { "@id":uri }, (err, framed) => {
 						if(err) { console.log("FRAMING ERROR: ", err) }
 						else { 
-							dispatch(fetchTargetManifestations(framed));
+							dispatch(fetchTargetExpression(framed));
 						}
 						
 					});
@@ -130,79 +138,130 @@ export function fetchComponentTarget(uri) {
 }
 
 
-export function fetchTargetManifestations(framed) { 
+export function fetchTargetExpression(framed) { 
 	// traverse from the provided Expression, via a Segment, to Manifestation(s)
-	let target = framed["@graph"][0];
-	if(target["@type"].includes(EXPRESSION)) { 
-		// found an expression
-		// does it have any parts?
-		let parts = [];
-		if(PART in target) { 
-			if("@type" in target[PART] && target[PART]["@type"].includes(SEQ)) { 
-				// it's an RDF sequence
-				Object.keys(target[PART]).map( (part) => { 
-					if(part.startsWith(SEQPART)) { 
-						console.log("Found part of target sequence: ", target[PART][part]["@id"]);
-						parts.push(target[PART][part]["@id"]);
-					} 
-				});
-			} else { 
-				console.log("Found part of target: ", target[PART]);
-				parts.push(target[PART]["@id"]);
-			}
-		} else { console.log("Target expression without parts", target); }
-		// now fetch the work to continue on to the manifestations associated with these parts
-		if(REALIZATION_OF in target) {
-			return(dispatch) => { 
-				dispatch(fetchWork(parts, target[REALIZATION_OF]["@id"]));
-			}
-		} else { console.log("Target is an unrealized expression: ", target); }
-	} else { console.log("fetchTargetManifestations attempted on a non-Expression! ", target); }
+	return(dispatch) => { 
+		dispatch( { 
+			type: FETCH_TARGET_EXPRESSION,
+			payload: framed
+		});
+		let target = framed["@graph"][0];
+		if(target["@type"].includes(EXPRESSION)) { 
+			// found an expression
+			// does it have any parts?
+			let parts = [];
+			if(PART in target) { 
+				if("@type" in target[PART] && target[PART]["@type"].includes(SEQ)) { 
+					// it's an RDF sequence
+					Object.keys(target[PART]).map( (part) => { 
+						if(part.startsWith(SEQPART)) { 
+							console.log("Found part of target sequence: ", target[PART][part]["@id"]);
+							parts.push(target[PART][part]["@id"]);
+						} 
+					});
+				} else { 
+					console.log("Found part of target: ", target[PART]);
+					parts.push(target[PART]["@id"]);
+				}
+			} else { console.log("Target expression without parts", target); }
+			// now fetch the work to continue on to the manifestations associated with these parts
+			if(REALIZATION_OF in target) {
+					dispatch(fetchWork(framed, parts, target[REALIZATION_OF]["@id"]));
+			} else { console.log("Target is an unrealized expression: ", target); }
+		} else { console.log("fetchTargetExpression attempted on a non-Expression! ", target); }
+	}
 }
 
 
-export function fetchWork(parts, work) { 
+export function fetchWork(target, parts, work) { 
 	console.log("STARTING FETCHWORK WITH ", work);
-	axios.get(work).then((data) => { 
-		console.log("GOT FETCHWORK DATA ", data);
-		jsonld.fromRDF(data.data, (err, doc) => {
-			if(err) { console.log("ERROR TRANSLATING NQUADS TO JSONLD: ", err, data.data) }
-			else { 
-				jsonld.frame(doc, { "@id":work}, (err, framed) => {
-					if(err) { console.log("FRAMING ERROR: ", err) }
-					else { 
-						work = framed["@graph"][0];
-						console.log("in fetchWork looking at ", work);
-						// Check if there is a segment line, in which case fetch manifestations
-						// else, check if this is part of another work and recurse
-						if(HAS_STRUCTURE in work) { 
-							return(dispatch) => { 
-								dispatch(fetchManifestations(parts, work[HAS_STRUCTURE]["@id"]));
-							}
-						} else if(PART_OF in work) { 
-							// recurse on that work
-							return(dispatch) => {
-								dispatch(fetchWork(parts, work[PART_OF]["@id"]));
-							}
-						} else { 
-							console.log("Found work without segmentLine or partonomy! ", work); 
-						}
-					}
-				});
+	return(dispatch) => {
+		dispatch({
+			type: FETCH_WORK,
+			payload: { 
+				target: target,
+				parts: parts,
+				works: work
 			}
 		});
-	});
-	console.log("NO RETURN: fetchWork");
+		axios.get(work).then((data) => { 
+			jsonld.fromRDF(data.data, (err, doc) => {
+				if(err) { console.log("ERROR TRANSLATING NQUADS TO JSONLD: ", err, data.data) }
+				else { 
+					jsonld.frame(doc, { "@id":work}, (err, framed) => {
+						if(err) { console.log("FRAMING ERROR: ", err) }
+						else { 
+							work = framed["@graph"][0];
+							console.log("in fetchWork looking at ", work, framed, doc);
+							// Check if there is a segment line, in which case fetch manifestations
+							// else, check if this is part of another ("parent") work 
+							if(HAS_STRUCTURE in work) { 
+									dispatch(fetchStructure(target, parts, work[HAS_STRUCTURE]["@id"]));
+							} else if(PART_OF in work) {
+								// does our doc attach a Score which realizes the parent work?
+								jsonld.frame(doc, { [REALIZATION_OF]: work[PART_OF]["@id"] }, (err, framed) => {
+									if(err) { console.log("FRAMING ERROR: ", err) }
+									else {
+										const attachedScore = framed["@graph"][0];
+										if(attachedScore && "@type" in attachedScore && attachedScore["@type"] === SCORE) {
+											// FIXME breaks with multiple types
+											// Found an attached Score!!!
+											if(HAS_STRUCTURE in attachedScore) { 
+												dispatch(fetchStructure(target, parts, attachedScore[HAS_STRUCTURE]["@id"]));
+											} else { 
+												console.log("Score ", attachedScore["@id"], " attached to work ", work["@id"], " has no segment line!!");
+											}
+										}  else { 
+											// no attached Score, so we have to recurse on the parent work
+											dispatch(fetchWork(target, parts, work[PART_OF]["@id"]));
+										}
+									}
+								});
+							} else { 
+								console.log("Found work without segmentLine or partonomy! ", work); 
+							}
+						}
+					});
+				}
+			});
+		});
+		console.log("NO RETURN: fetchWork");
+	}
 }
 
-export function fetchManifestations(parts, segline) {
-	console.log("Found the segment line!", parts, segline);
-	return { 
-		type: "TODO"
+export function fetchStructure(target, parts, segline) {
+	return(dispatch) => {
+		dispatch({
+			type: FETCH_STRUCTURE,
+			payload: { 
+				target: target,
+				parts: parts,
+				structure: segline 
+			}
+		});
+		axios.get(segline).then((data) => { 
+			jsonld.fromRDF(data.data, (err, doc) => {
+				if(err) { console.log("ERROR TRANSLATING NQUADS TO JSONLD: ", err, data.data) }
+				else { 
+					// frame the doc in terms of each part of the expression targetted by the annotation
+					parts.map((part) => {
+						jsonld.frame(doc, { "@id": part}, (err, framed) => {
+							if(err) { console.log("FRAMING ERROR: ", err) }
+							else { 
+								// and hand to reducers to process associated embodibags
+								// (manifestations of the expression)
+								dispatch({ 
+									type: FETCH_MANIFESTATIONS,
+									payload: { 
+										target: target,
+										part: framed
+									}
+								});
+							}
+						});
+					});
+				}
+			});
+		});
 	}
-/*	dispatch( {
-		type: FETCH_COMPONENT_TARGET,
-		payload:framed
-	});
-*/
 }

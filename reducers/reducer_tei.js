@@ -1,5 +1,5 @@
 import update from 'immutability-helper';
-import { FETCH_TEI, FETCH_COMPONENT_TARGET } from '../actions/index'
+import { FETCH_TEI, FETCH_MANIFESTATIONS} from '../actions/index'
 
 const EMBODIMENT = 'http://purl.org/vocab/frbr/core#embodiment';
 const ASSOCIATED = "http://example.com/must-revisit-these/associatedWith";
@@ -8,10 +8,14 @@ export default function(state = {TEI: {}, componentTargets: {}, fragImages:{}}, 
 	switch(action.type) { 
 	case FETCH_TEI:
 		return update(state, { TEI: {$merge: { [action.payload.uri]: action.payload.data } } });
-	case FETCH_COMPONENT_TARGET:
+	case FETCH_MANIFESTATIONS:
 		// find associated TEI
-		const target = action.payload["@graph"][0];
-		console.log("In F_C_T TEI, target is: ", target);
+		const target = action.payload.target;
+		const part = action.payload.part;
+		console.log("In FETCH_MANIFESTATIONS TEI, target is: ", target, " part is: ", part);
+		// FIXME
+		return state
+		//FIXME
         if(ASSOCIATED in target) { 
 			if(!Array.isArray(target[ASSOCIATED])) { 
 				target[ASSOCIATED] = [target[ASSOCIATED]];
@@ -30,7 +34,7 @@ export default function(state = {TEI: {}, componentTargets: {}, fragImages:{}}, 
 				fragImages[assoc["@id"]] = assoc[EMBODIMENT]["@id"];
 			})
             return update(state, {
-				componentTargets: { $set: { [target["@id"]]: fragments }},
+				componentTargets: { $merge: { [target["@id"]]: fragments }},
 				fragImages: { $merge: fragImages }
 		 	});
         }
