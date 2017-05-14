@@ -10,8 +10,8 @@ export default class ForbiddenQuestion extends Component {
 	render() { 
 		return (
 		  <div> 
-		  	<link rel="stylesheet" href="../../style/forbiddenQuestion.css" type="text/css" />
-		  	<App graphUri="http://meld.linkedmusic.org/annotations/Frageverbot1.json-ld" />
+		  	<link rel="stylesheet" href="../../style/carousel.css" type="text/css" />
+		  	<App graphUri="http://meld.linkedmusic.org/annotations/LibrettoCarousel.json-ld" />
       </div>
 		);
 	}

@@ -10,6 +10,7 @@ import App from './containers/app';
 import Jam from './containers/jam';
 import ForbiddenQuestion from './containers/musicology/forbiddenQuestion';
 import Rheingold from './containers/musicology/rheingold';
+import Carousel from './containers/musicology/demo/carousel';
 import reducers from './reducers';
 
 const createStoreWithMiddleware = applyMiddleware(thunk, ReduxPromise)(createStore);
@@ -20,6 +21,7 @@ ReactDOM.render(
 			<Route path="/" component={App} />
 			<Route path="/jam" component={Jam} />
 			<Route path="/Demo/Rheingold" component={Rheingold}/>
+			<Route path="/Demo/Carousel" component={Carousel}/>
 			<Route path="/ForbiddenQuestion" component={ForbiddenQuestion}/>
 		</Router>
 	</Provider>

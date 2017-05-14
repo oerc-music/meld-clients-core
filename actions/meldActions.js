@@ -29,6 +29,28 @@ export function handleCueImage(component, annotation, uri, fragments, fragImages
 	return annotationHandled(annotation)
 }	
 
+export function TEIScroll(element){
+  if(element.closest('svg')) {
+    var targetClass = false;
+    for(var c=0; c<element.classList.length; c++){
+      if(element.classList[c].indexOf("__")>-1){
+        targetClass = element.classList[c];
+        var targetElements = document.getElementsByClassName(targetClass);
+        for(var i=0; i<targetElements.length; i++){
+          var textBox = targetElements[i].closest('.TEIContainer');
+          if(textBox){
+            console.log(targetElements[i].offsetTop, textBox.offsetTop);
+           targetElements[i].scrollIntoView;
+           textBox.scrollTop = textBox.offsetTop + targetElements[i].offsetTop  - (textBox.clientHeight / 2);
+          }
+        }
+        return true;
+      }
+    }
+  }
+  return true;
+}
+
 export function handleCueAudio(component, annotation, body, uri, fragments) { 
     if("MEI" in fragments && "Audio" in fragments) { 
         fragments.MEI.map((f) => { 
@@ -40,6 +62,7 @@ export function handleCueAudio(component, annotation, body, uri, fragments) {
                 const audioFrag = fragments.Audio[0].split("#")[1];
                 const audioFragTime = parseFloat(audioFrag.substr(audioFrag.indexOf("t=")+2))
                 element.onclick = function() { 
+                    TEIScroll(element);
                     const query = "audio[data-uri='" + audioUri + "']";
                     let myPlayers = document.querySelectorAll(query);
 					console.log(query, audioFragTime);
@@ -72,7 +95,6 @@ export function handleEmphasis(component, annotation, uri, fragments) {
 				Array.prototype.map.call(emphasised, function(em) { em.classList.remove("infocus")});
 			}
 		}
-
 	});
 	return annotationHandled();
 }
@@ -84,6 +106,11 @@ export function handleHighlight(component, annotation, uri, fragments) {
 		if (element) { 
 			if(!element.classList.contains("meld-highlight")) {
 				element.classList.add("meld-highlight");
+			}
+			if(element.closest('svg')){
+			  element.onclick = function(){
+			    
+			  }
 			}
 			applyAnnotationId(element, annotation);
 			element.onmouseover = function(){ 
