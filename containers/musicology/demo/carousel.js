@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import App from '../app';
+import App from '../../app';
 
 export default class ForbiddenQuestion extends Component { 
 	constructor(props) {
