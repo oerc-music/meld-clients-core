@@ -15,6 +15,10 @@ export default function(state = {TEI: {}, componentTargets: {}, fragImages:{}}, 
 		// find associated TEI
 		const target = action.payload.target["@graph"][0];
 		const part = action.payload.part["@graph"][0];
+		if(typeof part === "undefined") {
+			// part wasn't on segment line
+			return state;
+		}
 		console.log("In FETCH_MANIFESTATIONS TEI, target is: ", target, " part is: ", part);
 		let fragments = [];
 		// go through each part, finding embodibags

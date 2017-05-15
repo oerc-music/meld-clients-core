@@ -125,7 +125,7 @@ export function fetchComponentTarget(uri) {
 				if(err) { console.log("ERROR TRANSLATING NQUADS TO JSONLD: ", err, data.data) }
 				else { 
 					jsonld.frame(doc, { "@id":uri }, (err, framed) => {
-						if(err) { console.log("FRAMING ERROR: ", err) }
+						if(err) { console.log("FRAMING ERROR in fetchComponentTarget: ", err) }
 						else { 
 							dispatch(fetchTargetExpression(framed));
 						}
@@ -150,31 +150,38 @@ export function fetchTargetExpression(framed) {
 			// found an expression
 			// does it have any parts?
 			let parts = [];
+			console.log("part check: ", target)
 			if(PART in target) { 
-				if("@type" in target[PART] && target[PART]["@type"].includes(SEQ)) { 
-					// it's an RDF sequence
-					Object.keys(target[PART]).map( (part) => { 
-						if(part.startsWith(SEQPART)) { 
-							console.log("Found part of target sequence: ", target[PART][part]["@id"]);
-							parts.push(target[PART][part]["@id"]);
-						} 
-					});
-				} else { 
-					console.log("Found part of target: ", target[PART]);
-					parts.push(target[PART]["@id"]);
+				// sometimes we may have multiple parts or part sequences; sometimes only one
+				// so ensure we have an array to work with (even if it's length one)
+				if(! Array.isArray(target[PART])) { 
+					target[PART] = [target[PART]];
 				}
-			} else { console.log("Target expression without parts", target); }
-			// now fetch the work to continue on to the manifestations associated with these parts
-			if(REALIZATION_OF in target) {
+				// now process each sequence
+				target[PART].map((p) => { 
+					if("@type" in p && p["@type"].includes(SEQ)) { 
+						// it's an RDF sequence
+						Object.keys(p).map( (part) => { 
+							if(part.startsWith(SEQPART)) { 
+								parts.push(p[part]["@id"]);
+							} 
+						});
+					} else { 
+						parts.push(p["@id"]);
+					}
+				});
+				// now fetch the work to continue on to the manifestations associated with these parts
+				if(REALIZATION_OF in target) {
 					dispatch(fetchWork(framed, parts, target[REALIZATION_OF]["@id"]));
-			} else { console.log("Target is an unrealized expression: ", target); }
+				} else { console.log("Target is an unrealized expression: ", target); }
+			} else { console.log("Target expression without parts", target); }
 		} else { console.log("fetchTargetExpression attempted on a non-Expression! ", target); }
 	}
 }
 
 
 export function fetchWork(target, parts, work) { 
-	console.log("STARTING FETCHWORK WITH ", work);
+	console.log("STARTING FETCHWORK WITH ", work, parts);
 	return(dispatch) => {
 		dispatch({
 			type: FETCH_WORK,
@@ -189,10 +196,9 @@ export function fetchWork(target, parts, work) {
 				if(err) { console.log("ERROR TRANSLATING NQUADS TO JSONLD: ", err, data.data) }
 				else { 
 					jsonld.frame(doc, { "@id":work}, (err, framed) => {
-						if(err) { console.log("FRAMING ERROR: ", err) }
+						if(err) { console.log("FRAMING ERROR in fetchWork:", err) }
 						else { 
 							work = framed["@graph"][0];
-							console.log("in fetchWork looking at ", work, framed, doc);
 							// Check if there is a segment line, in which case fetch manifestations
 							// else, check if this is part of another ("parent") work 
 							if(HAS_STRUCTURE in work) { 
@@ -200,7 +206,7 @@ export function fetchWork(target, parts, work) {
 							} else if(PART_OF in work) {
 								// does our doc attach a Score which realizes the parent work?
 								jsonld.frame(doc, { [REALIZATION_OF]: work[PART_OF]["@id"] }, (err, framed) => {
-									if(err) { console.log("FRAMING ERROR: ", err) }
+									if(err) { console.log("FRAMING ERROR when fetching parent work", err) }
 									else {
 										const attachedScore = framed["@graph"][0];
 										if(attachedScore && "@type" in attachedScore && attachedScore["@type"] === SCORE) {
@@ -225,7 +231,6 @@ export function fetchWork(target, parts, work) {
 				}
 			});
 		});
-		console.log("NO RETURN: fetchWork");
 	}
 }
 
@@ -246,10 +251,11 @@ export function fetchStructure(target, parts, segline) {
 					// frame the doc in terms of each part of the expression targetted by the annotation
 					parts.map((part) => {
 						jsonld.frame(doc, { "@id": part}, (err, framed) => {
-							if(err) { console.log("FRAMING ERROR: ", err) }
+							if(err) { console.log("FRAMING ERROR in fetchStructure: ", err) }
 							else { 
 								// and hand to reducers to process associated embodibags
 								// (manifestations of the expression)
+								console.log("fetching manifestations", doc, part, framed);
 								dispatch({ 
 									type: FETCH_MANIFESTATIONS,
 									payload: { 

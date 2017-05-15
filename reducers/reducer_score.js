@@ -28,7 +28,10 @@ export default function(state = {MEI: {}, componentTargets: {}}, action) {
     case FETCH_MANIFESTATIONS:
 		const target = action.payload.target["@graph"][0];
 		const part = action.payload.part["@graph"][0];
-		console.log("In FETCH_MANIFESTATIONS SCORE, target is: ", target, " part is: ", part);
+		if(typeof part === "undefined") {
+			// part wasn't on segment line
+			return state;
+		}
 		let fragments={};
 		// go through each part, finding embodibags
 		if(EMBODIMENT in part) { 
