@@ -21,7 +21,7 @@ ReactDOM.render(
 			<Route path="/" component={App} />
 			<Route path="/jam" component={Jam} />
 			<Route path="/Demo/Rheingold" component={Rheingold}/>
-			<Route path="/Demo/Carousel" component={Carousel}/>
+			<Route path="/Carousel" component={Carousel}/>
 			<Route path="/ForbiddenQuestion" component={ForbiddenQuestion}/>
 		</Router>
 	</Provider>
