@@ -8,6 +8,7 @@ import { Router, Route, browserHistory } from 'react-router'
 
 import App from './containers/app';
 import Jam from './containers/jam';
+import Foo from './containers/foo';
 import ForbiddenQuestion from './containers/musicology/forbiddenQuestion';
 import Rheingold from './containers/musicology/rheingold';
 import Carousel from './containers/musicology/demo/carousel';
@@ -20,6 +21,7 @@ ReactDOM.render(
 		<Router history={browserHistory}> 
 			<Route path="/" component={App} />
 			<Route path="/jam" component={Jam} />
+			<Route path="/foo" component={Foo} />
 			<Route path="/Demo/Rheingold" component={Rheingold}/>
 			<Route path="/Carousel" component={Carousel}/>
 			<Route path="/ForbiddenQuestion" component={ForbiddenQuestion}/>
