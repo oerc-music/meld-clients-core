@@ -1,5 +1,5 @@
 import update from 'immutability-helper';
-import { FETCH_SCORE, FETCH_MANIFESTATIONS, PROCESS_ANNOTATION } from '../actions/index'
+import { FETCH_SCORE, FETCH_MANIFESTATIONS, FETCH_CONCEPTUAL_SCORE, PROCESS_ANNOTATION, PUBLISHED_AS } from '../actions/index'
 
 const EMBODIMENT = 'http://purl.org/vocab/frbr/core#embodiment';
 const MEITYPE = 'http://meld.linkedmusic.org/terms/MEIEmbodiment';
@@ -9,7 +9,7 @@ const MEMBER = 'http://www.w3.org/2000/01/rdf-schema#member';
 const vrvTk = new verovio.toolkit();
 
 
-export default function(state = {MEI: {}, componentTargets: {}}, action) { 
+export default function(state = {publishedScores: [], MEI: {}, componentTargets: {}}, action) { 
 	switch(action.type) {
 	case FETCH_SCORE:
         const svg = vrvTk.renderData(action.payload.data, {
@@ -66,7 +66,11 @@ export default function(state = {MEI: {}, componentTargets: {}}, action) {
 		};
 		console.log("FETCH_COMPONENT_TARGET: Unembodied target! ", target);
 		return state;
-	
+
+	case FETCH_CONCEPTUAL_SCORE:
+		const conceptualScore = action.payload;
+		return update(state, {publishedScores: { $push: [conceptualScore[PUBLISHED_AS]["@id"]] } });
+
 	default: 
 		return state;
 	};

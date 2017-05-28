@@ -3,8 +3,10 @@ import n3 from 'n3';
 import jsonld from 'jsonld'
 
 export const FETCH_SCORE = 'FETCH_SCORE';
+export const FETCH_CONCEPTUAL_SCORE = 'FETCH_CONCEPTUAL_SCORE';
 export const FETCH_TEI = 'FETCH_TEI';
 export const FETCH_GRAPH = 'FETCH_GRAPH';
+export const FETCH_SESSION_GRAPH = 'FETCH_SESSION_GRAPH';
 export const FETCH_WORK = 'FETCH_WORK';
 export const FETCH_TARGET_EXPRESSION = 'FETCH_TARGET_EXPRESSION';
 export const FETCH_COMPONENT_TARGET = 'FETCH_COMPONENT_TARGET';
@@ -19,6 +21,9 @@ export const HAS_STRUCTURE= 'http://meld.linkedmusic.org/terms/hasStructure';
 export const SEQ = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#Seq';
 export const SEQPART = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#_';
 export const SCORE = 'http://purl.org/ontology/mo/Score';
+export const PERFORMANCE_OF= 'http://purl.org/ontology/mo/performance_of';
+export const PUBLISHED_AS = 'http://purl.org/ontology/mo/published_as';
+export const CONTAINS = 'http://www.w3.org/ns/ldp#';
 
 export function fetchScore(uri) { 
 	console.log("FETCH_SCORE ACTION on URI: ", uri);
@@ -50,11 +55,29 @@ export function fetchSessionGraph(uri) {
 
     return (dispatch) => { 
         promise.then( ({data}) => { 
-            // dispatch the graph data
-            dispatch( { 
-                type: FETCH_SESSION_GRAPH,
-                payload: data
-            });
+			jsonld.fromRDF(data, (err, doc) => {
+				if(err) { console.log("ERROR TRANSLATING NQUADS TO JSONLD: ", err, data.data) }
+				else { 
+					console.log("Trying to frame")
+					jsonld.frame(doc, { "@id":uri }, (err, framed) => {
+						if(err) { console.log("FRAMING ERROR in fetchSessionGraph: ", err) }
+						else { 
+							// dispatch the graph data
+							dispatch( { 
+								type: FETCH_GRAPH,
+								payload: framed 
+							});
+							// grab the MEI file that this is a performance of
+							const session = framed["@graph"][0];
+							if (PERFORMANCE_OF in session) { 
+								dispatch(fetchConceptualScore(session[PERFORMANCE_OF]["@id"]));
+							} else { console.log("SESSION IS NOT A PERFORMANCE OF A SCORE: ", session); }
+						}
+					});
+				}
+			});
+			console.log("Done");
+			
 	/*
             // walk through component annotations
             data["@graph"]["ldp:contains"].map( (topLevel) => { 
@@ -271,3 +294,34 @@ export function fetchStructure(target, parts, segline) {
 		});
 	}
 }
+
+export function fetchConceptualScore(uri) { 
+	console.log("FETCH_CONCEPTUAL_SCORE ON URI: ", uri);
+	const promise = axios.get(uri);
+
+    return (dispatch) => { 
+        promise.then( ({data}) => { 
+			jsonld.fromRDF(data, (err, doc) => {
+				if(err) { console.log("ERROR TRANSLATING NQUADS TO JSONLD: ", err, data.data) }
+				else { 
+					console.log("Trying to frame")
+					jsonld.frame(doc, { "@id":uri }, (err, framed) => {
+						if(err) { console.log("FRAMING ERROR in fetchConceptualScore: ", err) }
+						else { 
+							const conceptualScore = framed["@graph"][0];
+							if(PUBLISHED_AS in conceptualScore) { 
+								// dispatch the conceptual score (containing the mei URI) so that we can initialise a <Score> component
+								dispatch( { 
+									type: FETCH_CONCEPTUAL_SCORE,
+									payload: conceptualScore 
+								});
+								dispatch(fetchScore(conceptualScore[PUBLISHED_AS]["@id"]));
+							} else { console.log("Unpublished conceptual score: ", conceptualScore) }
+						}
+					});
+				}
+			});
+		});
+	}
+}
+

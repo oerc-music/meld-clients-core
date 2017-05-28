@@ -3,7 +3,7 @@ import { fetchSessionGraph } from '../actions/index';
 import { connect } from 'react-redux' ;
 import { bindActionCreators } from 'redux';
 
-//import Score from '../containers/score';
+import Score from '../containers/score';
 
 class Jam extends Component {
 	constructor(props) { 
@@ -19,12 +19,16 @@ class Jam extends Component {
 	}
 
 	render() {
-		if(this.props.graph && this.props.graph.targetsById) { 
-			const byId = this.props.graph.targetsById;
-			return(
+		console.log(this.props);
+		if(this.props.score.publishedScores) {
+			const scores = this.props.score.publishedScores.map((sc) => {
+				return <Score key={ sc } uri={ sc } />;
+			});
+			console.log(scores);
+			return (
 				<div>
 					<div id="annotations"></div>
-					<div id="thescore"></div>
+					{ scores }
 					<div id="next"> Next </div>
 				</div>
 			)
@@ -33,8 +37,8 @@ class Jam extends Component {
 	}
 }
 
-function mapStateToProps({ graph }) {
-	return { graph }
+function mapStateToProps({ graph, score }) {
+	return { graph, score }
 }
 
 function mapDispatchToProps(dispatch) { 
