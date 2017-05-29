@@ -22,7 +22,7 @@ class Jam extends Component {
 		console.log(this.props);
 		if(this.props.score.publishedScores) {
 			const scores = this.props.score.publishedScores.map((sc) => {
-				return <Score key={ sc } uri={ sc } />;
+				return <Score key={ sc } uri={ sc } annotations={ [] } />;
 			});
 			console.log(scores);
 			return (

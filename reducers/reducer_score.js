@@ -23,6 +23,7 @@ export default function(state = {publishedScores: [], MEI: {}, componentTargets:
                 adjustPageHeight: true,
                 scale: 36 
             });
+		console.log("Produced svg: ", svg, " from data ", action.payload.data);
 		return update(state, {MEI: { $merge: { [action.payload.config.url]: svg } } });
 
     case FETCH_MANIFESTATIONS:

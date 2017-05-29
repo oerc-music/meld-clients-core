@@ -55,6 +55,7 @@ export function fetchSessionGraph(uri) {
 
     return (dispatch) => { 
         promise.then( ({data}) => { 
+			console.log("Got session graph data");
 			jsonld.fromRDF(data, (err, doc) => {
 				if(err) { console.log("ERROR TRANSLATING NQUADS TO JSONLD: ", err, data.data) }
 				else { 
