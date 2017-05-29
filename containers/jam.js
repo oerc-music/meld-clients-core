@@ -19,7 +19,6 @@ class Jam extends Component {
 	}
 
 	doPoll() { 
-		console.log("Polling");
 		const graphUri = this.props.location.query.session;
 		if('etags' in this.props.graph && 
 		graphUri in this.props.graph.etags) { 
@@ -31,12 +30,13 @@ class Jam extends Component {
 	}
 
 	render() {
-		console.log(this.props);
-		if(this.props.score.publishedScores) {
+		console.log("Props: ",this.props);
+		//if(this.props.score.publishedScores) {
+		if(this.props.graph.targetsById) {
+			const byId = this.props.graph.targetsById;
 			const scores = this.props.score.publishedScores.map((sc) => {
-				return <Score key={ sc } uri={ sc } annotations={ [] } />;
+			return <Score key={ sc } uri={ sc } annotations={ byId[sc]["annotations"] } />;
 			});
-			console.log(scores);
 			return (
 				<div>
 					<div id="annotations"></div>

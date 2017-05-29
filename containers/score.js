@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import ReactDOM from 'react-dom'
 import { connect } from 'react-redux';
 import { bindActionCreators} from 'redux';
-import { fetchScore } from '../actions/index';
+import { fetchScore, MOTIVATED_BY } from '../actions/index';
 import { 
 	MARKUP_EMPHASIS, 
 	handleEmphasis,
@@ -13,6 +13,8 @@ import {
 	CUE_AUDIO, 
 	handleCueAudio 
 } from '../actions/meldActions';
+
+export const HIGHLIGHTING = 'http://www.w3.org/ns/oa#highlighting';
 
 import InlineSVG from 'svg-inline-react';
 
@@ -44,7 +46,8 @@ class Score extends Component {
 		this.props.fetchScore(this.props.uri);
 	}
 
-	componentDidUpdate() { 
+	componentDidUpdate() {
+		console.log("Annotations: ", this.props.annotations);
 		this.props.annotations.map( (annotation) => {
 			// each annotation...
 			const frags = annotation["oa:hasTarget"].map( (annotationTarget) => { 
@@ -89,7 +92,16 @@ class Score extends Component {
 				}
 			});
 		}
-		else { console.log("Skipping annotation without body: ", annotation) }
+		// FIXME: the above should be phased out as we move into
+		// using motivations instead of bodies for rendering instructions
+		else if(MOTIVATED_BY in annotation) { 
+			switch(annotation[MOTIVATED_BY]) { 
+			case HIGHLIGHTING:
+				this.props.handleHighlight(ReactDOM.findDOMNode(this), annotation, this.props.uri, fragments["MEI"]);
+			default:
+				console.log("Unknown motivation: ", annotation[MOTIVATED_BY]);
+			}
+		} else { console.log("Skipping annotation without rendering instructions: ", annotation) }
 	}
 }
 

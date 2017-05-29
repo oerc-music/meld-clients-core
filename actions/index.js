@@ -6,7 +6,6 @@ export const FETCH_SCORE = 'FETCH_SCORE';
 export const FETCH_CONCEPTUAL_SCORE = 'FETCH_CONCEPTUAL_SCORE';
 export const FETCH_TEI = 'FETCH_TEI';
 export const FETCH_GRAPH = 'FETCH_GRAPH';
-export const FETCH_SESSION_GRAPH = 'FETCH_SESSION_GRAPH';
 export const FETCH_WORK = 'FETCH_WORK';
 export const FETCH_TARGET_EXPRESSION = 'FETCH_TARGET_EXPRESSION';
 export const FETCH_COMPONENT_TARGET = 'FETCH_COMPONENT_TARGET';
@@ -24,7 +23,10 @@ export const SEQPART = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#_';
 export const SCORE = 'http://purl.org/ontology/mo/Score';
 export const PERFORMANCE_OF= 'http://purl.org/ontology/mo/performance_of';
 export const PUBLISHED_AS = 'http://purl.org/ontology/mo/published_as';
-export const CONTAINS = 'http://www.w3.org/ns/ldp#';
+export const CONTAINS = 'http://www.w3.org/ns/ldp#contains';
+export const HAS_TARGET= 'http://www.w3.org/ns/oa#hasTarget'
+export const MOTIVATED_BY= 'http://www.w3.org/ns/oa#motivatedBy'
+export const SEGMENT = 'http://www.linkedmusic.org/ontologies/segment/Segment'
 
 export function fetchScore(uri) { 
 	console.log("FETCH_SCORE ACTION on URI: ", uri);
@@ -89,12 +91,20 @@ export function fetchSessionGraph(uri, etag = "") {
 										etag: response.headers.etag
 									}
 								});
+								if(CONTAINS in framed["@graph"][0]) { 
+									// there are one or more annotations to process
+									framed["@graph"][0] = ensureArray(framed["@graph"][0], CONTAINS);
+									// process each annotation
+									framed["@graph"][0][CONTAINS].map( (annotation) => { 
+										dispatch(processComponentAnnotation(annotation)); 
+									});
+								}
+								console.log("Data is: ", framed);
 							}
 						}
 					});
 				}
 			});
-			console.log("Done");
 			
 	/*
             // walk through component annotations
@@ -132,10 +142,14 @@ export function fetchGraph(uri) {
 }
 
 function processComponentAnnotation(annotation) { 
-    const targets = annotation["oa:hasTarget"].map( (target) => {
+	console.log("Processing annotation: ", annotation);
+	annotation = ensureArray(annotation, HAS_TARGET);
+	console.log("Annotation is now: ", annotation);
+    const targets = annotation[HAS_TARGET].map( (target) => {
+		console.log("Looking at target: ", target);
 			return { 
 				"@id": target["@id"],
-				"@type": target["@type"], 
+				//"@type": target["@type"], 
 			}
 	});
     return (dispatch) => { 
@@ -168,7 +182,26 @@ export function fetchComponentTarget(uri) {
 					jsonld.frame(doc, { "@id":uri }, (err, framed) => {
 						if(err) { console.log("FRAMING ERROR in fetchComponentTarget: ", err) }
 						else { 
-							dispatch(fetchTargetExpression(framed));
+							let typecheck = framed["@graph"][0];
+							typecheck = ensureArray(typecheck, "@type");
+							// have we found a segment?
+							if(typecheck["@type"].includes(SEGMENT)) { 
+								// found a segment!
+								// hand it off to the reducer to process the embodibag
+								// nb this is a different route to larrymeld (via expression)
+								// i.e. there is no partonomy here. So send the segment itself as the part.
+								//
+								dispatch({ 
+									type: FETCH_MANIFESTATIONS,
+									payload: { 
+										target: framed,
+										part: framed
+									}
+								});
+							} else { 
+								// if not, continue following links via the target's expression
+								dispatch(fetchTargetExpression(framed));
+							}
 						}
 						
 					});
@@ -180,6 +213,7 @@ export function fetchComponentTarget(uri) {
 
 
 export function fetchTargetExpression(framed) { 
+	console.log("fetchTargetExpression");
 	// traverse from the provided Expression, via a Segment, to Manifestation(s)
 	return(dispatch) => { 
 		dispatch( { 
@@ -195,6 +229,7 @@ export function fetchTargetExpression(framed) {
 			if(PART in target) { 
 				// sometimes we may have multiple parts or part sequences; sometimes only one
 				// so ensure we have an array to work with (even if it's length one)
+				// TODO refactor to use ensureArray helper function
 				if(! Array.isArray(target[PART])) { 
 					target[PART] = [target[PART]];
 				}
@@ -343,3 +378,21 @@ export function fetchConceptualScore(uri) {
 	}
 }
 
+
+// helper function to ensure that a given key of a JSON obj
+// is an array, rather than a single value
+// this is so that we can use the same approach for one and for
+// many values
+export function ensureArray(theObj, theKey) { 
+	if(theObj !== null && typeof theObj === 'object') { 
+		if(!theKey in theObj) { 
+			console.log("ensureArray: KEY NOT IN OBJECT!", theKey, theObj);
+		}
+		else if(!Array.isArray(theObj[theKey])) { 
+			theObj[theKey] = [theObj[theKey]];
+		}
+		return theObj;
+	} else { 
+		console.log("ensureArray: Provided structure is NOT AN OBJECT!") 
+	}
+}

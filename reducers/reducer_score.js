@@ -1,5 +1,5 @@
 import update from 'immutability-helper';
-import { FETCH_SCORE, FETCH_MANIFESTATIONS, FETCH_CONCEPTUAL_SCORE, PROCESS_ANNOTATION, PUBLISHED_AS } from '../actions/index'
+import { FETCH_SCORE, FETCH_MANIFESTATIONS, FETCH_CONCEPTUAL_SCORE, PROCESS_ANNOTATION, PUBLISHED_AS, SEGMENT } from '../actions/index'
 
 const EMBODIMENT = 'http://purl.org/vocab/frbr/core#embodiment';
 const MEITYPE = 'http://meld.linkedmusic.org/terms/MEIEmbodiment';
@@ -31,7 +31,7 @@ export default function(state = {publishedScores: [], MEI: {}, componentTargets:
 		if(typeof part === "undefined") {
 			// part wasn't on segment line
 			return state;
-		}
+		} 
 		let fragments={};
 		// go through each part, finding embodibags
 		if(EMBODIMENT in part) { 
@@ -60,7 +60,6 @@ export default function(state = {publishedScores: [], MEI: {}, componentTargets:
 					});
 				} else { console.log("Embodiment without members: ", part, embodiment); }
 			});
-			console.log("Updating state: ");
 			console.log( update(state, {componentTargets: { $merge: { [target["@id"]]: fragments } } }));
 			return update(state, {componentTargets: { $merge: { [target["@id"]]: fragments } } });
 		};

@@ -100,6 +100,7 @@ export function handleEmphasis(component, annotation, uri, fragments) {
 }
 
 export function handleHighlight(component, annotation, uri, fragments) {
+	console.log("Trying to handle highlight!!!!!");
 	fragments.map((f) => {  
 		const fLocalId = f.substr(f.indexOf("#"))
 		const element = component.querySelector(fLocalId);
