@@ -1,12 +1,18 @@
 import update from 'immutability-helper';
-import { FETCH_GRAPH, FETCH_COMPONENT_TARGET, CONTAINS } from '../actions/index'
+import { 
+	FETCH_GRAPH, 
+	FETCH_COMPONENT_TARGET, 
+	CONTAINS,  
+	SESSION_GRAPH_ETAG
+} from '../actions/index'
 
 const INIT_STATE = {
     graph: { 
         annoGraph: {}, 
         targetsById: {}, 
         targetsByType: {} 
-    }
+    },
+	etags: {}
 }
 
 export default function(state = INIT_STATE, action) { 
@@ -44,6 +50,14 @@ export default function(state = INIT_STATE, action) {
             targetsById: { $set: byId },
             targetsByType: { $set: byType }
         });
+	case SESSION_GRAPH_ETAG:
+		//console.log("WOOOOOP", { [action.payload.uri]: action.payload.etag});
+		console.log("WOOOOOP", action.payload);
+		return update(state, {
+			etags: {
+				$set: { [action.payload.uri]: action.payload.etag }
+			}
+		}); 		
 	default:
 		return state;
 	}

@@ -12,10 +12,22 @@ class Jam extends Component {
 	
 	componentDidMount() { 
 		if(this.props.location.query.session) { 
-			const graphUri = this.props.location.query.session;
-			this.props.fetchSessionGraph(graphUri);
+			// start polling
+			this.doPoll();
 		}
 		
+	}
+
+	doPoll() { 
+		console.log("Polling");
+		const graphUri = this.props.location.query.session;
+		if('etags' in this.props.graph && 
+		graphUri in this.props.graph.etags) { 
+				this.props.fetchSessionGraph(graphUri, this.props.graph.etags[graphUri]);
+		} else { 
+			this.props.fetchSessionGraph(graphUri);
+		}
+		setTimeout(() => this.doPoll(), 500);
 	}
 
 	render() {
@@ -37,7 +49,7 @@ class Jam extends Component {
 	}
 }
 
-function mapStateToProps({ graph, score }) {
+function mapStateToProps({ graph, score}) {
 	return { graph, score }
 }
 

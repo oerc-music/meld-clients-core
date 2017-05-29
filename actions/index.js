@@ -13,6 +13,7 @@ export const FETCH_COMPONENT_TARGET = 'FETCH_COMPONENT_TARGET';
 export const FETCH_STRUCTURE = 'FETCH_STRUCTURE';
 export const FETCH_MANIFESTATIONS = 'FETCH_MANIFESTATIONS';
 export const PROCESS_ANNOTATION = 'PROCESS_ANNOTATION';
+export const SESSION_GRAPH_ETAG= 'SESSION_GRAPH_ETAG';
 export const REALIZATION_OF = 'http://purl.org/vocab/frbr/core#realizationOf';
 export const EXPRESSION = 'http://purl.org/vocab/frbr/core#Expression';
 export const PART_OF = 'http://purl.org/vocab/frbr/core#partOf';
@@ -49,30 +50,46 @@ export function fetchTEI(uri) {
     }
 }
 
-export function fetchSessionGraph(uri) { 
+export function fetchSessionGraph(uri, etag = "") { 
 	console.log("FETCH_SESSION_GRAPH ACTION ON URI: ", uri);
+	// TODO add etag to header as If-None-Match and enable corresponding support on server
+	// so that it can respond with 304 instead of 200 (i.e. so it can ommit file body)
 	const promise = axios.get(uri);
 
     return (dispatch) => { 
-        promise.then( ({data}) => { 
-			console.log("Got session graph data");
-			jsonld.fromRDF(data, (err, doc) => {
+        promise.then( (response)  => { 
+			jsonld.fromRDF(response.data, (err, doc) => {
 				if(err) { console.log("ERROR TRANSLATING NQUADS TO JSONLD: ", err, data.data) }
 				else { 
-					console.log("Trying to frame")
 					jsonld.frame(doc, { "@id":uri }, (err, framed) => {
 						if(err) { console.log("FRAMING ERROR in fetchSessionGraph: ", err) }
-						else { 
-							// dispatch the graph data
-							dispatch( { 
-								type: FETCH_GRAPH,
-								payload: framed 
-							});
-							// grab the MEI file that this is a performance of
-							const session = framed["@graph"][0];
-							if (PERFORMANCE_OF in session) { 
-								dispatch(fetchConceptualScore(session[PERFORMANCE_OF]["@id"]));
-							} else { console.log("SESSION IS NOT A PERFORMANCE OF A SCORE: ", session); }
+						else {
+							if(!etag) { 
+								console.log("Trying to frame. etag is", etag)
+								// first time through: follow your nose along the conceptual score
+								// to retrieve the published score (MEI file)
+								const session = framed["@graph"][0];
+								if (PERFORMANCE_OF in session) { 
+									dispatch(fetchConceptualScore(session[PERFORMANCE_OF]["@id"]));
+								} else { console.log("SESSION IS NOT A PERFORMANCE OF A SCORE: ", session); }
+							} 
+							if(response.headers.etag !== etag) { 
+								// we need to grab the graph data, either because this is the first time,
+								// or because session etag has changed (i.e. annotation has been posted/patched)
+								dispatch( { 
+									type: FETCH_GRAPH,
+									payload: framed 
+								});
+								// take note of the new etag
+								console.log("Response: ", response);
+								dispatch( { 
+									type: SESSION_GRAPH_ETAG,
+									payload: {
+										uri: uri,
+										etag: response.headers.etag
+									}
+								});
+							}
 						}
 					});
 				}
