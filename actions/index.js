@@ -11,6 +11,8 @@ export const FETCH_TARGET_EXPRESSION = 'FETCH_TARGET_EXPRESSION';
 export const FETCH_COMPONENT_TARGET = 'FETCH_COMPONENT_TARGET';
 export const FETCH_STRUCTURE = 'FETCH_STRUCTURE';
 export const FETCH_MANIFESTATIONS = 'FETCH_MANIFESTATIONS';
+export const SCORE_PREV_PAGE = 'SCORE_PREV_PAGE';
+export const SCORE_NEXT_PAGE = 'SCORE_NEXT_PAGE';
 export const PROCESS_ANNOTATION = 'PROCESS_ANNOTATION';
 export const SESSION_GRAPH_ETAG= 'SESSION_GRAPH_ETAG';
 export const REALIZATION_OF = 'http://purl.org/vocab/frbr/core#realizationOf';
@@ -380,6 +382,30 @@ export function fetchConceptualScore(uri) {
 	}
 }
 
+export function scorePrevPage(pubScoreUri, pageNum, MEI) { 
+	return (dispatch) => {
+		dispatch({
+			type: SCORE_PREV_PAGE,
+			payload: { 
+				pageNum: pageNum,
+				data: MEI,
+				uri: pubScoreUri
+			}
+		});
+	}
+}
+export function scoreNextPage(pubScoreUri, pageNum, MEI) { 
+	return (dispatch) => {
+		dispatch({
+			type: SCORE_NEXT_PAGE,
+			payload: { 
+				pageNum: pageNum,
+				data: MEI,
+				uri: pubScoreUri
+			}
+		});
+	}
+}
 
 // helper function to ensure that a given key of a JSON obj
 // is an array, rather than a single value

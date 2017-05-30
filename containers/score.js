@@ -35,7 +35,7 @@ class Score extends Component {
 				<div id={this.props.uri} className="scorepane">
 					<div className="controls" />
 					<div className="annotations" />
-					<InlineSVG className="score" src={ this.props.score["MEI"][this.props.uri] } />
+					<InlineSVG className="score" src={ this.props.score["SVG"][this.props.uri] } />
 				</div>
 			);
 		}

@@ -1,8 +1,7 @@
 import React, { Component } from 'react';
-import { fetchSessionGraph } from '../actions/index';
+import { fetchSessionGraph, scorePrevPage, scoreNextPage } from '../actions/index';
 import { connect } from 'react-redux' ;
 import { bindActionCreators } from 'redux';
-
 import Score from '../containers/score';
 
 class Jam extends Component {
@@ -39,20 +38,33 @@ class Jam extends Component {
 			const scores = Object.keys(publishedScores).map((pS) => {
 				//return <Score key={ sc } uri={ sc } annotations={ byId[sc]["annotations"] } />;
 				const cS = publishedScores[pS];
-				const annotationTarget = conceptualScores[cS]
-				return <Score key={ pS } uri={ pS } annotations={ byId[annotationTarget] } />;
+				const annotationTarget = conceptualScores[cS]	
+				return (
+					<div key={ "wrapper" + pS } >
+						 <Score key={ pS } uri={ pS } annotations={ byId[annotationTarget] } />;
+					
+						<div id="prev" key={ "prev"+pS } onClick={() => {
+							console.log("prev clicked, ps: ", pS, this.props.score.pageNum, this.props.score.MEI);
+							this.props.scorePrevPage(pS, this.props.score.pageNum, this.props.score.MEI[pS])
+						}}> Previous </div>
+						<div id="next" key={ "next"+pS } onClick={() => {
+							console.log("next clicked, ps: ", pS, this.props.score.pageNum, this.props.score.MEI);
+							this.props.scoreNextPage(pS, this.props.score.pageNum, this.props.score.MEI[pS])
+						}}> Next </div>
+					</div>
+				)
 			});
 			return (
 				<div>
 					<link rel="stylesheet" href="../../style/jam.css" type="text/css" />
 					<div id="annotations"></div>
 					{ scores }
-					<div id="next"> Next </div>
 				</div>
 			)
 		}
 		return (<div>Loading...</div>);
 	}
+
 }
 
 function mapStateToProps({ graph, score}) {
@@ -60,7 +72,7 @@ function mapStateToProps({ graph, score}) {
 }
 
 function mapDispatchToProps(dispatch) { 
-	return bindActionCreators({ fetchSessionGraph }, dispatch);
+	return bindActionCreators({ fetchSessionGraph, scorePrevPage, scoreNextPage }, dispatch);
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(Jam);
