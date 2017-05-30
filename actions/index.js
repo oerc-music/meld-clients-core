@@ -66,11 +66,11 @@ export function fetchSessionGraph(uri, etag = "") {
 					jsonld.frame(doc, { "@id":uri }, (err, framed) => {
 						if(err) { console.log("FRAMING ERROR in fetchSessionGraph: ", err) }
 						else {
+							const session = framed["@graph"][0];
 							if(!etag) { 
 								console.log("Trying to frame. etag is", etag)
 								// first time through: follow your nose along the conceptual score
 								// to retrieve the published score (MEI file)
-								const session = framed["@graph"][0];
 								if (PERFORMANCE_OF in session) { 
 									dispatch(fetchConceptualScore(session[PERFORMANCE_OF]["@id"]));
 								} else { console.log("SESSION IS NOT A PERFORMANCE OF A SCORE: ", session); }
@@ -96,7 +96,7 @@ export function fetchSessionGraph(uri, etag = "") {
 									framed["@graph"][0] = ensureArray(framed["@graph"][0], CONTAINS);
 									// process each annotation
 									framed["@graph"][0][CONTAINS].map( (annotation) => { 
-										dispatch(processComponentAnnotation(annotation)); 
+										dispatch(processComponentAnnotation(annotation, session[PERFORMANCE_OF]["@id"])); 
 									});
 								}
 								console.log("Data is: ", framed);
@@ -141,8 +141,7 @@ export function fetchGraph(uri) {
     }
 }
 
-function processComponentAnnotation(annotation) { 
-	console.log("Processing annotation: ", annotation);
+function processComponentAnnotation(annotation, conceptualScore = "") { 
 	annotation = ensureArray(annotation, HAS_TARGET);
 	console.log("Annotation is now: ", annotation);
     const targets = annotation[HAS_TARGET].map( (target) => {
@@ -154,7 +153,7 @@ function processComponentAnnotation(annotation) {
 	});
     return (dispatch) => { 
 		targets.map( (target) => {
-			dispatch(fetchComponentTarget(target["@id"]))
+			dispatch(fetchComponentTarget(target["@id"], conceptualScore))
 		});
 		dispatch( { 
 			type: PROCESS_ANNOTATION,
@@ -168,13 +167,16 @@ function processComponentAnnotation(annotation) {
 }
 
 
-export function fetchComponentTarget(uri) { 
+export function fetchComponentTarget(uri, conceptualScore = "") { 
     console.log("FETCH_COMPONENT_TARGET ACTION ON URI: ", uri);
 	return (dispatch) => {
 		axios.get(uri).then((data) => { 
 			dispatch( { 
 				type: FETCH_COMPONENT_TARGET,
-				payload: data
+				payload: {
+					conceptualScore: conceptualScore,
+					structureTarget: uri
+				}
 			});
 			jsonld.fromRDF(data.data, (err, doc) => {
 				if(err) { console.log("ERROR TRANSLATING NQUADS TO JSONLD: ", err, data.data) }

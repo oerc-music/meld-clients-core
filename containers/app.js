@@ -35,6 +35,7 @@ class App extends Component {
 	render() { 
 		// Build an array of JSX objects corresponding to the annotation targets in our topLevel
 		if(this.props.graph.targetsById) { 
+			console.log("Props: ", this.props);
             const byId = this.props.graph.targetsById;
 			return ( 
 				<div className="wrapper">

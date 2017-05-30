@@ -1,5 +1,5 @@
 import update from 'immutability-helper';
-import { FETCH_SCORE, FETCH_MANIFESTATIONS, FETCH_CONCEPTUAL_SCORE, PROCESS_ANNOTATION, PUBLISHED_AS, SEGMENT } from '../actions/index'
+import { FETCH_SCORE, FETCH_MANIFESTATIONS, FETCH_CONCEPTUAL_SCORE, PROCESS_ANNOTATION, PUBLISHED_AS, SEGMENT, FETCH_COMPONENT_TARGET } from '../actions/index'
 
 const EMBODIMENT = 'http://purl.org/vocab/frbr/core#embodiment';
 const MEITYPE = 'http://meld.linkedmusic.org/terms/MEIEmbodiment';
@@ -9,7 +9,7 @@ const MEMBER = 'http://www.w3.org/2000/01/rdf-schema#member';
 const vrvTk = new verovio.toolkit();
 
 
-export default function(state = {publishedScores: [], MEI: {}, componentTargets: {}}, action) { 
+export default function(state = {publishedScores: {}, conceptualScores: {}, MEI: {}, componentTargets: {}}, action) { 
 	switch(action.type) {
 	case FETCH_SCORE:
         const svg = vrvTk.renderData(action.payload.data, {
@@ -63,12 +63,28 @@ export default function(state = {publishedScores: [], MEI: {}, componentTargets:
 			console.log( update(state, {componentTargets: { $merge: { [target["@id"]]: fragments } } }));
 			return update(state, {componentTargets: { $merge: { [target["@id"]]: fragments } } });
 		};
-		console.log("FETCH_COMPONENT_TARGET: Unembodied target! ", target);
+		console.log("FETCH_MANIFESTATIONS: Unembodied target! ", target);
 		return state;
 
 	case FETCH_CONCEPTUAL_SCORE:
 		const conceptualScore = action.payload;
-		return update(state, {publishedScores: { $push: [conceptualScore[PUBLISHED_AS]["@id"]] } });
+		//return update(state, {publishedScores: { $push: [conceptualScore[PUBLISHED_AS]["@id"]] } });
+		return update(state, {
+			publishedScores: { 
+				$set: {
+					[conceptualScore[PUBLISHED_AS]["@id"]]: conceptualScore["@id"]
+				 } 
+			}
+		});
+
+	case FETCH_COMPONENT_TARGET:
+		return update(state, {
+			conceptualScores: {
+				$set: { 
+					[action.payload.conceptualScore]: action.payload.structureTarget
+				}
+			}
+		});
 
 	default: 
 		return state;

@@ -31,14 +31,20 @@ class Jam extends Component {
 
 	render() {
 		console.log("Props: ",this.props);
-		//if(this.props.score.publishedScores) {
-		if(this.props.graph.targetsById) {
+		if(this.props.score.publishedScores) {
+		//if(this.props.graph.targetsById) {
 			const byId = this.props.graph.targetsById;
-			const scores = this.props.score.publishedScores.map((sc) => {
-			return <Score key={ sc } uri={ sc } annotations={ byId[sc]["annotations"] } />;
+			const publishedScores = this.props.score.publishedScores;
+			const conceptualScores = this.props.score.conceptualScores;
+			const scores = Object.keys(publishedScores).map((pS) => {
+				//return <Score key={ sc } uri={ sc } annotations={ byId[sc]["annotations"] } />;
+				const cS = publishedScores[pS];
+				const annotationTarget = conceptualScores[cS]
+				return <Score key={ pS } uri={ pS } annotations={ byId[annotationTarget] } />;
 			});
 			return (
 				<div>
+					<link rel="stylesheet" href="../../style/jam.css" type="text/css" />
 					<div id="annotations"></div>
 					{ scores }
 					<div id="next"> Next </div>

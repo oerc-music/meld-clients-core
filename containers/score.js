@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import ReactDOM from 'react-dom'
 import { connect } from 'react-redux';
 import { bindActionCreators} from 'redux';
-import { fetchScore, MOTIVATED_BY } from '../actions/index';
+import { fetchScore, MOTIVATED_BY, HAS_BODY, HAS_TARGET } from '../actions/index';
 import { 
 	MARKUP_EMPHASIS, 
 	handleEmphasis,
@@ -47,10 +47,15 @@ class Score extends Component {
 	}
 
 	componentDidUpdate() {
-		console.log("Annotations: ", this.props.annotations);
-		this.props.annotations.map( (annotation) => {
+		let annotations = this.props.annotations.annotations;
+		if(typeof annotations === 'undefined') { return }
+		if(!Array.isArray(annotations)) { 
+			annotations = [annotations]
+		}
+		console.log("annotations: ", annotations);
+		annotations.map( (annotation) => {
 			// each annotation...
-			const frags = annotation["oa:hasTarget"].map( (annotationTarget) => { 
+			const frags = annotation[HAS_TARGET].map( (annotationTarget) => { 
 				// each annotation target
 				if(annotationTarget["@id"] in this.props.score.componentTargets) {
                     // if this is my target, grab frag ids according to media type
@@ -76,8 +81,9 @@ class Score extends Component {
 	}
 
 	handleMELDActions(annotation, fragments) { 
-		if("oa:hasBody" in annotation) { 
-			annotation["oa:hasBody"].map( (b) => {
+		console.log("HANDING MELD ACTION: ", annotation, fragments);
+		if(HAS_BODY in annotation) { 
+			annotation[HAS_BODY].map( (b) => {
 				// TODO convert to switch statement
 				if(b["@id"] === MARKUP_EMPHASIS) { 
 					this.props.handleEmphasis(ReactDOM.findDOMNode(this), annotation, this.props.uri, fragments["MEI"]);
@@ -95,8 +101,9 @@ class Score extends Component {
 		// FIXME: the above should be phased out as we move into
 		// using motivations instead of bodies for rendering instructions
 		else if(MOTIVATED_BY in annotation) { 
-			switch(annotation[MOTIVATED_BY]) { 
+			switch(annotation[MOTIVATED_BY]["@id"]) { 
 			case HIGHLIGHTING:
+				console.log("HIGHLIGHTING!");
 				this.props.handleHighlight(ReactDOM.findDOMNode(this), annotation, this.props.uri, fragments["MEI"]);
 			default:
 				console.log("Unknown motivation: ", annotation[MOTIVATED_BY]);
