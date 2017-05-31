@@ -34,9 +34,7 @@ export default function(state = {publishedScores: {}, conceptualScores: {}, MEI:
 	let svg;
 	switch(action.type) {
 	case FETCH_SCORE:
-		console.log("Ping")
         svg = vrvTk.renderData(action.payload.data, vrvOptions);
-		console.log("Pong")
 		return update(state, {
 			SVG: { $merge: { [action.payload.config.url]: svg } },
 			MEI: { $merge: { [action.payload.config.url]: action.payload.data } } ,
@@ -78,31 +76,42 @@ export default function(state = {publishedScores: {}, conceptualScores: {}, MEI:
 					});
 				} else { console.log("Embodiment without members: ", part, embodiment); }
 			});
-			console.log( update(state, {componentTargets: { $merge: { [target["@id"]]: fragments } } }));
 			return update(state, {componentTargets: { $merge: { [target["@id"]]: fragments } } });
 		};
 		console.log("FETCH_MANIFESTATIONS: Unembodied target! ", target);
 		return state;
 
 	case FETCH_CONCEPTUAL_SCORE:
-		const conceptualScore = action.payload;
+		const cS = action.payload;
 		//return update(state, {publishedScores: { $push: [conceptualScore[PUBLISHED_AS]["@id"]] } });
 		return update(state, {
 			publishedScores: { 
 				$set: {
-					[conceptualScore[PUBLISHED_AS]["@id"]]: conceptualScore["@id"]
+					[cS[PUBLISHED_AS]["@id"]]: cS["@id"]
 				 } 
 			}
 		});
 
 	case FETCH_COMPONENT_TARGET:
-		return update(state, {
-			conceptualScores: {
-				$set: { 
-					[action.payload.conceptualScore]: action.payload.structureTarget
+		// ensure that our structure target collection is an array, then push this one in
+		const conceptualScore = action.payload.conceptualScore;
+		// make sure we have an entry for this conceptual score, and that its value is an array
+		let newState = update(state, {
+			conceptualScores: { 
+				$merge: { 
+					[action.payload.conceptualScore]: state['conceptualScores'][action.payload.conceptualScore] || []
 				}
 			}
 		});
+		// if this is a new structure target, push it in
+		if(!newState['conceptualScores'][action.payload.conceptualScore].includes(action.payload.structureTarget)) { 
+			newState = update(newState, {
+				conceptualScores: {
+					[action.payload.conceptualScore]: { $push: [action.payload.structureTarget] }
+				}
+			});
+		} 
+		return newState;
 
 	case SCORE_PREV_PAGE:
 		// if we're on page 1, do nothing

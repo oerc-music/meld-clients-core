@@ -46,15 +46,16 @@ class Score extends Component {
 		this.props.fetchScore(this.props.uri);
 	}
 
-	componentDidUpdate() {
-		let annotations = this.props.annotations.annotations;
-		if(typeof annotations === 'undefined') { return }
+	componentWillUpdate() {
+		let annotations = this.props.annotations;
 		if(!Array.isArray(annotations)) { 
 			annotations = [annotations]
 		}
-		console.log("annotations: ", annotations);
+		console.log("ARF ANNOTATIONS ARE ", annotations);
 		annotations.map( (annotation) => {
+			if(typeof annotation === 'undefined') { return }
 			// each annotation...
+			console.log("ARF ANNOTATION IS ", annotation);
 			const frags = annotation[HAS_TARGET].map( (annotationTarget) => { 
 				// each annotation target
 				if(annotationTarget["@id"] in this.props.score.componentTargets) {
@@ -103,8 +104,9 @@ class Score extends Component {
 		else if(MOTIVATED_BY in annotation) { 
 			switch(annotation[MOTIVATED_BY]["@id"]) { 
 			case HIGHLIGHTING:
-				console.log("HIGHLIGHTING!");
+				console.log("HIGHLIGHTING!", annotation);
 				this.props.handleHighlight(ReactDOM.findDOMNode(this), annotation, this.props.uri, fragments["MEI"]);
+			break;
 			default:
 				console.log("Unknown motivation: ", annotation[MOTIVATED_BY]);
 			}

@@ -38,10 +38,16 @@ class Jam extends Component {
 			const scores = Object.keys(publishedScores).map((pS) => {
 				//return <Score key={ sc } uri={ sc } annotations={ byId[sc]["annotations"] } />;
 				const cS = publishedScores[pS];
-				const annotationTarget = conceptualScores[cS]	
+				const annotationTargets = conceptualScores[cS];
+				annotations = Object.keys(byId).map((t) => {
+					if(annotationTargets && annotationTargets.includes(t)) { 
+						return byId[t].annotations
+					}
+				});
+				console.log("WORKING WITH: ", annotations);
 				return (
 					<div key={ "wrapper" + pS } >
-						 <Score key={ pS } uri={ pS } annotations={ byId[annotationTarget] } />;
+						 <Score key={ pS } uri={ pS } annotations={ annotations } />;
 					
 						<div id="prev" key={ "prev"+pS } onClick={() => {
 							console.log("prev clicked, ps: ", pS, this.props.score.pageNum, this.props.score.MEI);

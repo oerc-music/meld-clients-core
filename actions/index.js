@@ -70,7 +70,6 @@ export function fetchSessionGraph(uri, etag = "") {
 						else {
 							const session = framed["@graph"][0];
 							if(!etag) { 
-								console.log("Trying to frame. etag is", etag)
 								// first time through: follow your nose along the conceptual score
 								// to retrieve the published score (MEI file)
 								if (PERFORMANCE_OF in session) { 
@@ -194,7 +193,7 @@ export function fetchComponentTarget(uri, conceptualScore = "") {
 								// hand it off to the reducer to process the embodibag
 								// nb this is a different route to larrymeld (via expression)
 								// i.e. there is no partonomy here. So send the segment itself as the part.
-								//
+								console.log("Found a segment! Sending ", framed);
 								dispatch({ 
 									type: FETCH_MANIFESTATIONS,
 									payload: { 
