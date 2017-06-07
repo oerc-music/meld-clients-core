@@ -19,6 +19,8 @@ export const HAS_STRUCTURE= 'http://meld.linkedmusic.org/terms/hasStructure';
 export const SEQ = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#Seq';
 export const SEQPART = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#_';
 export const SCORE = 'http://purl.org/ontology/mo/Score';
+export const PUBLISHED_AS = 'http://purl.org/ontology/mo/published_as';
+export const HAS_PERFORMANCE_MEDIUM = 'http://rdaregistry.info/Elements/e/p20215';
 
 export function fetchScore(uri) { 
 	console.log("FETCH_SCORE ACTION on URI: ", uri);
@@ -79,6 +81,7 @@ export function fetchGraph(uri) {
                 type: FETCH_GRAPH,
                 payload: data
             });
+			console.log("~~~",data);
             // walk through component annotations
             data["@graph"]["ldp:contains"].map( (topLevel) => { 
                 topLevel["oa:hasBody"].map( (annotation) => { 
@@ -212,6 +215,20 @@ export function fetchWork(target, parts, work) {
 										if(attachedScore && "@type" in attachedScore && attachedScore["@type"] === SCORE) {
 											// FIXME breaks with multiple types
 											// Found an attached Score!!!
+											if(PUBLISHED_AS in attachedScore) { 
+												// for now: assume published scores
+												// are attached in same file
+												// FIXME enable external pub_scores
+												attachedScore[PUBLISHED_AS].map( (pubScore) => {
+													if(HAS_PERFORMANCE_MEDIUM in pubScore) { 
+														console.log("FOUND PERF MEDIUM: ", pubScore[HAS_PERFORMANCE_MEDIUM]);
+													} else { 
+														console.log("Published score without performance medium: ", pubScore["@id"]);
+													}
+												})
+											} else { 
+												console.log("Unpublished score: ", attachedScore);
+											}
 											if(HAS_STRUCTURE in attachedScore) { 
 												dispatch(fetchStructure(target, parts, attachedScore[HAS_STRUCTURE]["@id"]));
 											} else { 
