@@ -11,6 +11,7 @@ export const FETCH_COMPONENT_TARGET = 'FETCH_COMPONENT_TARGET';
 export const FETCH_STRUCTURE = 'FETCH_STRUCTURE';
 export const FETCH_MANIFESTATIONS = 'FETCH_MANIFESTATIONS';
 export const PROCESS_ANNOTATION = 'PROCESS_ANNOTATION';
+export const REGISTER_PUBLISHED_PERFORMANCE_SCORE= 'REGISTER_PUBLISHED_PERFORMANCE_SCORE';
 export const REALIZATION_OF = 'http://purl.org/vocab/frbr/core#realizationOf';
 export const EXPRESSION = 'http://purl.org/vocab/frbr/core#Expression';
 export const PART_OF = 'http://purl.org/vocab/frbr/core#partOf';
@@ -19,6 +20,8 @@ export const HAS_STRUCTURE= 'http://meld.linkedmusic.org/terms/hasStructure';
 export const SEQ = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#Seq';
 export const SEQPART = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#_';
 export const SCORE = 'http://purl.org/ontology/mo/Score';
+export const PUBLISHED_AS = 'http://purl.org/ontology/mo/published_as';
+export const HAS_PERFORMANCE_MEDIUM = 'http://rdaregistry.info/Elements/e/p20215';
 
 export function fetchScore(uri) { 
 	console.log("FETCH_SCORE ACTION on URI: ", uri);
@@ -79,6 +82,7 @@ export function fetchGraph(uri) {
                 type: FETCH_GRAPH,
                 payload: data
             });
+			console.log("~~~",data);
             // walk through component annotations
             data["@graph"]["ldp:contains"].map( (topLevel) => { 
                 topLevel["oa:hasBody"].map( (annotation) => { 
@@ -212,6 +216,31 @@ export function fetchWork(target, parts, work) {
 										if(attachedScore && "@type" in attachedScore && attachedScore["@type"] === SCORE) {
 											// FIXME breaks with multiple types
 											// Found an attached Score!!!
+											if(PUBLISHED_AS in attachedScore) { 
+												// for now: assume published scores
+												// are attached in same file
+												// FIXME enable external pub_scores
+												attachedScore[PUBLISHED_AS].map( (pubScore) => {
+													console.log("FOUND PUB SCORE: ", pubScore);
+													if(HAS_PERFORMANCE_MEDIUM in pubScore) { 
+														console.log("FOUND PERF MEDIUM: ", pubScore[HAS_PERFORMANCE_MEDIUM]);
+														dispatch({
+															type: REGISTER_PUBLISHED_PERFORMANCE_SCORE,
+															payload: { 
+																work: work,
+																conceptualScore: attachedScore,
+																publishedScore: pubScore,
+																performanceMedium: pubScore[HAS_PERFORMANCE_MEDIUM]
+															}
+														})
+														dispatch(fetchScore(pubScore["@id"]));
+													} else { 
+														console.log("Published score without performance medium: ", pubScore["@id"]);
+													}
+												})
+											} else { 
+												console.log("Unpublished score: ", attachedScore);
+											}
 											if(HAS_STRUCTURE in attachedScore) { 
 												dispatch(fetchStructure(target, parts, attachedScore[HAS_STRUCTURE]["@id"]));
 											} else { 
