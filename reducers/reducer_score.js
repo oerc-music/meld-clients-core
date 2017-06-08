@@ -13,15 +13,15 @@ export default function(state = {MEI: {}, componentTargets: {}}, action) {
 	switch(action.type) {
 	case FETCH_SCORE:
         const svg = vrvTk.renderData(action.payload.data, {
-                pageHeight: 1400,
-                pageWidth: 2000,
+                pageHeight: 2000,//1400
+                pageWidth: 1700,//2000,
 				spacingLinear: 0.05,
 				spacingNonLinear: 0.05,
 				spacingStaff: 0.05,
 				spacingSystem: 0.05,
 				ignoreLayout: true,
                 adjustPageHeight: true,
-                scale: 36 
+                scale: 35 //33 <==36
             });
 		return update(state, {MEI: { $merge: { [action.payload.config.url]: svg } } });
 

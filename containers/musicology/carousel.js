@@ -13,6 +13,7 @@ class MEICarousel extends Component {
             ease: 'linear',
             duration: 400
         };
+        this.handleChange = this.handleChange.bind(this);
     }
 
     /*
@@ -43,6 +44,8 @@ class MEICarousel extends Component {
                                       (k) => k.replace(".mei", ".svg")
                                   )
                               }
+                              motif={this.props.motif}
+              								onMotifChange={this.props.onMotifChange}
                               ease={this.state.ease}
                               duration={this.state.duration}
                               layout={this.state.layout}/>

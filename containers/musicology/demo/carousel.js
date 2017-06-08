@@ -11,7 +11,8 @@ export default class ForbiddenQuestion extends Component {
 		return (
 		  <div> 
 		  	<link rel="stylesheet" href="../../style/carousel.css" type="text/css" />
-		  	<App graphUri="http://meld.linkedmusic.org/annotations/LibrettoCarousel.json-ld" />
+		  	<App graphUri="http://meld.linkedmusic.org/annotations/FrageverbotCarousel.json-ld"
+				 			motif="F1"/>
       </div>
 		);
 	}
