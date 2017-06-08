@@ -1,5 +1,5 @@
 import update from 'immutability-helper';
-import { FETCH_SCORE, FETCH_MANIFESTATIONS, PROCESS_ANNOTATION } from '../actions/index'
+import { FETCH_SCORE, FETCH_MANIFESTATIONS, PROCESS_ANNOTATION, REGISTER_PUBLISHED_PERFORMANCE_SCORE } from '../actions/index'
 
 const EMBODIMENT = 'http://purl.org/vocab/frbr/core#embodiment';
 const MEITYPE = 'http://meld.linkedmusic.org/terms/MEIEmbodiment';
@@ -9,7 +9,7 @@ const MEMBER = 'http://www.w3.org/2000/01/rdf-schema#member';
 const vrvTk = new verovio.toolkit();
 
 
-export default function(state = {MEI: {}, componentTargets: {}}, action) { 
+export default function(state = {MEI: {}, componentTargets: {}, scoreMapping:{} }, action) {
 	switch(action.type) {
 	case FETCH_SCORE:
         const svg = vrvTk.renderData(action.payload.data, {
@@ -32,6 +32,7 @@ export default function(state = {MEI: {}, componentTargets: {}}, action) {
 			// part wasn't on segment line
 			return state;
 		}
+
 		let fragments={};
 		// go through each part, finding embodibags
 		if(EMBODIMENT in part) { 
@@ -66,7 +67,42 @@ export default function(state = {MEI: {}, componentTargets: {}}, action) {
 		};
 		console.log("FETCH_COMPONENT_TARGET: Unembodied target! ", target);
 		return state;
-	
+
+	case REGISTER_PUBLISHED_PERFORMANCE_SCORE:
+		console.log("Register published performance score: ", action.payload, "on state: ", state);
+		let conceptualScore;
+		if(action.payload.conceptualScore["@id"] in state.scoreMapping) { 
+			// we already know this conceptual score
+			// do we already know about the published score for this performance medium?
+			if(action.payload.performanceMedium["@id"] in state.scoreMapping[action.payload.conceptualScore["@id"]]) { 
+				// yes; so nothing to do. FIXME: should we cater for multiple published scores for same performance medium?
+				return state; 
+			} else { 
+				// no; so register the published score for this new performance medium
+				return update(state, { 
+					scoreMapping: { 
+						[action.payload.conceptualScore["@id"]]: { 
+							$merge: { 
+								[action.payload.performanceMedium["@id"]]: action.payload.publishedScore["@id"]
+							}
+						}
+					}
+				})
+			}
+		} else { 
+			// first time we see this conceptual score
+			// so attach the published score according to performance medium
+			return update(state, {
+				scoreMapping: { 
+					$merge: {
+						[action.payload.conceptualScore["@id"]]: {
+							[action.payload.performanceMedium["@id"]]: action.payload.publishedScore["@id"]
+						}
+					}
+				}
+			});
+		} 	
+
 	default: 
 		return state;
 	};

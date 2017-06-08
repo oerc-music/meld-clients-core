@@ -11,6 +11,7 @@ export const FETCH_COMPONENT_TARGET = 'FETCH_COMPONENT_TARGET';
 export const FETCH_STRUCTURE = 'FETCH_STRUCTURE';
 export const FETCH_MANIFESTATIONS = 'FETCH_MANIFESTATIONS';
 export const PROCESS_ANNOTATION = 'PROCESS_ANNOTATION';
+export const REGISTER_PUBLISHED_PERFORMANCE_SCORE= 'REGISTER_PUBLISHED_PERFORMANCE_SCORE';
 export const REALIZATION_OF = 'http://purl.org/vocab/frbr/core#realizationOf';
 export const EXPRESSION = 'http://purl.org/vocab/frbr/core#Expression';
 export const PART_OF = 'http://purl.org/vocab/frbr/core#partOf';
@@ -220,8 +221,19 @@ export function fetchWork(target, parts, work) {
 												// are attached in same file
 												// FIXME enable external pub_scores
 												attachedScore[PUBLISHED_AS].map( (pubScore) => {
+													console.log("FOUND PUB SCORE: ", pubScore);
 													if(HAS_PERFORMANCE_MEDIUM in pubScore) { 
 														console.log("FOUND PERF MEDIUM: ", pubScore[HAS_PERFORMANCE_MEDIUM]);
+														dispatch({
+															type: REGISTER_PUBLISHED_PERFORMANCE_SCORE,
+															payload: { 
+																work: work,
+																conceptualScore: attachedScore,
+																publishedScore: pubScore,
+																performanceMedium: pubScore[HAS_PERFORMANCE_MEDIUM]
+															}
+														})
+														dispatch(fetchScore(pubScore["@id"]));
 													} else { 
 														console.log("Published score without performance medium: ", pubScore["@id"]);
 													}
