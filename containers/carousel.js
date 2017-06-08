@@ -8,7 +8,7 @@ class MEICarousel extends Component {
         super(props);
         this.state = { 
             score: {},
-            width: 400,
+            width: 330,
             layout: this.props.layout,
             ease: 'linear',
             duration: 400
@@ -43,6 +43,8 @@ class MEICarousel extends Component {
                                       (k) => k.replace(".mei", ".svg")
                                   )
                               }
+                              motif={this.props.motif}
+                              onMotifChange={this.props.onMotifChange}
                               ease={this.state.ease}
                               duration={this.state.duration}
                               layout={this.state.layout}/>
