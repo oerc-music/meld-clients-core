@@ -22,16 +22,19 @@ const CarouselClassic= "meldterm:MEIClassicCarousel";
 class App extends Component { 
 	constructor(props) {
 		super(props);
+		this.state = { currentMotif: this.props.motif || false };
 	}
-	
+ 
 	componentDidMount() { 
 		if(this.props.graphUri) { 
 			const graphUri = this.props.graphUri;
 			this.props.fetchGraph(graphUri);
 		}
-		
 	}
-		
+	handleMotifChange(motif){
+		this.setState({currentMotif: motif});
+	}
+	
 	render() { 
 		// Build an array of JSX objects corresponding to the annotation targets in our topLevel
 		if(this.props.graph.targetsById) { 
@@ -47,7 +50,9 @@ class App extends Component {
 						switch(byId[id]["type"]) { 
 						case CarouselClassic:
 							return(<div>
-								<MEICarousel layout="classic"/>
+								<MEICarousel motif={this.state.currentMotif}
+								             onMotifChange={this.handleMotifChange.bind(this)}
+								             layout="classic"/>
 							</div>)
 						case Carousel:
 							return(<div>
@@ -56,7 +61,9 @@ class App extends Component {
 						case MEIManifestation:
 							return <Score key={ id } uri={ id } annotations={ byId[id]["annotations"] } />;
 						case TEIManifestation:
-							return <TEI key={ id } uri={ id } annotations={ byId[id]["annotations"] } />;
+							return <TEI key={ id } uri={ id } motif={this.state.currentMotif}
+													onMotifChange={this.handleMotifChange.bind(this)}
+							            annotations={ byId[id]["annotations"] } />;
 						case VideoManifestation: 
 							return <MediaPlayer key={ id } uri={ id } />;
 						case AudioManifestation: 
