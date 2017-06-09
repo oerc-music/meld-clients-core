@@ -56,9 +56,10 @@ export default function(state = {MEI: {}, componentTargets: {}, scoreMapping:{} 
 					if(!Array.isArray(embodiment[MEMBER])) { 
 						embodiment[MEMBER] = [embodiment[MEMBER]];
 					}
-					fragments[fragtype] = embodiment[MEMBER].map( (member) => {
+					fragments[fragtype] = fragments[fragtype] || [];
+					fragments[fragtype] = fragments[fragtype].concat(embodiment[MEMBER].map( (member) => {
 						return member["@id"];
-					});
+					}));
 				} else { console.log("Embodiment without members: ", part, embodiment); }
 			});
 			console.log("Updating state: ");
