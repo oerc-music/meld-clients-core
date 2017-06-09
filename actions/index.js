@@ -3,6 +3,7 @@ import n3 from 'n3';
 import jsonld from 'jsonld'
 
 export const FETCH_SCORE = 'FETCH_SCORE';
+export const FETCH_RIBBON_CONTENT = 'FETCH_RIBBON_CONTENT';
 export const FETCH_TEI = 'FETCH_TEI';
 export const FETCH_GRAPH = 'FETCH_GRAPH';
 export const FETCH_WORK = 'FETCH_WORK';
@@ -29,6 +30,15 @@ export function fetchScore(uri) {
 	return { 
 		type: FETCH_SCORE,
 		payload: promise 
+	}
+}
+
+export function fetchRibbonContent(uri) {
+	console.log("FETCH_SCORE ACTION on URI: ", uri);
+	const promise = axios.get(uri);
+	return {
+		type: FETCH_RIBBON_CONTENT,
+		payload: promise
 	}
 }
 

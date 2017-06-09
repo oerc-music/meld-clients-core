@@ -1,5 +1,5 @@
 import update from 'immutability-helper';
-import { FETCH_SCORE, FETCH_MANIFESTATIONS, PROCESS_ANNOTATION, REGISTER_PUBLISHED_PERFORMANCE_SCORE } from '../actions/index'
+import { FETCH_SCORE, FETCH_RIBBON_CONTENT, FETCH_MANIFESTATIONS, PROCESS_ANNOTATION, REGISTER_PUBLISHED_PERFORMANCE_SCORE } from '../actions/index'
 
 const EMBODIMENT = 'http://purl.org/vocab/frbr/core#embodiment';
 const MEITYPE = 'http://meld.linkedmusic.org/terms/MEIEmbodiment';
@@ -24,6 +24,12 @@ export default function(state = {MEI: {}, componentTargets: {}, scoreMapping:{} 
                 scale: 35 //33 <==36
             });
 		return update(state, {MEI: { $merge: { [action.payload.config.url]: svg } } });
+
+		case FETCH_RIBBON_CONTENT:
+			var orch =  new Orchestration(action.payload.data);
+			const svgRibbon = makeSVG(100, 400)
+			orch.drawOrchestration(svgRibbon, 600, 700, 400, 800);
+			return update(state, {MEI: { $merge: {[action.payload.config.url]: svgRibbon}}});
 
     case FETCH_MANIFESTATIONS:
 		const target = action.payload.target["@graph"][0];
@@ -75,16 +81,16 @@ export default function(state = {MEI: {}, componentTargets: {}, scoreMapping:{} 
 		if(action.payload.conceptualScore["@id"] in state.scoreMapping) { 
 			// we already know this conceptual score
 			// do we already know about the published score for this performance medium?
-			if(action.payload.performanceMedium["@id"] in state.scoreMapping[action.payload.conceptualScore["@id"]]) { 
+			if(action.payload.performanceMedium["@id"] in state.scoreMapping[action.payload.publishedScore["@id"]]) {
 				// yes; so nothing to do. FIXME: should we cater for multiple published scores for same performance medium?
 				return state; 
 			} else { 
 				// no; so register the published score for this new performance medium
-				return update(state, { 
-					scoreMapping: { 
-						[action.payload.conceptualScore["@id"]]: { 
-							$merge: { 
-								[action.payload.performanceMedium["@id"]]: action.payload.publishedScore["@id"]
+				return update(state, {
+					scoreMapping: {
+						[action.payload.publishedScore["@id"]]: {
+							$merge: {
+								[action.payload.performanceMedium["@id"]]: action.payload.conceptualScore["@id"]
 							}
 						}
 					}
@@ -96,8 +102,8 @@ export default function(state = {MEI: {}, componentTargets: {}, scoreMapping:{} 
 			return update(state, {
 				scoreMapping: { 
 					$merge: {
-						[action.payload.conceptualScore["@id"]]: {
-							[action.payload.performanceMedium["@id"]]: action.payload.publishedScore["@id"]
+						[action.payload.publishedScore["@id"]]: {
+							[action.payload.performanceMedium["@id"]]: action.payload.conceptualScore["@id"]
 						}
 					}
 				}

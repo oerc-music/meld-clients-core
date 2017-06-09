@@ -8,6 +8,7 @@ import Score from '../containers/score';
 import TEI from '../containers/tei';
 import MyImage from '../containers/image';
 import MEICarousel from '../containers/carousel';
+import OrchestralRibbon from '../containers/orchestralRibbon';
 import { fetchGraph } from '../actions/index';
 
 const MEIManifestation = "meldterm:MEIManifestation";
@@ -18,6 +19,8 @@ const AudioManifestation = "meldterm:AudioManifestation";
 const ImageManifestation = "meldterm:ImageManifestation";
 const Carousel= "meldterm:MEICarousel";
 const CarouselClassic= "meldterm:MEIClassicCarousel";
+const FOR_ORCHESTRA = "http://id.loc.gov/authorities/performanceMediums/2013015516";
+const HAS_PIANO = "http://id.loc.gov/authorities/performanceMediums/2013015550";
 
 class App extends Component { 
 	constructor(props) {
@@ -59,7 +62,14 @@ class App extends Component {
 								<MEICarousel layout="prism"/>
 							</div>)
 						case MEIManifestation:
-							return <Score key={ id } uri={ id } annotations={ byId[id]["annotations"] } />;
+							console.log("Dooom!!!", this.props.score.scoreMapping, id);
+							if(FOR_ORCHESTRA in this.props.score.scoreMapping[id]){
+								return <OrchestralRibbon key={ id } uri={ id } />;
+							} else if (HAS_PIANO in this.props.score.scoreMapping[id]){
+								return <Score key={ id } uri={ id } annotations={ byId[id]["annotations"] } />;
+							} else {
+								console.log('MEI with no recognised performace medium')
+							}
 						case TEIManifestation:
 							return <TEI key={ id } uri={ id } motif={this.state.currentMotif}
 													onMotifChange={this.handleMotifChange.bind(this)}
