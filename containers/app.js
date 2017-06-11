@@ -62,13 +62,14 @@ class App extends Component {
 								<MEICarousel layout="prism"/>
 							</div>)
 						case MEIManifestation:
-							console.log("Dooom!!!", this.props.score.scoreMapping, id);
-							if(FOR_ORCHESTRA in this.props.score.scoreMapping[id]){
-								return <OrchestralRibbon key={ id } uri={ id } />;
-							} else if (HAS_PIANO in this.props.score.scoreMapping[id]){
-								return <Score key={ id } uri={ id } annotations={ byId[id]["annotations"] } />;
-							} else {
-								console.log('MEI with no recognised performace medium')
+							if(this.props.score.scoreMapping[id]){
+								if(FOR_ORCHESTRA in this.props.score.scoreMapping[id]){
+									return <OrchestralRibbon key={ id } uri={ id } />;
+								} else if (HAS_PIANO in this.props.score.scoreMapping[id]){
+									return <Score key={ id } uri={ id } annotations={ byId[id]["annotations"] } />;
+								} else {
+									console.log('MEI with no recognised performace medium')
+								}
 							}
 						case TEIManifestation:
 							return <TEI key={ id } uri={ id } motif={this.state.currentMotif}
@@ -93,8 +94,8 @@ class App extends Component {
 };
 
 
-function mapStateToProps({ graph }) {
-	return { graph }
+function mapStateToProps({ graph , score}) {
+	return { graph , score }
 }
 
 function mapDispatchToProps(dispatch) { 

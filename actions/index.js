@@ -34,7 +34,7 @@ export function fetchScore(uri) {
 }
 
 export function fetchRibbonContent(uri) {
-	console.log("FETCH_SCORE ACTION on URI: ", uri);
+	console.log("FETCH_RIBBON_CONTENT ACTION on URI: ", uri);
 	const promise = axios.get(uri);
 	return {
 		type: FETCH_RIBBON_CONTENT,

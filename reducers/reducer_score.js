@@ -25,11 +25,10 @@ export default function(state = {MEI: {}, componentTargets: {}, scoreMapping:{} 
             });
 		return update(state, {MEI: { $merge: { [action.payload.config.url]: svg } } });
 
-		case FETCH_RIBBON_CONTENT:
-			var orch =  new Orchestration(action.payload.data);
-			const svgRibbon = makeSVG(100, 400)
-			orch.drawOrchestration(svgRibbon, 600, 700, 400, 800);
-			return update(state, {MEI: { $merge: {[action.payload.config.url]: svgRibbon}}});
+	case FETCH_RIBBON_CONTENT:
+		var orch =  new Orchestration(action.payload.data);
+		var svgRibbon = orch.drawOrchestration(false, 600, 700, 400, 800);
+		return update(state, {MEI: { $merge: {[action.payload.config.url]: svgRibbon.innerHTML}}});
 
     case FETCH_MANIFESTATIONS:
 		const target = action.payload.target["@graph"][0];
