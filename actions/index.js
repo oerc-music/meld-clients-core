@@ -23,6 +23,8 @@ export const SEQPART = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#_';
 export const SCORE = 'http://purl.org/ontology/mo/Score';
 export const PUBLISHED_AS = 'http://purl.org/ontology/mo/published_as';
 export const HAS_PERFORMANCE_MEDIUM = 'http://rdaregistry.info/Elements/e/p20215';
+export const HAS_PIANO = "http://id.loc.gov/authorities/performanceMediums/2013015550";
+
 
 export function fetchScore(uri) { 
 	console.log("FETCH_SCORE ACTION on URI: ", uri);
@@ -243,7 +245,11 @@ export function fetchWork(target, parts, work) {
 																performanceMedium: pubScore[HAS_PERFORMANCE_MEDIUM]
 															}
 														})
-														dispatch(fetchScore(pubScore["@id"]));
+														if(pubScore[HAS_PERFORMANCE_MEDIUM]['@id']==HAS_PIANO) {
+															dispatch(fetchScore(pubScore["@id"]));
+														} else {
+															dispatch(fetchRibbonContent);
+														}
 													} else { 
 														console.log("Published score without performance medium: ", pubScore["@id"]);
 													}
