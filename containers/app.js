@@ -72,9 +72,14 @@ class App extends Component {
 								}
 							}
 						case TEIManifestation:
-							return <TEI key={ id } uri={ id } motif={this.state.currentMotif}
-													onMotifChange={this.handleMotifChange.bind(this)}
-							            annotations={ byId[id]["annotations"] } />;
+							if(this.statehandleMotifChange){
+								return <TEI key={ id } uri={ id } motif={this.state.currentMotif}
+														onMotifChange={this.handleMotifChange.bind(this)}
+							            	annotations={ byId[id]["annotations"] } />;
+							} else {
+								return <TEI key={ id } uri={ id }
+									annotations={ byId[id]["annotations"] } />;
+							}
 						case VideoManifestation: 
 							return <MediaPlayer key={ id } uri={ id } />;
 						case AudioManifestation: 

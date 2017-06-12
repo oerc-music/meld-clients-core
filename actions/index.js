@@ -248,7 +248,7 @@ export function fetchWork(target, parts, work) {
 														if(pubScore[HAS_PERFORMANCE_MEDIUM]['@id']==HAS_PIANO) {
 															dispatch(fetchScore(pubScore["@id"]));
 														} else {
-															dispatch(fetchRibbonContent);
+															dispatch(fetchRibbonContent(pubScore["@id"]));
 														}
 													} else { 
 														console.log("Published score without performance medium: ", pubScore["@id"]);
