@@ -63,7 +63,7 @@ class MEITimeline extends Component {
           // Draw lines for acts
           divLines.push(<line className="act division" id={"tl-"+actString} 
                           x1={curx} x2={curx} y1={i ? boxTop : boxTop+6} y2={height-2} />);
-          divLines.push(<text class="actname" x={curx+2} y={height}>{(act[1]+"").substring(0, 3)}</text>)
+          divLines.push(<text className="actname" x={curx+2} y={height}>{(act[1]+"").substring(0, 3)}</text>)
           // draw lines for motifs (first because bar numbers are index by act, not scene)
           if(act[3] && act[3].length){
             for(var m=0; m<act[3].length; m++){
