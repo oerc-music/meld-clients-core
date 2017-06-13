@@ -39,7 +39,7 @@ class MEICarousel extends Component {
                 <div className="carouselWrapper">
                     <Carousel width={this.state.width}
                               images={
-                                  Object.keys(this.props.score.MEI).map(
+                                  Object.keys(this.props.score.MEI).filter((k) => k.indexOf('full-score')==-1).map(
                                       (k) => k.replace(".mei", ".svg")
                                   )
                               }

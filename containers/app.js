@@ -9,6 +9,7 @@ import TEI from '../containers/tei';
 import MyImage from '../containers/image';
 import MEICarousel from '../containers/carousel';
 import OrchestralRibbon from '../containers/orchestralRibbon';
+import MEITimeline from '../containers/timeline';
 import { fetchGraph } from '../actions/index';
 
 const MEIManifestation = "meldterm:MEIManifestation";
@@ -47,6 +48,12 @@ class App extends Component {
 					<link rel="stylesheet" href="../style/style.css"/>
 					<link rel="stylesheet" href="../style/CETEIcean.css"/>
 					<div className="controls" />
+						{ 
+							this.handleMotifChange && <MEITimeline key="UniqueTimeline"
+														structures={SVGTimeline.defaultStructures}
+														motif={this.state.currentMotif}
+														onMotifChange={this.handleMotifChange.bind(this)}/>
+							}
 
                 {/*		{this.props.graph.annoGraph["@graph"]["ldp:contains"][0]["oa:hasTarget"].map(function (t) { */}
                     {Object.keys(byId).map( (id) => { 
@@ -72,7 +79,7 @@ class App extends Component {
 								}
 							}
 						case TEIManifestation:
-							if(this.statehandleMotifChange){
+							if(this.handleMotifChange){
 								return <TEI key={ id } uri={ id } motif={this.state.currentMotif}
 														onMotifChange={this.handleMotifChange.bind(this)}
 							            	annotations={ byId[id]["annotations"] } />;
