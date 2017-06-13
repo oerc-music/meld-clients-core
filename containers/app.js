@@ -49,7 +49,7 @@ class App extends Component {
 					<link rel="stylesheet" href="../style/CETEIcean.css"/>
 					<div className="controls" />
 						{ 
-							this.handleMotifChange && <MEITimeline key="UniqueTimeline"
+							this.props.motif && <MEITimeline key="UniqueTimeline"
 														structures={SVGTimeline.defaultStructures}
 														motif={this.state.currentMotif}
 														onMotifChange={this.handleMotifChange.bind(this)}/>
@@ -79,13 +79,12 @@ class App extends Component {
 								}
 							}
 						case TEIManifestation:
-							if(this.handleMotifChange){
+							if(this.props.motif){
 								return <TEI key={ id } uri={ id } motif={this.state.currentMotif}
 														onMotifChange={this.handleMotifChange.bind(this)}
 							            	annotations={ byId[id]["annotations"] } />;
 							} else {
-								return <TEI key={ id } uri={ id }
-									annotations={ byId[id]["annotations"] } />;
+								return <TEI key={ id } uri={ id } annotations={ byId[id]["annotations"] } />;
 							}
 						case VideoManifestation: 
 							return <MediaPlayer key={ id } uri={ id } />;
