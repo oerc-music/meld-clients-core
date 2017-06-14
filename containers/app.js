@@ -75,8 +75,12 @@ class App extends Component {
 								} else if (HAS_PIANO in this.props.score.scoreMapping[id]){
 									return <Score key={ id } uri={ id } annotations={ byId[id]["annotations"] } />;
 								} else {
-									console.log('MEI with no recognised performace medium')
+									console.log('MEI with no recognised performance medium');
+									return <Score key={ id } uri={ id } annotations={ byId[id]["annotations"] } />;
 								}
+							} else {
+								console.log("No performance medum at all!", id);
+								return <Score key={ id } uri={ id } annotations={ byId[id]["annotations"] } />;
 							}
 						case TEIManifestation:
 							if(this.props.motif){
