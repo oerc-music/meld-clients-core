@@ -23,7 +23,7 @@ ReactDOM.render(
 			<Route path="/jam" component={Jam} />
 			<Route path="/foo" component={Foo} />
 			<Route path="/Demo/Rheingold" component={Rheingold}/>
-			<Route path="/Carousel" component={Carousel}/>
+			<Route path="/TimeMachine" component={Carousel}/>
 			<Route path="/ForbiddenQuestion" component={ForbiddenQuestion}/>
 		</Router>
 	</Provider>
