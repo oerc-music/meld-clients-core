@@ -22,6 +22,15 @@ export default class ForbiddenQuestion extends Component {
 		if(this.props.location.query.motif){
 			if(typeof(this.props.location.query.motif)==='string'){
 				motifs = [ensureURI(this.props.location.query.motif)];
+			} else if(this.props.location.query.motif.length===2) {
+				motifs = ensureURIs(this.props.location.query.motif);
+				return (
+				  <div class="twins"> 
+				  	<link rel="stylesheet" href="../../style/forbiddenQuestion.css" type="text/css" />
+						<link rel="stylesheet" href="../../style/double.css" type="text/css" />
+				  	<App graphUri={'http://meld.linkedmusic.org/annotations/double-demo.json-ld'}/>
+		      </div>
+				);
 			} else {
 				motifs = ensureURIs(this.props.location.query.motif);
 			}

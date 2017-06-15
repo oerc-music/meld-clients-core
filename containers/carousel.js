@@ -36,8 +36,11 @@ class MEICarousel extends Component {
         console.log("Carousel sees :", this.props.score);
         if("MEI" in this.props.score && Object.keys(this.props.score.MEI).length && Object.keys(this.props.score.scoreMapping).length) { 
           var k = Object.keys(this.props.score.MEI);
-          var vs = k.filter((k) => { console.log(k, this.props.score.scoreMapping, this.props.score.scoreMapping[k]); return !this.props.score.scoreMapping[k] || "http://id.loc.gov/authorities/performanceMediums/2013015550" in this.props.score.scoreMapping[k]}, this);
+          var vs = k.filter((k) => { return !this.props.score.scoreMapping[k] || "http://id.loc.gov/authorities/performanceMediums/2013015550" in this.props.score.scoreMapping[k]}, this);
           var im = vs.map(k => k.replace(".mei", ".svg"));
+          im.push("http://localhost:8080/companion/mei/blank.svg");
+          im.push("http://localhost:8080/companion/mei/blank.svg");
+          im.push("http://localhost:8080/companion/title-page-top.png");
             return (
                 <div className="carouselWrapper">
                     <Carousel width={this.state.width}
