@@ -9,7 +9,6 @@ import InlineSVG from 'svg-inline-react';
 class MEITimeline extends Component {
   constructor(props) {
     super(props);
-    console.log("mooooo!", props);
     this.state={
       structures: [['overture', 'Vorspiel', 75, false],
                             ['act', 'I', [['scene', 1, 262],
@@ -43,6 +42,11 @@ class MEITimeline extends Component {
     }
     return sum;
   }
+  motifChangeClickHandler(event){
+    var el = event.target;
+    var motif = el.getAttributeNS(null, 'class').match(/F[0-9]+/);
+    this.props.onMotifChange(motif);
+  }
   render(){
     if(this.state.structures) {
       var structures = this.state.structures;
@@ -70,7 +74,9 @@ class MEITimeline extends Component {
               var motif = act[3][m];
               var current = this.props.motif && this.props.motif==motif[0];
               var currentClass = current ? " active" : "";
+              var fun = this.motifChangeClickHandler.bind(this);
               motifLines.push(<line className={"annotation annotation__AskingForbidden_"+motif[0]+"_1"+currentClass}
+                                    onClick={ fun }
                                     x1={curx+(motif[1]*scale)} x2={curx+(motif[1]*scale)}
                                     y1={current ? 0 : 5} y2={boxBottom} />);
             }
