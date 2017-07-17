@@ -4,7 +4,6 @@ import {
 	FETCH_MANIFESTATIONS, 
 	FETCH_CONCEPTUAL_SCORE, 
 	PROCESS_ANNOTATION, 
-	PUBLISHED_AS, 
 	SEGMENT, 
 	FETCH_COMPONENT_TARGET,
 	SCORE_PREV_PAGE,
@@ -87,7 +86,7 @@ export default function(state = {publishedScores: {}, conceptualScores: {}, MEI:
 		return update(state, {
 			publishedScores: { 
 				$set: {
-					[cS[PUBLISHED_AS]["@id"]]: cS["@id"]
+					[cS["mo:published_as"]["@id"]]: cS["@id"]
 				 } 
 			}
 		});
@@ -127,7 +126,6 @@ export default function(state = {publishedScores: {}, conceptualScores: {}, MEI:
 		});
 		
 	case SCORE_NEXT_PAGE:
-		console.log("Got action: ", action);
 		// if we're on the last page, do nothing
 		const pageCount = vrvTk.getPageCount();
 		if(action.payload.pageNum === pageCount) { 

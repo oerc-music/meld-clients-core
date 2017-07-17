@@ -25,7 +25,7 @@ class Jam extends Component {
 		} else { 
 			this.props.fetchSessionGraph(graphUri);
 		}
-		setTimeout(() => this.doPoll(), 500);
+		setTimeout(() => this.doPoll(), 5000);
 	}
 
 	render() {

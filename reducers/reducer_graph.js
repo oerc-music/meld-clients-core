@@ -93,6 +93,7 @@ export default function(state = INIT_STATE, action) {
             targetsByType: { $set: byType }
         });
 	case SESSION_GRAPH_ETAG:
+		console.log("GOT SESSION_GRAPH_ETAG ", action.payload.etag)
 		return update(state, {
 			etags: {
 				$set: { [action.payload.uri]: action.payload.etag }

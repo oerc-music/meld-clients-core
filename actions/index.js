@@ -1,5 +1,4 @@
 import axios from 'axios';
-import n3 from 'n3';
 import jsonld from 'jsonld'
 
 export const FETCH_SCORE = 'FETCH_SCORE';
@@ -23,12 +22,11 @@ export const HAS_STRUCTURE= 'http://meld.linkedmusic.org/terms/hasStructure';
 export const SEQ = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#Seq';
 export const SEQPART = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#_';
 export const SCORE = 'http://purl.org/ontology/mo/Score';
-export const PERFORMANCE_OF= 'http://purl.org/ontology/mo/performance_of';
-export const PUBLISHED_AS = 'http://purl.org/ontology/mo/published_as';
 export const CONTAINS = 'http://www.w3.org/ns/ldp#contains';
 export const HAS_TARGET= 'http://www.w3.org/ns/oa#hasTarget'
 export const MOTIVATED_BY= 'http://www.w3.org/ns/oa#motivatedBy'
 export const SEGMENT = 'http://www.linkedmusic.org/ontologies/segment/Segment'
+
 
 export function fetchScore(uri) { 
 	console.log("FETCH_SCORE ACTION on URI: ", uri);
@@ -58,64 +56,43 @@ export function fetchSessionGraph(uri, etag = "") {
 	console.log("FETCH_SESSION_GRAPH ACTION ON URI: ", uri);
 	// TODO add etag to header as If-None-Match and enable corresponding support on server
 	// so that it can respond with 304 instead of 200 (i.e. so it can ommit file body)
-	const promise = axios.get(uri);
+	const promise = axios.get(uri, {headers: {'Accept': 'application/ld+json'}});
 
     return (dispatch) => { 
         promise.then( (response)  => { 
-			jsonld.fromRDF(response.data, (err, doc) => {
-				if(err) { console.log("ERROR TRANSLATING NQUADS TO JSONLD: ", err, data.data) }
-				else { 
-					jsonld.frame(doc, { "@id":uri }, (err, framed) => {
-						if(err) { console.log("FRAMING ERROR in fetchSessionGraph: ", err) }
-						else {
-							const session = framed["@graph"][0];
-							if(!etag) { 
-								// first time through: follow your nose along the conceptual score
-								// to retrieve the published score (MEI file)
-								if (PERFORMANCE_OF in session) { 
-									dispatch(fetchConceptualScore(session[PERFORMANCE_OF]["@id"]));
-								} else { console.log("SESSION IS NOT A PERFORMANCE OF A SCORE: ", session); }
-							} 
-							if(response.headers.etag !== etag) { 
-								// we need to grab the graph data, either because this is the first time,
-								// or because session etag has changed (i.e. annotation has been posted/patched)
-								dispatch( { 
-									type: FETCH_GRAPH,
-									payload: framed 
-								});
-								// take note of the new etag
-								console.log("Response: ", response);
-								dispatch( { 
-									type: SESSION_GRAPH_ETAG,
-									payload: {
-										uri: uri,
-										etag: response.headers.etag
-									}
-								});
-								if(CONTAINS in framed["@graph"][0]) { 
-									// there are one or more annotations to process
-									framed["@graph"][0] = ensureArray(framed["@graph"][0], CONTAINS);
-									// process each annotation
-									framed["@graph"][0][CONTAINS].map( (annotation) => { 
-										dispatch(processComponentAnnotation(annotation, session[PERFORMANCE_OF]["@id"])); 
-									});
-								}
-								console.log("Data is: ", framed);
-							}
-						}
+			const framed = response.data;
+			const session = framed["@graph"][0];
+			if(!etag) { 
+				// first time through: follow your nose along the conceptual score
+				// to retrieve the published score (MEI file)
+				if ("mo:performance_of" in session) { 
+					dispatch(fetchConceptualScore(session["mo:performance_of"]["@id"]));
+				} else { console.log("SESSION IS NOT A PERFORMANCE OF A SCORE: ", session); }
+			} 
+			if(response.headers.etag !== etag) { 
+				// we need to grab the graph data, either because this is the first time,
+				// or because session etag has changed (i.e. annotation has been posted/patched)
+				dispatch( { 
+					type: FETCH_GRAPH,
+					payload: framed 
+				});
+				// take note of the new etag
+				dispatch( { 
+					type: SESSION_GRAPH_ETAG,
+					payload: {
+						uri: uri,
+						etag: response.headers.etag
+					}
+				});
+				if(CONTAINS in framed["@graph"][0]) { 
+					// there are one or more annotations to process
+					framed["@graph"][0] = ensureArray(framed["@graph"][0], CONTAINS);
+					// process each annotation
+					framed["@graph"][0][CONTAINS].map( (annotation) => { 
+						dispatch(processComponentAnnotation(annotation, session["mo:performance_of"]["@id"])); 
 					});
 				}
-			});
-			
-	/*
-            // walk through component annotations
-            data["@graph"]["ldp:contains"].map( (topLevel) => { 
-                topLevel["oa:hasBody"].map( (annotation) => { 
-                    dispatch(processComponentAnnotation(annotation)); 
-                });
-
-            });
-	*/
+			}
         });
     }
 }
@@ -144,9 +121,7 @@ export function fetchGraph(uri) {
 
 function processComponentAnnotation(annotation, conceptualScore = "") { 
 	annotation = ensureArray(annotation, HAS_TARGET);
-	console.log("Annotation is now: ", annotation);
     const targets = annotation[HAS_TARGET].map( (target) => {
-		console.log("Looking at target: ", target);
 			return { 
 				"@id": target["@id"],
 				//"@type": target["@type"], 
@@ -193,7 +168,6 @@ export function fetchComponentTarget(uri, conceptualScore = "") {
 								// hand it off to the reducer to process the embodibag
 								// nb this is a different route to larrymeld (via expression)
 								// i.e. there is no partonomy here. So send the segment itself as the part.
-								console.log("Found a segment! Sending ", framed);
 								dispatch({ 
 									type: FETCH_MANIFESTATIONS,
 									payload: { 
@@ -216,7 +190,6 @@ export function fetchComponentTarget(uri, conceptualScore = "") {
 
 
 export function fetchTargetExpression(framed) { 
-	console.log("fetchTargetExpression");
 	// traverse from the provided Expression, via a Segment, to Manifestation(s)
 	return(dispatch) => { 
 		dispatch( { 
@@ -228,7 +201,6 @@ export function fetchTargetExpression(framed) {
 			// found an expression
 			// does it have any parts?
 			let parts = [];
-			console.log("part check: ", target)
 			if(PART in target) { 
 				// sometimes we may have multiple parts or part sequences; sometimes only one
 				// so ensure we have an array to work with (even if it's length one)
@@ -334,7 +306,6 @@ export function fetchStructure(target, parts, segline) {
 							else { 
 								// and hand to reducers to process associated embodibags
 								// (manifestations of the expression)
-								console.log("fetching manifestations", doc, part, framed);
 								dispatch({ 
 									type: FETCH_MANIFESTATIONS,
 									payload: { 
@@ -353,31 +324,21 @@ export function fetchStructure(target, parts, segline) {
 
 export function fetchConceptualScore(uri) { 
 	console.log("FETCH_CONCEPTUAL_SCORE ON URI: ", uri);
-	const promise = axios.get(uri);
+	const promise = axios.get(uri, {headers: {'Accept': 'application/ld+json'}});
 
     return (dispatch) => { 
-        promise.then( ({data}) => { 
-			jsonld.fromRDF(data, (err, doc) => {
-				if(err) { console.log("ERROR TRANSLATING NQUADS TO JSONLD: ", err, data.data) }
-				else { 
-					console.log("Trying to frame")
-					jsonld.frame(doc, { "@id":uri }, (err, framed) => {
-						if(err) { console.log("FRAMING ERROR in fetchConceptualScore: ", err) }
-						else { 
-							const conceptualScore = framed["@graph"][0];
-							if(PUBLISHED_AS in conceptualScore) { 
-								// dispatch the conceptual score (containing the mei URI) so that we can initialise a <Score> component
-								dispatch( { 
-									type: FETCH_CONCEPTUAL_SCORE,
-									payload: conceptualScore 
-								});
-								dispatch(fetchScore(conceptualScore[PUBLISHED_AS]["@id"]));
-							} else { console.log("Unpublished conceptual score: ", conceptualScore) }
-						}
-					});
-				}
-			});
-		});
+        promise.then( (response) => { 
+			const framed = response.data;
+			const conceptualScore = framed["@graph"][0];
+			if("mo:published_as" in conceptualScore) { 
+				// dispatch the conceptual score (containing the mei URI) so that we can initialise a <Score> component
+				dispatch( { 
+					type: FETCH_CONCEPTUAL_SCORE,
+					payload: conceptualScore 
+				});
+				dispatch(fetchScore(conceptualScore["mo:published_as"]["@id"]));
+			} else { console.log("Unpublished conceptual score: ", conceptualScore) }
+		})
 	}
 }
 
