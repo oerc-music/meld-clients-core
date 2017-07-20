@@ -159,8 +159,7 @@ export function fetchComponentTarget(uri, conceptualScore = "") {
 	const promise = axios.get(uri, {headers: {'Accept': 'application/ld+json'}});
 	return (dispatch) => {
 		promise.then((data) => { 
-			var framed = data["@graph"][0];
-			console.log("Got data: ", data);
+			var framed = data.data;
 			dispatch( { 
 				type: FETCH_COMPONENT_TARGET,
 				payload: {
