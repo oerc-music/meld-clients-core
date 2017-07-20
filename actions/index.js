@@ -23,7 +23,6 @@ export const SEQ = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#Seq';
 export const SEQPART = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#_';
 export const SCORE = 'http://purl.org/ontology/mo/Score';
 export const CONTAINS = 'http://www.w3.org/ns/ldp#contains';
-export const HAS_TARGET= 'http://www.w3.org/ns/oa#hasTarget'
 export const MOTIVATED_BY= 'http://www.w3.org/ns/oa#motivatedBy'
 export const SEGMENT = 'http://www.linkedmusic.org/ontologies/segment/Segment'
 
@@ -56,10 +55,20 @@ export function fetchSessionGraph(uri, etag = "") {
 	console.log("FETCH_SESSION_GRAPH ACTION ON URI: ", uri);
 	// TODO add etag to header as If-None-Match and enable corresponding support on server
 	// so that it can respond with 304 instead of 200 (i.e. so it can ommit file body)
-	const promise = axios.get(uri, {headers: {'Accept': 'application/ld+json'}});
+	const promise = axios.get(uri, {
+		headers: {'Accept': 'application/ld+json', 'If-None-Match':etag},
+		validateStatus: function(stat) { 
+			// only complain if code is greater or equal to 400
+			// this is to not treat 304's as errors}
+			return stat < 400;
+		}
+	});
 
     return (dispatch) => { 
         promise.then( (response)  => { 
+			if(response.status == 304) { 
+				return; // don't need to do any new work
+			}
 			const framed = response.data;
 			const session = framed["@graph"][0];
 			if(!etag) { 
@@ -72,6 +81,7 @@ export function fetchSessionGraph(uri, etag = "") {
 			if(response.headers.etag !== etag) { 
 				// we need to grab the graph data, either because this is the first time,
 				// or because session etag has changed (i.e. annotation has been posted/patched)
+				console.log("Sending ", framed);
 				dispatch( { 
 					type: FETCH_GRAPH,
 					payload: framed 
@@ -84,11 +94,11 @@ export function fetchSessionGraph(uri, etag = "") {
 						etag: response.headers.etag
 					}
 				});
-				if(CONTAINS in framed["@graph"][0]) { 
+				if("ldp:contains" in framed["@graph"][0]) { 
 					// there are one or more annotations to process
-					framed["@graph"][0] = ensureArray(framed["@graph"][0], CONTAINS);
+					framed["@graph"][0] = ensureArray(framed["@graph"][0], "ldp:contains");
 					// process each annotation
-					framed["@graph"][0][CONTAINS].map( (annotation) => { 
+					framed["@graph"][0]["ldp:contains"].map( (annotation) => { 
 						dispatch(processComponentAnnotation(annotation, session["mo:performance_of"]["@id"])); 
 					});
 				}
@@ -120,8 +130,9 @@ export function fetchGraph(uri) {
 }
 
 function processComponentAnnotation(annotation, conceptualScore = "") { 
-	annotation = ensureArray(annotation, HAS_TARGET);
-    const targets = annotation[HAS_TARGET].map( (target) => {
+	annotation = ensureArray(annotation, "oa:hasTarget");
+	console.log("Processing component annotation: ", annotation, conceptualScore)
+    const targets = annotation["oa:hasTarget"].map( (target) => {
 			return { 
 				"@id": target["@id"],
 				//"@type": target["@type"], 
@@ -145,8 +156,11 @@ function processComponentAnnotation(annotation, conceptualScore = "") {
 
 export function fetchComponentTarget(uri, conceptualScore = "") { 
     console.log("FETCH_COMPONENT_TARGET ACTION ON URI: ", uri);
+	const promise = axios.get(uri, {headers: {'Accept': 'application/ld+json'}});
 	return (dispatch) => {
-		axios.get(uri).then((data) => { 
+		promise.then((data) => { 
+			var framed = data["@graph"][0];
+			console.log("Got data: ", data);
 			dispatch( { 
 				type: FETCH_COMPONENT_TARGET,
 				payload: {
@@ -154,37 +168,27 @@ export function fetchComponentTarget(uri, conceptualScore = "") {
 					structureTarget: uri
 				}
 			});
-			jsonld.fromRDF(data.data, (err, doc) => {
-				if(err) { console.log("ERROR TRANSLATING NQUADS TO JSONLD: ", err, data.data) }
-				else { 
-					jsonld.frame(doc, { "@id":uri }, (err, framed) => {
-						if(err) { console.log("FRAMING ERROR in fetchComponentTarget: ", err) }
-						else { 
-							let typecheck = framed["@graph"][0];
-							typecheck = ensureArray(typecheck, "@type");
-							// have we found a segment?
-							if(typecheck["@type"].includes(SEGMENT)) { 
-								// found a segment!
-								// hand it off to the reducer to process the embodibag
-								// nb this is a different route to larrymeld (via expression)
-								// i.e. there is no partonomy here. So send the segment itself as the part.
-								dispatch({ 
-									type: FETCH_MANIFESTATIONS,
-									payload: { 
-										target: framed,
-										part: framed
-									}
-								});
-							} else { 
-								// if not, continue following links via the target's expression
-								dispatch(fetchTargetExpression(framed));
-							}
-						}
-						
-					});
-				}
-			});
+			let typecheck = framed["@graph"][0];
+			typecheck = ensureArray(typecheck, "@type");
+			// have we found a segment?
+			if(typecheck["@type"].includes(SEGMENT)) { 
+				// found a segment!
+				// hand it off to the reducer to process the embodibag
+				// nb this is a different route to larrymeld (via expression)
+				// i.e. there is no partonomy here. So send the segment itself as the part.
+				dispatch({ 
+					type: FETCH_MANIFESTATIONS,
+					payload: { 
+						target: framed,
+						part: framed
+					}
+				});
+			} else { 
+				// if not, continue following links via the target's expression
+				dispatch(fetchTargetExpression(framed));
+			}
 		});
+		
 	}
 }
 

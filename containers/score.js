@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import ReactDOM from 'react-dom'
 import { connect } from 'react-redux';
 import { bindActionCreators} from 'redux';
-import { fetchScore, MOTIVATED_BY, HAS_BODY, HAS_TARGET } from '../actions/index';
+import { fetchScore, HAS_BODY, HAS_TARGET } from '../actions/index';
 import { 
 	MARKUP_EMPHASIS, 
 	handleEmphasis,
@@ -56,7 +56,7 @@ class Score extends Component {
 			if(typeof annotation === 'undefined') { return }
 			// each annotation...
 			console.log("ARF ANNOTATION IS ", annotation);
-			const frags = annotation[HAS_TARGET].map( (annotationTarget) => { 
+			const frags = annotation["oa:hasTarget"].map( (annotationTarget) => { 
 				// each annotation target
 				if(annotationTarget["@id"] in this.props.score.componentTargets) {
                     // if this is my target, grab frag ids according to media type
@@ -101,8 +101,8 @@ class Score extends Component {
 		}
 		// FIXME: the above should be phased out as we move into
 		// using motivations instead of bodies for rendering instructions
-		else if(MOTIVATED_BY in annotation) { 
-			switch(annotation[MOTIVATED_BY]["@id"]) { 
+		else if("oa:motivatedBy" in annotation) { 
+			switch(annotation["oa:motivatedBy"]["@id"]) { 
 			case HIGHLIGHTING:
 				console.log("HIGHLIGHTING!", annotation);
 				this.props.handleHighlight(ReactDOM.findDOMNode(this), annotation, this.props.uri, fragments["MEI"]);

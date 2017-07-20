@@ -7,6 +7,7 @@ export const CUE_AUDIO = "meldterm:CueAudio";
 export const CUE_AUDIO_HANDLED = "CUE_AUDIO_HANDLED";
 export const CUE_IMAGE = "meldterm:CueImage";
 export const CUE_IMAGE_HANDLED = "CUE_IMAGE_HANDLED";
+export const NEXT_PAGE_OR_PIECE = "motivation:NextPageOrPiece";
 export const ANNOTATION_HANDLED = "ANNOTATION_HANDLED";
 export const ANNOTATION_NOT_HANDLED = "ANNOTATION_NOT_HANDLED";
 
@@ -148,6 +149,12 @@ export function handleHighlight2(component, annotation, uri, fragments) {
 	});
 	return annotationHandled();
 }
+
+export function handleNextPageOrPiece() { 
+	console.log("BOOOOOP: nextpageorpiece");
+}
+
+
 function annotationHandled(annotation) {
 	return {
 		type: ANNOTATION_HANDLED,

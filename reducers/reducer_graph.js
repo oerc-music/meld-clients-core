@@ -2,8 +2,6 @@ import update from 'immutability-helper';
 import { 
 	FETCH_GRAPH, 
 	FETCH_COMPONENT_TARGET, 
-	CONTAINS, 
-	HAS_TARGET,
 	SESSION_GRAPH_ETAG,
 	ensureArray
 } from '../actions/index'
@@ -63,11 +61,13 @@ export default function(state = INIT_STATE, action) {
 			payload = JSON.parse(payload);
 		}
 		payload = payload["@graph"][0];
-		if(CONTAINS in payload) {
-			payload = ensureArray(payload, CONTAINS);
-			payload[CONTAINS].map( (a) => { 
-				a = ensureArray(a, HAS_TARGET);
-				a[HAS_TARGET].map( (targetResource) => {
+		console.log("Looking at ", payload);
+		if("ldp:contains" in payload) {
+			payload = ensureArray(payload, "ldp:contains");
+			payload["ldp:contains"].map( (a) => { 
+				a = ensureArray(a, "oa:hasTarget");
+				a["oa:hasTarget"].map( (targetResource) => {
+					console.log("looking at a, targetResource: ", a, targetResource);
 					// lookup target IDs to get types and component annotations
 					if(targetResource["@id"] in byId) { 
 						byId[targetResource["@id"]]["annotations"].push(a);
