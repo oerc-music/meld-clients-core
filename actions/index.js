@@ -1,5 +1,6 @@
 import axios from 'axios';
 import jsonld from 'jsonld'
+import {ANNOTATION_NOT_HANDLED} from './meldActions';
 
 export const FETCH_SCORE = 'FETCH_SCORE';
 export const FETCH_CONCEPTUAL_SCORE = 'FETCH_CONCEPTUAL_SCORE';
@@ -358,15 +359,23 @@ export function scorePrevPage(pubScoreUri, pageNum, MEI) {
 	}
 }
 export function scoreNextPage(pubScoreUri, pageNum, MEI) { 
+	console.log("NEXT PAGE WOOP:", pubScoreUri, pageNum, MEI);
 	return (dispatch) => {
-		dispatch({
-			type: SCORE_NEXT_PAGE,
-			payload: { 
-				pageNum: pageNum,
-				data: MEI,
-				uri: pubScoreUri
-			}
-		});
+		if(MEI) { 
+			dispatch({
+				type: SCORE_NEXT_PAGE,
+				payload: { 
+					pageNum: pageNum,
+					data: MEI,
+					uri: pubScoreUri
+				}
+			});
+		} else { 
+			dispatch({
+				type: ANNOTATION_NOT_HANDLED,
+				payload:"Page flip attempted on non-existing MEI. Has it loaded yet?"
+			})
+		}
 	}
 }
 

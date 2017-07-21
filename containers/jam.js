@@ -32,6 +32,10 @@ class Jam extends Component {
 		console.log("Props: ",this.props);
 		if(this.props.score.publishedScores) {
 		//if(this.props.graph.targetsById) {
+			let session = "";
+			if (this.props.graph && this.props.graph.annoGraph) { 
+				session = this.props.graph.annoGraph["@id"];
+			}
 			const byId = this.props.graph.targetsById;
 			const publishedScores = this.props.score.publishedScores;
 			const conceptualScores = this.props.score.conceptualScores;
@@ -47,7 +51,7 @@ class Jam extends Component {
 				console.log("WORKING WITH: ", annotations);
 				return (
 					<div key={ "wrapper" + pS } >
-						 <Score key={ pS } uri={ pS } annotations={ annotations } />;
+						 <Score key={ pS } uri={ pS } annotations={ annotations } session = { session  } />;
 					
 						<div id="prev" key={ "prev"+pS } onClick={() => {
 							console.log("prev clicked, ps: ", pS, this.props.score.pageNum, this.props.score.MEI);

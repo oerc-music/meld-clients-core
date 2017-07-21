@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import ReactDOM from 'react-dom'
 import { connect } from 'react-redux';
 import { bindActionCreators} from 'redux';
-import { fetchScore, HAS_BODY, HAS_TARGET } from '../actions/index';
+import { fetchScore, scoreNextPage, HAS_BODY, HAS_TARGET } from '../actions/index';
 import { 
 	MARKUP_EMPHASIS, 
 	handleEmphasis,
@@ -11,7 +11,7 @@ import {
 	MARKUP_HIGHLIGHT2,
 	handleHighlight2,  
 	CUE_AUDIO, 
-	handleCueAudio 
+	handleCueAudio
 } from '../actions/meldActions';
 
 export const HIGHLIGHTING = 'http://www.w3.org/ns/oa#highlighting';
@@ -75,7 +75,11 @@ class Score extends Component {
                     });
                     // and apply any annotations
                     this.handleMELDActions(annotation, myFrags);
-				}
+				} else if(annotationTarget["@id"] == this.props.session) { 
+					// this annotation applies to the *session*, e.g. a page turn
+					console.log("HELLO");
+					this.handleMELDActions(annotation, null);
+				} else { console.log("BOOOO:", annotationTarget, this.props.session); }
 			});
 		});
 			
@@ -106,6 +110,8 @@ class Score extends Component {
 			case HIGHLIGHTING:
 				console.log("HIGHLIGHTING!", annotation);
 				this.props.handleHighlight(ReactDOM.findDOMNode(this), annotation, this.props.uri, fragments["MEI"]);
+			case "motivation:nextPageOrPiece":
+				this.props.scoreNextPage(this.props.session, annotation, this.props.score.MEI[this.props.session]);
 			break;
 			default:
 				console.log("Unknown motivation: ", annotation[MOTIVATED_BY]);
@@ -119,7 +125,7 @@ function mapStateToProps({ score }) {
 }
 
 function mapDispatchToProps(dispatch) { 
-	return bindActionCreators({ fetchScore, handleEmphasis, handleHighlight, handleHighlight2, handleCueAudio }, dispatch);
+	return bindActionCreators({ fetchScore, handleEmphasis, handleHighlight, handleHighlight2, handleCueAudio, scoreNextPage}, dispatch);
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(Score);

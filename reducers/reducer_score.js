@@ -131,6 +131,7 @@ export default function(state = {publishedScores: {}, conceptualScores: {}, MEI:
 		if(action.payload.pageNum === pageCount) { 
 			return state;
 		} else { 
+			console.log("Loading: ", action.payload.data);
 			vrvTk.loadData(action.payload.data);
 			svg = vrvTk.renderPage(action.payload.pageNum+1, vrvOptions);
 		}

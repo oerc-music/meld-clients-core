@@ -150,11 +150,6 @@ export function handleHighlight2(component, annotation, uri, fragments) {
 	return annotationHandled();
 }
 
-export function handleNextPageOrPiece() { 
-	console.log("BOOOOOP: nextpageorpiece");
-}
-
-
 function annotationHandled(annotation) {
 	return {
 		type: ANNOTATION_HANDLED,
