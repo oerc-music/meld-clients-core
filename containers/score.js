@@ -51,11 +51,9 @@ class Score extends Component {
 		if(!Array.isArray(annotations)) { 
 			annotations = [annotations]
 		}
-		console.log("ARF ANNOTATIONS ARE ", annotations);
 		annotations.map( (annotation) => {
 			if(typeof annotation === 'undefined') { return }
 			// each annotation...
-			console.log("ARF ANNOTATION IS ", annotation);
 			const frags = annotation["oa:hasTarget"].map( (annotationTarget) => { 
 				// each annotation target
 				if(annotationTarget["@id"] in this.props.score.componentTargets) {
@@ -77,9 +75,8 @@ class Score extends Component {
                     this.handleMELDActions(annotation, myFrags);
 				} else if(annotationTarget["@id"] == this.props.session) { 
 					// this annotation applies to the *session*, e.g. a page turn
-					console.log("HELLO");
 					this.handleMELDActions(annotation, null);
-				} else { console.log("BOOOO:", annotationTarget, this.props.session); }
+				} 
 			});
 		});
 			
@@ -110,8 +107,9 @@ class Score extends Component {
 			case HIGHLIGHTING:
 				console.log("HIGHLIGHTING!", annotation);
 				this.props.handleHighlight(ReactDOM.findDOMNode(this), annotation, this.props.uri, fragments["MEI"]);
-			case "motivation:nextPageOrPiece":
-				this.props.scoreNextPage(this.props.session, annotation, this.props.score.MEI[this.props.session]);
+			case "motivation:nextPageOrPiece":	
+				console.log("----", this.props);
+				this.props.scoreNextPage(this.props.uri, this.props.score.pageNum, this.props.score.MEI[this.props.uri]);
 			break;
 			default:
 				console.log("Unknown motivation: ", annotation[MOTIVATED_BY]);

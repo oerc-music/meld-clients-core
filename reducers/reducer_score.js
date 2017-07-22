@@ -127,16 +127,23 @@ export default function(state = {publishedScores: {}, conceptualScores: {}, MEI:
 		
 	case SCORE_NEXT_PAGE:
 		// if we're on the last page, do nothing
+		if(!action.payload.data) { 
+			console.log("SCORE_NEXT_PAGE attempted on non-loaded MEI data - ignoring!");
+			return state;
+		}
 		const pageCount = vrvTk.getPageCount();
+		console.log("Page count: ", pageCount);
+		console.log("Page num: ", action.payload.pageNum);
+		console.log("URI: ", action.payload.uri);
 		if(action.payload.pageNum === pageCount) { 
 			return state;
 		} else { 
-			console.log("Loading: ", action.payload.data);
 			vrvTk.loadData(action.payload.data);
 			svg = vrvTk.renderPage(action.payload.pageNum+1, vrvOptions);
 		}
 		return update(state, {
-			SVG: { $merge: { [action.payload.uri]: svg } },
+			//SVG: { $merge: { [action.payload.uri]: svg } }, -- DW merge -> set 20170722
+			SVG: { $set: { [action.payload.uri]: svg } },
 			pageNum: {$set: action.payload.pageNum+1} 
 		});
 				

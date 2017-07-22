@@ -29,7 +29,6 @@ class Jam extends Component {
 	}
 
 	render() {
-		console.log("Props: ",this.props);
 		if(this.props.score.publishedScores) {
 		//if(this.props.graph.targetsById) {
 			let session = "";
@@ -51,7 +50,7 @@ class Jam extends Component {
 				console.log("WORKING WITH: ", annotations);
 				return (
 					<div key={ "wrapper" + pS } >
-						 <Score key={ pS } uri={ pS } annotations={ annotations } session = { session  } />;
+						 <Score key={ pS } uri={ pS } annotations={ annotations } session={ session }/>;
 					
 						<div id="prev" key={ "prev"+pS } onClick={() => {
 							console.log("prev clicked, ps: ", pS, this.props.score.pageNum, this.props.score.MEI);

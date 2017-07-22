@@ -359,7 +359,6 @@ export function scorePrevPage(pubScoreUri, pageNum, MEI) {
 	}
 }
 export function scoreNextPage(pubScoreUri, pageNum, MEI) { 
-	console.log("NEXT PAGE WOOP:", pubScoreUri, pageNum, MEI);
 	return (dispatch) => {
 		if(MEI) { 
 			dispatch({
