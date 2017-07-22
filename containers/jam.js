@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { fetchSessionGraph, scorePrevPage, scoreNextPage } from '../actions/index';
+import { fetchSessionGraph, scorePrevPage, scoreNextPage, postNextPageAnnotation } from '../actions/index';
 import { connect } from 'react-redux' ;
 import { bindActionCreators } from 'redux';
 import Score from '../containers/score';
@@ -25,16 +25,20 @@ class Jam extends Component {
 		} else { 
 			this.props.fetchSessionGraph(graphUri);
 		}
-		setTimeout(() => this.doPoll(), 5000);
+		setTimeout(() => this.doPoll(), 500);
 	}
 
 	render() {
 		if(this.props.score.publishedScores) {
 		//if(this.props.graph.targetsById) {
 			let session = "";
+			let etag = "";
 			if (this.props.graph && this.props.graph.annoGraph) { 
 				session = this.props.graph.annoGraph["@id"];
+				etag = this.props.graph.etags[session];
+				console.log("session: ", session, " etag: ", etag, " etags: ", this.props.graph.etags);
 			}
+	
 			const byId = this.props.graph.targetsById;
 			const publishedScores = this.props.score.publishedScores;
 			const conceptualScores = this.props.score.conceptualScores;
@@ -58,7 +62,8 @@ class Jam extends Component {
 						}}> Previous </div>
 						<div id="next" key={ "next"+pS } onClick={() => {
 							console.log("next clicked, ps: ", pS, this.props.score.pageNum, this.props.score.MEI);
-							this.props.scoreNextPage(pS, this.props.score.pageNum, this.props.score.MEI[pS])
+							//this.props.scoreNextPage(pS, this.props.score.pageNum, this.props.score.MEI[pS])
+							this.props.postNextPageAnnotation(session, etag);
 						}}> Next </div>
 					</div>
 				)
@@ -81,7 +86,7 @@ function mapStateToProps({ graph, score}) {
 }
 
 function mapDispatchToProps(dispatch) { 
-	return bindActionCreators({ fetchSessionGraph, scorePrevPage, scoreNextPage }, dispatch);
+	return bindActionCreators({ fetchSessionGraph, scorePrevPage, scoreNextPage, postNextPageAnnotation }, dispatch);
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(Jam);

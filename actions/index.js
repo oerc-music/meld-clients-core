@@ -1,6 +1,6 @@
 import axios from 'axios';
 import jsonld from 'jsonld'
-import {ANNOTATION_NOT_HANDLED} from './meldActions';
+import { ANNOTATION_HANDLED, ANNOTATION_NOT_HANDLED} from './meldActions';
 
 export const FETCH_SCORE = 'FETCH_SCORE';
 export const FETCH_CONCEPTUAL_SCORE = 'FETCH_CONCEPTUAL_SCORE';
@@ -358,7 +358,7 @@ export function scorePrevPage(pubScoreUri, pageNum, MEI) {
 		});
 	}
 }
-export function scoreNextPage(pubScoreUri, pageNum, MEI) { 
+export function scoreNextPage(annotation, pubScoreUri, pageNum, MEI) { 
 	return (dispatch) => {
 		if(MEI) { 
 			dispatch({
@@ -377,6 +377,31 @@ export function scoreNextPage(pubScoreUri, pageNum, MEI) {
 		}
 	}
 }
+
+export function postNextPageAnnotation(session, etag) { 
+	return (dispatch) => {
+		dispatch(
+			postAnnotation(session, etag, JSON.stringify({
+				"oa:hasTarget": { "@id": session },
+				"oa:motivatedBy": { "@id": "motivation:nextPageOrPiece" }
+			}))
+		)
+	}
+}
+
+export function postAnnotation(session, etag, json) {
+	console.log("Posting annotation: ", session, etag, json)
+	axios.post(
+		session, 
+		json, 
+		{ headers: {'Content-Type': 'application/ld+json', 'If-None-Match':etag} }
+	).catch(function (error) { console.log("GOt error: ", error.response.status) });
+	// TODO CHECK FOR 412 ERROR (collision) and if so, resend
+	return { 
+		type: ANNOTATION_HANDLED
+	}
+}
+
 
 // helper function to ensure that a given key of a JSON obj
 // is an array, rather than a single value

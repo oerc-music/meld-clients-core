@@ -109,10 +109,10 @@ class Score extends Component {
 				this.props.handleHighlight(ReactDOM.findDOMNode(this), annotation, this.props.uri, fragments["MEI"]);
 			case "motivation:nextPageOrPiece":	
 				console.log("----", this.props);
-				this.props.scoreNextPage(this.props.uri, this.props.score.pageNum, this.props.score.MEI[this.props.uri]);
+				this.props.scoreNextPage(annotation, this.props.uri, this.props.score.pageNum, this.props.score.MEI[this.props.uri]);
 			break;
 			default:
-				console.log("Unknown motivation: ", annotation[MOTIVATED_BY]);
+				console.log("Unknown motivation: ", annotation["oa:motivatedBy"]);
 			}
 		} else { console.log("Skipping annotation without rendering instructions: ", annotation) }
 	}
