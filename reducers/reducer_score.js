@@ -17,7 +17,10 @@ const MEMBER = 'http://www.w3.org/2000/01/rdf-schema#member';
 
 const vrvTk = new verovio.toolkit();
 
+const scale = 35;
+
 const vrvOptions = {
+			/*
                 pageHeight: 1400,
                 pageWidth: 2000,
 				spacingLinear: 0.05,
@@ -27,7 +30,13 @@ const vrvOptions = {
 				ignoreLayout: true,
                 adjustPageHeight: true,
                 scale: 36 
-			};
+			*/
+			ignoreLayout: true,
+			adjustPageHeight: true,
+			scale:scale,
+			pageHeight: 760*100/scale,
+			pageWidth: 1200*100/scale
+};
 
 export default function(state = {publishedScores: {}, conceptualScores: {}, MEI: {}, SVG: {}, componentTargets: {}, pageNum: 1}, action) { 
 	let svg;

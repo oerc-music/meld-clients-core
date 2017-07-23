@@ -10,6 +10,8 @@ export const CUE_IMAGE_HANDLED = "CUE_IMAGE_HANDLED";
 export const NEXT_PAGE_OR_PIECE = "motivation:NextPageOrPiece";
 export const ANNOTATION_HANDLED = "ANNOTATION_HANDLED";
 export const ANNOTATION_NOT_HANDLED = "ANNOTATION_NOT_HANDLED";
+export const ANNOTATION_PATCHED = "ANNOTATION_PATCHED";
+export const ANNOTATION_POSTED = "ANNOTATION_POSTED";
 
 export function handleCueImage(component, annotation, uri, fragments, fragImages) {
 	const haveImages = fragments.filter((f) => f in fragImages);

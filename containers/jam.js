@@ -25,7 +25,7 @@ class Jam extends Component {
 		} else { 
 			this.props.fetchSessionGraph(graphUri);
 		}
-		setTimeout(() => this.doPoll(), 500);
+		setTimeout(() => this.doPoll(), 5000);
 	}
 
 	render() {
@@ -54,7 +54,7 @@ class Jam extends Component {
 				console.log("WORKING WITH: ", annotations);
 				return (
 					<div key={ "wrapper" + pS } >
-						 <Score key={ pS } uri={ pS } annotations={ annotations } session={ session }/>;
+						 <Score key={ pS } uri={ pS } annotations={ annotations } session={ session } etag={ etag } />;
 					
 						<div id="prev" key={ "prev"+pS } onClick={() => {
 							console.log("prev clicked, ps: ", pS, this.props.score.pageNum, this.props.score.MEI);

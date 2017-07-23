@@ -1,6 +1,6 @@
 import axios from 'axios';
 import jsonld from 'jsonld'
-import { ANNOTATION_HANDLED, ANNOTATION_NOT_HANDLED} from './meldActions';
+import { ANNOTATION_PATCHED, ANNOTATION_POSTED, ANNOTATION_HANDLED, ANNOTATION_NOT_HANDLED} from './meldActions';
 
 export const FETCH_SCORE = 'FETCH_SCORE';
 export const FETCH_CONCEPTUAL_SCORE = 'FETCH_CONCEPTUAL_SCORE';
@@ -358,7 +358,7 @@ export function scorePrevPage(pubScoreUri, pageNum, MEI) {
 		});
 	}
 }
-export function scoreNextPage(annotation, pubScoreUri, pageNum, MEI) { 
+export function scoreNextPage(session, etag, annotation, pubScoreUri, pageNum, MEI) { 
 	return (dispatch) => {
 		if(MEI) { 
 			dispatch({
@@ -369,6 +369,9 @@ export function scoreNextPage(annotation, pubScoreUri, pageNum, MEI) {
 					uri: pubScoreUri
 				}
 			});
+			dispatch( 
+				markAnnotationProcessed(session, etag, annotation) 
+			);
 		} else { 
 			dispatch({
 				type: ANNOTATION_NOT_HANDLED,
@@ -395,10 +398,61 @@ export function postAnnotation(session, etag, json) {
 		session, 
 		json, 
 		{ headers: {'Content-Type': 'application/ld+json', 'If-None-Match':etag} }
-	).catch(function (error) { console.log("GOt error: ", error.response.status) });
-	// TODO CHECK FOR 412 ERROR (collision) and if so, resend
+	).catch(function (error) { 
+		if(error.response.status == 412) {
+			console.log("Mid-air collision while attempting to post annotation. Retrying.");
+			// GET the session resource to figure out new etag
+			axios.get(session).then( (response) => {
+				// and try again
+				return (dispatch) => { 
+					dispatch(postAnnotation(session, response.headers.etag, json));
+				}
+			});
+		} else { 
+			console.log("Error while posting annotation: ", error);
+			console.log("Retrying.");
+			return (dispatch) => { 
+				dispatch(postAnnotation(session, etag, json));
+			}
+		}	
+	});
+
 	return { 
-		type: ANNOTATION_HANDLED
+		type: ANNOTATION_POSTED
+	}
+}
+
+export function markAnnotationProcessed(session, etag, annotation) {
+	console.log("PATCHING: ", session, etag, annotation);
+	const patchJson = JSON.stringify( { 
+		"@id": annotation["@id"],
+		"meld:state": {"@id": "meld:processed"}
+	});
+	axios.patch(
+		session,
+		patchJson,
+		{ headers: {'Content-Type': 'application/ld+json', 'If-None-Match':etag} }
+	).catch(function (error) { 
+		if(error.response.status == 412) {
+			console.log("Mid-air collision while attempting to post annotation. Retrying.");
+			// GET the session resource to figure out new etag
+			axios.get(session).then( (response) => {
+				// and try again
+				return (dispatch) => { 
+					dispatch(markAnnotationProcessed(session, response.headers.etag, annotation));
+				}
+			});
+		} else { 
+			console.log("Error while patching annotation: ", error);
+			console.log("Retrying.");
+			return (dispatch) => { 
+				dispatch(markAnnotationProcessed(session, etag, json));
+			}
+		}	
+	}).then("Done?");
+
+	return { 
+		type: ANNOTATION_PATCHED
 	}
 }
 

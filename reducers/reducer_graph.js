@@ -65,6 +65,10 @@ export default function(state = INIT_STATE, action) {
 		if("ldp:contains" in payload) {
 			payload = ensureArray(payload, "ldp:contains");
 			payload["ldp:contains"].map( (a) => { 
+				if("meld:state" in a && a["meld:state"]["@id"] == "meld:processed") { 
+					// skip annotations that have already been processed
+					return
+				}
 				a = ensureArray(a, "oa:hasTarget");
 				a["oa:hasTarget"].map( (targetResource) => {
 					console.log("looking at a, targetResource: ", a, targetResource);
