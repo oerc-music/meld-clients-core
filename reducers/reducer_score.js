@@ -38,7 +38,7 @@ const vrvOptions = {
 			pageWidth: 1200*100/scale
 };
 
-export default function(state = {publishedScores: {}, conceptualScores: {}, MEI: {}, SVG: {}, componentTargets: {}, pageNum: 1}, action) { 
+export default function(state = {publishedScores: {}, conceptualScores: {}, MEI: {}, SVG: {}, componentTargets: {}, pageNum: 1, triggerNextSession: ""}, action) { 
 	let svg;
 	switch(action.type) {
 	case FETCH_SCORE:
@@ -135,7 +135,6 @@ export default function(state = {publishedScores: {}, conceptualScores: {}, MEI:
 		});
 		
 	case SCORE_NEXT_PAGE:
-		// if we're on the last page, do nothing
 		if(!action.payload.data) { 
 			console.log("SCORE_NEXT_PAGE attempted on non-loaded MEI data - ignoring!");
 			return state;
@@ -145,7 +144,8 @@ export default function(state = {publishedScores: {}, conceptualScores: {}, MEI:
 		console.log("Page num: ", action.payload.pageNum);
 		console.log("URI: ", action.payload.uri);
 		if(action.payload.pageNum === pageCount) { 
-			return state;
+		// if we're on the last page, set up a transfer to the next session
+			return update(state, { triggerNextSession: { $set: action.payload.nextSession } });
 		} else { 
 			vrvTk.loadData(action.payload.data);
 			svg = vrvTk.renderPage(action.payload.pageNum+1, vrvOptions);

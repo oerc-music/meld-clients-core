@@ -5,12 +5,14 @@ import {
 	SESSION_GRAPH_ETAG,
 	ensureArray
 } from '../actions/index'
+import { QUEUE_NEXT_SESSION } from '../actions/meldActions'
 
 const INIT_STATE = {
     graph: { 
         annoGraph: {}, 
         targetsById: {}, 
-        targetsByType: {} 
+        targetsByType: {},
+		nextSession: ""
     },
 	etags: {}
 }
@@ -103,6 +105,12 @@ export default function(state = INIT_STATE, action) {
 				$set: { [action.payload.uri]: action.payload.etag }
 			}
 		}); 		
+	case QUEUE_NEXT_SESSION:
+		return update(state, { 
+			nextSession: { 
+				$set: action.payload.session
+			}
+		});
 	default:
 		return state;
 	}

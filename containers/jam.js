@@ -54,7 +54,7 @@ class Jam extends Component {
 				console.log("WORKING WITH: ", annotations);
 				return (
 					<div key={ "wrapper" + pS } >
-						 <Score key={ pS } uri={ pS } annotations={ annotations } session={ session } etag={ etag } />;
+						 <Score key={ pS } uri={ pS } annotations={ annotations } session={ session } etag={ etag } nextSession = { this.props.nextSession } />;
 					
 						<div id="prev" key={ "prev"+pS } onClick={() => {
 							console.log("prev clicked, ps: ", pS, this.props.score.pageNum, this.props.score.MEI);

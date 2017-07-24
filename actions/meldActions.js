@@ -1,5 +1,7 @@
 import ReactDOM from 'react-dom';
 
+import { markAnnotationProcessed } from './index'
+
 export const MARKUP_EMPHASIS = "meldterm:emphasis";
 export const MARKUP_HIGHLIGHT = "meldterm:highlight";
 export const MARKUP_HIGHLIGHT2 = "meldterm:highlight2";
@@ -12,6 +14,7 @@ export const ANNOTATION_HANDLED = "ANNOTATION_HANDLED";
 export const ANNOTATION_NOT_HANDLED = "ANNOTATION_NOT_HANDLED";
 export const ANNOTATION_PATCHED = "ANNOTATION_PATCHED";
 export const ANNOTATION_POSTED = "ANNOTATION_POSTED";
+export const QUEUE_NEXT_SESSION = "QUEUE_NEXT_SESSION";
 
 export function handleCueImage(component, annotation, uri, fragments, fragImages) {
 	const haveImages = fragments.filter((f) => f in fragImages);
@@ -152,8 +155,15 @@ export function handleHighlight2(component, annotation, uri, fragments) {
 	return annotationHandled();
 }
 
-function handleQueueNextSession(session, etag, annotation) {
-	//TODO 
+export function handleQueueNextSession(session, etag, annotation) {
+	console.log("Queueing next session");
+	return (dispatch) => { 
+		dispatch(markAnnotationProcessed(session, etag, annotation));
+		dispatch({
+			type: QUEUE_NEXT_SESSION,
+			payload: session
+		})
+	}
 }
 
 function annotationHandled(annotation) {

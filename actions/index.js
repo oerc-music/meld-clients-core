@@ -358,7 +358,7 @@ export function scorePrevPage(pubScoreUri, pageNum, MEI) {
 		});
 	}
 }
-export function scoreNextPage(session, etag, annotation, pubScoreUri, pageNum, MEI) { 
+export function scoreNextPage(session, nextSession, etag, annotation, pubScoreUri, pageNum, MEI) { 
 	return (dispatch) => {
 		if(MEI) { 
 			dispatch({
@@ -366,7 +366,8 @@ export function scoreNextPage(session, etag, annotation, pubScoreUri, pageNum, M
 				payload: { 
 					pageNum: pageNum,
 					data: MEI,
-					uri: pubScoreUri
+					uri: pubScoreUri, 
+					nextSession: nextSession
 				}
 			});
 			dispatch( 
@@ -434,7 +435,7 @@ export function markAnnotationProcessed(session, etag, annotation) {
 		{ headers: {'Content-Type': 'application/ld+json', 'If-None-Match':etag} }
 	).catch(function (error) { 
 		if(error.response.status == 412) {
-			console.log("Mid-air collision while attempting to post annotation. Retrying.");
+			console.log("Mid-air collision while attempting to patch annotation. Retrying.");
 			// GET the session resource to figure out new etag
 			axios.get(session).then( (response) => {
 				// and try again
