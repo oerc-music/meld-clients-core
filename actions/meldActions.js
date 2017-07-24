@@ -152,6 +152,10 @@ export function handleHighlight2(component, annotation, uri, fragments) {
 	return annotationHandled();
 }
 
+function handleQueueNextSession(session, etag, annotation) {
+	//TODO 
+}
+
 function annotationHandled(annotation) {
 	return {
 		type: ANNOTATION_HANDLED,

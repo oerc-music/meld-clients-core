@@ -11,7 +11,8 @@ import {
 	MARKUP_HIGHLIGHT2,
 	handleHighlight2,  
 	CUE_AUDIO, 
-	handleCueAudio
+	handleCueAudio,
+	handleQueueNextSession
 } from '../actions/meldActions';
 
 export const HIGHLIGHTING = 'http://www.w3.org/ns/oa#highlighting';
@@ -111,6 +112,8 @@ class Score extends Component {
 				console.log("----", this.props);
 				this.props.scoreNextPage(this.props.session, this.props.etag, annotation, this.props.uri, this.props.score.pageNum, this.props.score.MEI[this.props.uri]);
 			break;
+			case "motivation:queueNextSession":
+				this.props.handleQueueNextSession(this.props.session, this.props.etag, annotation);
 			default:
 				console.log("Unknown motivation: ", annotation["oa:motivatedBy"]);
 			}
