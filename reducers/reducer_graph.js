@@ -11,10 +11,10 @@ const INIT_STATE = {
     graph: { 
         annoGraph: {}, 
         targetsById: {}, 
-        targetsByType: {},
-		nextSession: ""
+        targetsByType: {}
     },
-	etags: {}
+	etags: {},
+	nextSession: ""
 }
 
 export default function(state = INIT_STATE, action) { 
@@ -106,10 +106,9 @@ export default function(state = INIT_STATE, action) {
 			}
 		}); 		
 	case QUEUE_NEXT_SESSION:
+		console.log("Setting next session: ", action.payload);
 		return update(state, { 
-			nextSession: { 
-				$set: action.payload.session
-			}
+			nextSession: { $set: action.payload }
 		});
 	default:
 		return state;

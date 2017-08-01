@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import ReactDOM from 'react-dom'
-import {browserHistory} from 'react-router';
 import { connect } from 'react-redux';
 import { bindActionCreators} from 'redux';
 import { fetchScore, scoreNextPage, HAS_BODY, HAS_TARGET } from '../actions/index';
@@ -49,12 +48,6 @@ class Score extends Component {
 	}
 
 	componentWillUpdate() {
-		if(this.props.triggerNextSession) { 
-			// trigger transfer to next session
-			// TODO rethink this mechanism, probably should be at higher level
-			console.log("DOING IT");
-			browserHistory.push('/jam?session='+this.props.triggerNextSession)
-		}
 		let annotations = this.props.annotations;
 		if(!Array.isArray(annotations)) { 
 			annotations = [annotations]
@@ -121,6 +114,7 @@ class Score extends Component {
 			break;
 			case "motivation:queueNextSession":
 				this.props.handleQueueNextSession(this.props.session, this.props.etag, annotation);
+			break;
 			default:
 				console.log("Unknown motivation: ", annotation["oa:motivatedBy"]);
 			}

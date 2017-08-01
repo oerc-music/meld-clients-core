@@ -1,8 +1,10 @@
 import React, { Component } from 'react';
-import { fetchSessionGraph, scorePrevPage, scoreNextPage, postNextPageAnnotation } from '../actions/index';
+import { fetchSessionGraph, scorePrevPage, scoreNextPage, postNextPageAnnotation, transitionToSession } from '../actions/index';
 import { connect } from 'react-redux' ;
 import { bindActionCreators } from 'redux';
+import { withRouter } from 'react-router';
 import Score from '../containers/score';
+
 
 class Jam extends Component {
 	constructor(props) { 
@@ -25,11 +27,19 @@ class Jam extends Component {
 		} else { 
 			this.props.fetchSessionGraph(graphUri);
 		}
-		setTimeout(() => this.doPoll(), 5000);
+		setTimeout(() => this.doPoll(), 200);
 	}
 
 	render() {
 		if(this.props.score.publishedScores) {
+			if(this.props.score.triggerNextSession) { 
+				this.props.transitionToSession(
+					this.props.graph.annoGraph["@id"], 
+					this.props.graph.nextSession
+				)
+				return <div>Loading next session...</div>
+			}
+			console.log("Jam graph props: ", this.props.graph);
 		//if(this.props.graph.targetsById) {
 			let session = "";
 			let etag = "";
@@ -86,7 +96,9 @@ function mapStateToProps({ graph, score}) {
 }
 
 function mapDispatchToProps(dispatch) { 
-	return bindActionCreators({ fetchSessionGraph, scorePrevPage, scoreNextPage, postNextPageAnnotation }, dispatch);
+	return bindActionCreators({ fetchSessionGraph, scorePrevPage, scoreNextPage, postNextPageAnnotation, transitionToSession }, dispatch);
 }
+
+withRouter(Jam);
 
 export default connect(mapStateToProps, mapDispatchToProps)(Jam);

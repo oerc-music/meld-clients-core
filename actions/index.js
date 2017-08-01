@@ -1,3 +1,4 @@
+import {browserHistory} from 'react-router';
 import axios from 'axios';
 import jsonld from 'jsonld'
 import { ANNOTATION_PATCHED, ANNOTATION_POSTED, ANNOTATION_HANDLED, ANNOTATION_NOT_HANDLED} from './meldActions';
@@ -82,7 +83,6 @@ export function fetchSessionGraph(uri, etag = "") {
 			if(response.headers.etag !== etag) { 
 				// we need to grab the graph data, either because this is the first time,
 				// or because session etag has changed (i.e. annotation has been posted/patched)
-				console.log("Sending ", framed);
 				dispatch( { 
 					type: FETCH_GRAPH,
 					payload: framed 
@@ -361,7 +361,7 @@ export function scorePrevPage(pubScoreUri, pageNum, MEI) {
 export function scoreNextPage(session, nextSession, etag, annotation, pubScoreUri, pageNum, MEI) { 
 	return (dispatch) => {
 		if(MEI) { 
-			dispatch({
+			const action = {
 				type: SCORE_NEXT_PAGE,
 				payload: { 
 					pageNum: pageNum,
@@ -369,9 +369,9 @@ export function scoreNextPage(session, nextSession, etag, annotation, pubScoreUr
 					uri: pubScoreUri, 
 					nextSession: nextSession
 				}
-			});
+			};
 			dispatch( 
-				markAnnotationProcessed(session, etag, annotation) 
+				patchAndProcessAnnotation(action, session, etag, annotation)
 			);
 		} else { 
 			dispatch({
@@ -379,6 +379,15 @@ export function scoreNextPage(session, nextSession, etag, annotation, pubScoreUr
 				payload:"Page flip attempted on non-existing MEI. Has it loaded yet?"
 			})
 		}
+	}
+}
+
+export function transitionToSession(thisSession, nextSession) { 	
+	//browserHistory.push('/jam?session='+this.props.graph.nextSession)
+	// TODO do this properly using react.router to avoid full reload
+	window.location.assign('/jam?session=' + nextSession)
+	return { 
+		type: ANNOTATION_HANDLED 
 	}
 }
 
@@ -454,6 +463,45 @@ export function markAnnotationProcessed(session, etag, annotation) {
 
 	return { 
 		type: ANNOTATION_PATCHED
+	}
+}
+
+export function patchAndProcessAnnotation(action, session, etag, annotation) {
+	console.log("PATCHING: ", session, etag, annotation);
+	const patchJson = JSON.stringify( { 
+		"@id": annotation["@id"],
+		"meld:state": {"@id": "meld:processed"}
+	});
+	return (dispatch) => {
+		axios.patch(
+			session,
+			patchJson,
+			{ headers: {'Content-Type': 'application/ld+json', 'If-None-Match':etag} }
+		).then( function (response) {
+			console.log("Dispatching action: ", action);
+			dispatch(action);
+		}).catch(function (error) { 
+			if(error.response.status == 412) {
+				console.log("Mid-air collision while attempting to patch annotation. Retrying.");
+				// GET the session resource to figure out new etag
+				axios.get(session).then( (response) => {
+					// and try again
+					return (dispatch) => { 
+						dispatch(patchAndProcessAnnotation(action, session, response.headers.etag, annotation));
+					}
+				});
+			} else { 
+				console.log("Error while patching annotation: ", error);
+				console.log("Retrying.");
+				return (dispatch) => { 
+					dispatch(patchAndProcessAnnotation(action, session, etag, json));
+				}
+			}	
+		});
+
+		return dispatch({ 
+			type: ANNOTATION_PATCHED
+		})
 	}
 }
 

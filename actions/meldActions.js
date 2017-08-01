@@ -1,6 +1,6 @@
 import ReactDOM from 'react-dom';
 
-import { markAnnotationProcessed } from './index'
+import { patchAndProcessAnnotation } from './index'
 
 export const MARKUP_EMPHASIS = "meldterm:emphasis";
 export const MARKUP_HIGHLIGHT = "meldterm:highlight";
@@ -156,13 +156,13 @@ export function handleHighlight2(component, annotation, uri, fragments) {
 }
 
 export function handleQueueNextSession(session, etag, annotation) {
-	console.log("Queueing next session");
+	console.log("Queueing next session: ", annotation);
 	return (dispatch) => { 
-		dispatch(markAnnotationProcessed(session, etag, annotation));
-		dispatch({
+		const action = {
 			type: QUEUE_NEXT_SESSION,
-			payload: session
-		})
+			payload: annotation["oa:hasBody"]["@id"]
+		}
+		dispatch(patchAndProcessAnnotation(action, session, etag, annotation));
 	}
 }
 

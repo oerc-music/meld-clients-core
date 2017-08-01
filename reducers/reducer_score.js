@@ -135,6 +135,7 @@ export default function(state = {publishedScores: {}, conceptualScores: {}, MEI:
 		});
 		
 	case SCORE_NEXT_PAGE:
+		console.log("PING")
 		if(!action.payload.data) { 
 			console.log("SCORE_NEXT_PAGE attempted on non-loaded MEI data - ignoring!");
 			return state;
@@ -144,17 +145,19 @@ export default function(state = {publishedScores: {}, conceptualScores: {}, MEI:
 		console.log("Page num: ", action.payload.pageNum);
 		console.log("URI: ", action.payload.uri);
 		if(action.payload.pageNum === pageCount) { 
-		// if we're on the last page, set up a transfer to the next session
-			return update(state, { triggerNextSession: { $set: action.payload.nextSession } });
+			// we've left the last page, set up a transfer to the next session
+			console.log("TRIGGERING")
+			return update(state, { triggerNextSession: { $set: true  } });
 		} else { 
 			vrvTk.loadData(action.payload.data);
 			svg = vrvTk.renderPage(action.payload.pageNum+1, vrvOptions);
+
+			return update(state, {
+				//SVG: { $merge: { [action.payload.uri]: svg } }, -- DW merge -> set 20170722
+				SVG: { $set: { [action.payload.uri]: svg } },
+				pageNum: {$set: action.payload.pageNum+1} 
+			});
 		}
-		return update(state, {
-			//SVG: { $merge: { [action.payload.uri]: svg } }, -- DW merge -> set 20170722
-			SVG: { $set: { [action.payload.uri]: svg } },
-			pageNum: {$set: action.payload.pageNum+1} 
-		});
 				
 
 	default: 
