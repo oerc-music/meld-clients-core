@@ -15,7 +15,6 @@ import {
 	handleQueueNextSession
 } from '../actions/meldActions';
 
-export const HIGHLIGHTING = 'http://www.w3.org/ns/oa#highlighting';
 
 import InlineSVG from 'svg-inline-react';
 
@@ -105,7 +104,7 @@ class Score extends Component {
 		// using motivations instead of bodies for rendering instructions
 		else if("oa:motivatedBy" in annotation) { 
 			switch(annotation["oa:motivatedBy"]["@id"]) { 
-			case HIGHLIGHTING:
+			case "oa:highlighting":
 				console.log("HIGHLIGHTING!", annotation);
 				this.props.handleHighlight(ReactDOM.findDOMNode(this), annotation, this.props.uri, fragments["MEI"]);
 			case "motivation:nextPageOrPiece":	
