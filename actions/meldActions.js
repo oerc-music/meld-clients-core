@@ -84,74 +84,37 @@ export function handleCueAudio(component, annotation, body, uri, fragments) {
 }
 
 export function handleEmphasis(component, annotation, uri, fragments) {
-	fragments.map((f) => {  
-		const fLocalId = f.substr(f.indexOf("#"))
-		const element = component.querySelector(fLocalId);
-		if (element) { 
-			if(!element.classList.contains("meld-emphasis")) {
-				element.classList.add("meld-emphasis");
-			}
-			applyAnnotationId(element, annotation);
-			element.onmouseover = function(){ 
-				let emphasised = document.querySelectorAll(".meld-emphasis");
-				Array.prototype.map.call(emphasised, function(em) { em.classList.add("infocus")});
-			}
-			element.onmouseleave = function(){ 
-				let emphasised = document.querySelectorAll(".meld-emphasis");
-				Array.prototype.map.call(emphasised, function(em) { em.classList.remove("infocus")});
-			}
-		}
-	});
-	return annotationHandled();
+	assignClass("meld-emphasis", component, annotation, uri, fragments);
 }
 
 export function handleHighlight(component, annotation, uri, fragments) {
-	console.log("Trying to handle highlight!!!!!");
-	fragments.map((f) => {  
-		const fLocalId = f.substr(f.indexOf("#"))
-		const element = component.querySelector(fLocalId);
-		if (element) { 
-			if(!element.classList.contains("meld-highlight")) {
-				element.classList.add("meld-highlight");
-			}
-			if(element.closest('svg')){
-			  element.onclick = function(){
-			    
-			  }
-			}
-			applyAnnotationId(element, annotation);
-			element.onmouseover = function(){ 
-				let highlighted = document.querySelectorAll(".meld-highlight");
-				Array.prototype.map.call(highlighted, function(em) { em.classList.add("infocus")});
-			}
-			element.onmouseleave = function(){ 
-				let highlighted= document.querySelectorAll(".meld-highlight");
-				Array.prototype.map.call(highlighted, function(em) { em.classList.remove("infocus")});
-			}
-		}
-	});
+	assignClass("meld-highlight", component, annotation, uri, fragments);
 	return annotationHandled();
 }
 
 export function handleHighlight2(component, annotation, uri, fragments) {
-	fragments.map((f) => {  
-		const fLocalId = f.substr(f.indexOf("#"))
-		const element = component.querySelector(fLocalId);
-		if (element) { 
-			if(!element.classList.contains("meld-highlight2")) {
-				element.classList.add("meld-highlight2");
-			}
-			applyAnnotationId(element, annotation);
-			element.onmouseover = function(){ 
-				let highlighted = document.querySelectorAll(".meld-highlight2");
-				Array.prototype.map.call(highlighted, function(em) { em.classList.add("infocus")});
-			}
-			element.onmouseleave = function(){ 
-				let highlighted= document.querySelectorAll(".meld-highlight2");
-				Array.prototype.map.call(highlighted, function(em) { em.classList.remove("infocus")});
-			}
-		}
-	});
+	assignClass("meld-highlight2", component, annotation, uri, fragments);
+	return annotationHandled();
+}
+
+export function handleIdentifyMuzicode(component, annotation, uri, fragments) { 
+	assignClass("meld-muzicode-identify", component, annotation, uri, fragments);
+	return annotationHandled();
+}
+
+export function handleChoiceMuzicode(component, annotation, uri, fragments) { 
+	console.log("CHOICE!");
+	assignClass("meld-muzicode-choice", component, annotation, uri, fragments);
+	return annotationHandled();
+}
+
+export function handleChallengePassed(component, annotation, uri, fragments) { 
+	assignClass("meld-muzicode-challenge-passed", component, annotation, uri, fragments);
+	return annotationHandled();
+}
+
+export function handleDisklavierStart(component, annotation, uri, fragments) { 
+	assignClass("meld-muzicode-disklavier-start", component, annotation, uri, fragments);
 	return annotationHandled();
 }
 
@@ -186,4 +149,25 @@ function applyAnnotationId(element, annotation) {
 	if(!element.classList.contains(id)) { 
 		element.classList.add(id);
 	}
+}
+
+function assignClass(className, component, annotation, uri, fragments) { 
+	fragments.map((f) => {  
+		const fLocalId = f.substr(f.indexOf("#"))
+		const element = component.querySelector(fLocalId);
+		if (element) { 
+			if(!element.classList.contains(className)) {
+				element.classList.add(className);
+			}
+			applyAnnotationId(element, annotation);
+			element.onmouseover = function(){ 
+				let highlighted = document.querySelectorAll("."+className);
+				Array.prototype.map.call(highlighted, function(em) { em.classList.add("infocus")});
+			}
+			element.onmouseleave = function(){ 
+				let highlighted= document.querySelectorAll("."+className);
+				Array.prototype.map.call(highlighted, function(em) { em.classList.remove("infocus")});
+			}
+		}
+	});
 }

@@ -6,7 +6,7 @@ import { withRouter } from 'react-router';
 import Score from '../containers/score';
 
 
-class Jam extends Component {
+class Climb extends Component {
 	constructor(props) { 
 		super(props);
 	}
@@ -39,7 +39,7 @@ class Jam extends Component {
 				)
 				return <div>Loading next session...</div>
 			}
-			console.log("Jam props: ", this.props);
+			console.log("Climb props: ", this.props);
 		//if(this.props.graph.targetsById) {
 			let session = "";
 			let etag = "";
@@ -80,7 +80,7 @@ class Jam extends Component {
 			});
 			return (
 				<div>
-					<link rel="stylesheet" href="../../style/jam.css" type="text/css" />
+					<link rel="stylesheet" href="../../style/climb.css" type="text/css" />
 					<div id="annotations"></div>
 					{ scores }
 				</div>
@@ -99,6 +99,6 @@ function mapDispatchToProps(dispatch) {
 	return bindActionCreators({ fetchSessionGraph, scorePrevPage, scoreNextPage, postNextPageAnnotation, transitionToSession }, dispatch);
 }
 
-withRouter(Jam);
+withRouter(Climb);
 
-export default connect(mapStateToProps, mapDispatchToProps)(Jam);
+export default connect(mapStateToProps, mapDispatchToProps)(Climb);

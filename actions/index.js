@@ -27,6 +27,7 @@ export const SCORE = 'http://purl.org/ontology/mo/Score';
 export const CONTAINS = 'http://www.w3.org/ns/ldp#contains';
 export const MOTIVATED_BY= 'http://www.w3.org/ns/oa#motivatedBy'
 export const SEGMENT = 'http://www.linkedmusic.org/ontologies/segment/Segment'
+export const MUZICODE= 'http://meld.linkedmusic.org/terms/muzicode'
 
 
 export function fetchScore(uri) { 
@@ -54,7 +55,7 @@ export function fetchTEI(uri) {
 }
 
 export function fetchSessionGraph(uri, etag = "") { 
-	console.log("FETCH_SESSION_GRAPH ACTION ON URI: ", uri);
+	console.log("FETCH_SESSION_GRAPH ACTION ON URI: ", uri, " with etag: ", etag);
 	// TODO add etag to header as If-None-Match and enable corresponding support on server
 	// so that it can respond with 304 instead of 200 (i.e. so it can ommit file body)
 	const promise = axios.get(uri, {
@@ -160,33 +161,39 @@ export function fetchComponentTarget(uri, conceptualScore = "") {
 	const promise = axios.get(uri, {headers: {'Accept': 'application/ld+json'}});
 	return (dispatch) => {
 		promise.then((data) => { 
-			var framed = data.data;
-			dispatch( { 
-				type: FETCH_COMPONENT_TARGET,
-				payload: {
-					conceptualScore: conceptualScore,
-					structureTarget: uri
-				}
-			});
-			let typecheck = framed["@graph"][0];
-			typecheck = ensureArray(typecheck, "@type");
-			// have we found a segment?
-			if(typecheck["@type"].includes(SEGMENT)) { 
-				// found a segment!
-				// hand it off to the reducer to process the embodibag
-				// nb this is a different route to larrymeld (via expression)
-				// i.e. there is no partonomy here. So send the segment itself as the part.
-				dispatch({ 
-					type: FETCH_MANIFESTATIONS,
-					payload: { 
-						target: framed,
-						part: framed
+			jsonld.frame(data.data, { "@id":uri}, (err, framed) => {
+				if(err) { console.log("FRAMING ERROR in fetchWork:", err) }
+				else { 
+					dispatch( { 
+						type: FETCH_COMPONENT_TARGET,
+						payload: {
+							conceptualScore: conceptualScore,
+							structureTarget: uri
+						}
+					});
+					let typecheck = framed["@graph"][0];
+					typecheck = ensureArray(typecheck, "@type");
+					// have we found a segment?
+					if(typecheck["@type"].includes(SEGMENT) || typecheck["@type"].includes(MUZICODE)) { 
+						// TODO jsonldify context
+						// TODO refine muzicode semantics for this
+						// found a segment or muzicode!
+						// hand it off to the reducer to process the embodibag
+						// nb this is a different route to larrymeld (via expression)
+						// i.e. there is no partonomy here. So send the segment itself as the part.
+						dispatch({ 
+							type: FETCH_MANIFESTATIONS,
+							payload: { 
+								target: framed,
+								part: framed
+							}
+						});
+					} else { 
+						// if not, continue following links via the target's expression
+						dispatch(fetchTargetExpression(framed));
 					}
-				});
-			} else { 
-				// if not, continue following links via the target's expression
-				dispatch(fetchTargetExpression(framed));
-			}
+				}
+			})
 		});
 		
 	}

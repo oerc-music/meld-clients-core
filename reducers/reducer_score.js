@@ -50,6 +50,7 @@ export default function(state = {publishedScores: {}, conceptualScores: {}, MEI:
 		});
 
     case FETCH_MANIFESTATIONS:
+		console.log("IN FETCH_MANIFESTATIONS, payload is: ", action.payload)
 		const target = action.payload.target["@graph"][0];
 		const part = action.payload.part["@graph"][0];
 		if(typeof part === "undefined") {

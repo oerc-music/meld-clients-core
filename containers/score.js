@@ -12,7 +12,11 @@ import {
 	handleHighlight2,  
 	CUE_AUDIO, 
 	handleCueAudio,
-	handleQueueNextSession
+	handleQueueNextSession,
+	handleIdentifyMuzicode,
+	handleChoiceMuzicode,
+	handleChallengePassed,
+	handleDisklavierStart
 } from '../actions/meldActions';
 
 
@@ -61,6 +65,7 @@ class Score extends Component {
                     const mediaTypes = Object.keys(this.props.score.componentTargets[annotationTarget["@id"]]);
                     let myFrags = {};
                     mediaTypes.map( (type) => {
+						console.log("WHATWHAT: ", type)
                         if(type === "MEI") { 
                             // only grab MY frag IDs, for THIS mei file
                             myFrags[type] = this.props.score.componentTargets[annotationTarget["@id"]][type].filter( (frag) => {
@@ -105,8 +110,20 @@ class Score extends Component {
 		else if("oa:motivatedBy" in annotation) { 
 			switch(annotation["oa:motivatedBy"]["@id"]) { 
 			case "oa:highlighting":
-				console.log("HIGHLIGHTING!", annotation);
 				this.props.handleHighlight(ReactDOM.findDOMNode(this), annotation, this.props.uri, fragments["MEI"]);
+			break;
+			case "motivation:muzicodeIdentify":
+				this.props.handleIdentifyMuzicode(ReactDOM.findDOMNode(this), annotation, this.props.uri, fragments["MEI"]);
+			break;
+			case "motivation:muzicodeChoice":
+				this.props.handleChoiceMuzicode(ReactDOM.findDOMNode(this), annotation, this.props.uri, fragments["MEI"]);
+			break;
+			case "motivation:muzicodeChallengePassed":
+				this.props.handleChallengePassed(ReactDOM.findDOMNode(this), annotation, this.props.uri, fragments["MEI"]);
+			break;
+			case "motivation:muzicodeDisklavierStart":
+				this.props.handleDisklavierStart(ReactDOM.findDOMNode(this), annotation, this.props.uri, fragments["MEI"]);
+			break;
 			case "motivation:nextPageOrPiece":	
 				console.log("----", this.props);
 				this.props.scoreNextPage(this.props.session, this.props.nextSession, this.props.etag, annotation, this.props.uri, this.props.score.pageNum, this.props.score.MEI[this.props.uri]);
@@ -126,7 +143,7 @@ function mapStateToProps({ score }) {
 }
 
 function mapDispatchToProps(dispatch) { 
-	return bindActionCreators({ fetchScore, handleEmphasis, handleHighlight, handleHighlight2, handleCueAudio, scoreNextPage, handleQueueNextSession}, dispatch);
+	return bindActionCreators({ fetchScore, handleEmphasis, handleHighlight, handleHighlight2, handleCueAudio, scoreNextPage, handleQueueNextSession, handleIdentifyMuzicode, handleChoiceMuzicode, handleChallengePassed, handleDisklavierStart}, dispatch);
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(Score);

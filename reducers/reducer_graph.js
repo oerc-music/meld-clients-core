@@ -73,7 +73,6 @@ export default function(state = INIT_STATE, action) {
 				}
 				a = ensureArray(a, "oa:hasTarget");
 				a["oa:hasTarget"].map( (targetResource) => {
-					console.log("looking at a, targetResource: ", a, targetResource);
 					// lookup target IDs to get types and component annotations
 					if(targetResource["@id"] in byId) { 
 						byId[targetResource["@id"]]["annotations"].push(a);
