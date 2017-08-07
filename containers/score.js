@@ -55,7 +55,9 @@ class Score extends Component {
 		if(!Array.isArray(annotations)) { 
 			annotations = [annotations]
 		}
+		console.log("annotations:", annotations)
 		annotations.map( (annotation) => {
+			console.log("annotation is: ", annotation)
 			if(typeof annotation === 'undefined') { return }
 			// each annotation...
 			const frags = annotation["oa:hasTarget"].map( (annotationTarget) => { 
@@ -65,7 +67,6 @@ class Score extends Component {
                     const mediaTypes = Object.keys(this.props.score.componentTargets[annotationTarget["@id"]]);
                     let myFrags = {};
                     mediaTypes.map( (type) => {
-						console.log("WHATWHAT: ", type)
                         if(type === "MEI") { 
                             // only grab MY frag IDs, for THIS mei file
                             myFrags[type] = this.props.score.componentTargets[annotationTarget["@id"]][type].filter( (frag) => {

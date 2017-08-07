@@ -75,11 +75,12 @@ export default function(state = INIT_STATE, action) {
 				a["oa:hasTarget"].map( (targetResource) => {
 					// lookup target IDs to get types and component annotations
 					if(targetResource["@id"] in byId) { 
+						console.log("Trying to push:", byId[targetResource["@id"]]["annotations"]);
 						byId[targetResource["@id"]]["annotations"].push(a);
 					} else { 
 						byId[targetResource["@id"]] = {
 							"type": targetResource["@type"],
-							"annotations": a
+							"annotations": [a] 
 						}
 					}
 					// lookup target type to get target ID

@@ -61,7 +61,9 @@ class Climb extends Component {
 						return byId[t].annotations
 					}
 				});
-				console.log("WORKING WITH: ", annotations);
+				console.log("Flattening array:", annotations)
+				annotations = annotations.reduce( (a, b) => a.concat(b), []);
+				console.log("WORKING WITH (flattened):", annotations);
 				return (
 					<div key={ "wrapper" + pS } >
 						 <Score key={ pS } uri={ pS } annotations={ annotations } session={ session } etag={ etag } nextSession = { this.props.nextSession } />;
