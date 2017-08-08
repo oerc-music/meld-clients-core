@@ -137,7 +137,6 @@ export default function(state = {publishedScores: {}, conceptualScores: {}, MEI:
 		});
 		
 	case SCORE_NEXT_PAGE:
-		console.log("PING")
 		if(!action.payload.data) { 
 			console.log("SCORE_NEXT_PAGE attempted on non-loaded MEI data - ignoring!");
 			return state;
