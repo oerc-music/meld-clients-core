@@ -16,6 +16,7 @@ export const SCORE_PREV_PAGE = 'SCORE_PREV_PAGE';
 export const SCORE_NEXT_PAGE = 'SCORE_NEXT_PAGE';
 export const PROCESS_ANNOTATION = 'PROCESS_ANNOTATION';
 export const SESSION_GRAPH_ETAG= 'SESSION_GRAPH_ETAG';
+export const RESET_NEXT_SESSION_TRIGGER= 'RESET_NEXT_SESSION_TRIGGER';
 export const REALIZATION_OF = 'http://purl.org/vocab/frbr/core#realizationOf';
 export const EXPRESSION = 'http://purl.org/vocab/frbr/core#Expression';
 export const PART_OF = 'http://purl.org/vocab/frbr/core#partOf';
@@ -395,6 +396,12 @@ export function transitionToSession(thisSession, nextSession) {
 	window.location.assign('/jam?session=' + nextSession)
 	return { 
 		type: ANNOTATION_HANDLED 
+	}
+}
+
+export function resetNextSessionTrigger() { 
+	return { 
+		type: RESET_NEXT_SESSION_TRIGGER
 	}
 }
 

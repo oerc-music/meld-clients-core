@@ -7,7 +7,8 @@ import {
 	SEGMENT, 
 	FETCH_COMPONENT_TARGET,
 	SCORE_PREV_PAGE,
-	SCORE_NEXT_PAGE
+	SCORE_NEXT_PAGE,
+	RESET_NEXT_SESSION_TRIGGER
 } from '../actions/index'
 
 const EMBODIMENT = 'http://purl.org/vocab/frbr/core#embodiment';
@@ -159,7 +160,9 @@ export default function(state = {publishedScores: {}, conceptualScores: {}, MEI:
 				pageNum: {$set: action.payload.pageNum+1} 
 			});
 		}
-				
+	
+	case RESET_NEXT_SESSION_TRIGGER:
+		return update(state, { triggerNextSession: { $set: "" } })
 
 	default: 
 		return state;

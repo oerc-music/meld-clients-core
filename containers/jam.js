@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { fetchSessionGraph, scorePrevPage, scoreNextPage, postNextPageAnnotation, transitionToSession } from '../actions/index';
+import { fetchSessionGraph, scorePrevPage, scoreNextPage, postNextPageAnnotation, transitionToSession, resetNextSessionTrigger } from '../actions/index';
 import { connect } from 'react-redux' ;
 import { bindActionCreators } from 'redux';
 import { withRouter } from 'react-router';
@@ -33,11 +33,17 @@ class Jam extends Component {
 	render() {
 		if(this.props.score.publishedScores) {
 			if(this.props.score.triggerNextSession) { 
-				this.props.transitionToSession(
-					this.props.graph.annoGraph["@id"], 
-					this.props.graph.nextSession
-				)
-				return <div>Loading next session...</div>
+				// have we got a next session queued up?
+				if(this.props.graph.nextSession) { 
+					this.props.transitionToSession(
+						this.props.graph.annoGraph["@id"], 
+						this.props.graph.nextSession
+					)
+					return <div>Loading next session...</div>
+				} else { 
+				// if not, ignore this request and reset trigger
+					this.props.resetNextSessionTrigger();
+				}
 			}
 			console.log("Jam props: ", this.props);
 		//if(this.props.graph.targetsById) {
@@ -96,7 +102,7 @@ function mapStateToProps({ graph, score}) {
 }
 
 function mapDispatchToProps(dispatch) { 
-	return bindActionCreators({ fetchSessionGraph, scorePrevPage, scoreNextPage, postNextPageAnnotation, transitionToSession }, dispatch);
+	return bindActionCreators({ fetchSessionGraph, scorePrevPage, scoreNextPage, postNextPageAnnotation, transitionToSession, resetNextSessionTrigger }, dispatch);
 }
 
 withRouter(Jam);
