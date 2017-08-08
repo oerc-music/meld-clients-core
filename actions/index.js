@@ -391,9 +391,8 @@ export function scoreNextPage(session, nextSession, etag, annotation, pubScoreUr
 }
 
 export function transitionToSession(thisSession, nextSession) { 	
-	//browserHistory.push('/jam?session='+this.props.graph.nextSession)
 	// TODO do this properly using react.router to avoid full reload
-	window.location.assign('/jam?session=' + nextSession)
+	window.location.assign('/Climb?session=' + nextSession)
 	return { 
 		type: ANNOTATION_HANDLED 
 	}
