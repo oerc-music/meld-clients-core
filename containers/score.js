@@ -50,7 +50,9 @@ class Score extends Component {
 		this.props.fetchScore(this.props.uri);
 	}
 
-	componentWillUpdate() {
+// DW 20170823: Changing from componentWillUpdate to componentDidUpdate
+// because the new DOM elements weren't yet available to the annotation renderer with Will
+	componentDidUpdate() {
 		let annotations = this.props.annotations;
 		if(!Array.isArray(annotations)) { 
 			annotations = [annotations]

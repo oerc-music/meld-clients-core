@@ -366,6 +366,19 @@ export function scorePrevPage(pubScoreUri, pageNum, MEI) {
 		});
 	}
 }
+
+export function scoreNextPageStatic(pubScoreUri, pageNum, MEI) { 
+	return (dispatch) => {
+		dispatch({
+			type: SCORE_NEXT_PAGE,
+			payload: { 
+				pageNum: pageNum,
+				data: MEI,
+				uri: pubScoreUri
+			}
+		});
+	}
+}
 export function scoreNextPage(session, nextSession, etag, annotation, pubScoreUri, pageNum, MEI) { 
 	return (dispatch) => {
 		if(MEI) { 
