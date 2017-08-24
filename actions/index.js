@@ -14,6 +14,7 @@ export const FETCH_STRUCTURE = 'FETCH_STRUCTURE';
 export const FETCH_MANIFESTATIONS = 'FETCH_MANIFESTATIONS';
 export const SCORE_PREV_PAGE = 'SCORE_PREV_PAGE';
 export const SCORE_NEXT_PAGE = 'SCORE_NEXT_PAGE';
+export const SCORE_PAGE_TO_TARGET = 'SCORE_PAGE_TO_TARGET';
 export const PROCESS_ANNOTATION = 'PROCESS_ANNOTATION';
 export const SESSION_GRAPH_ETAG= 'SESSION_GRAPH_ETAG';
 export const RESET_NEXT_SESSION_TRIGGER= 'RESET_NEXT_SESSION_TRIGGER';
@@ -375,6 +376,17 @@ export function fetchConceptualScore(uri) {
 				dispatch(fetchScore(conceptualScore["mo:published_as"]["@id"]));
 			} else { console.log("Unpublished conceptual score: ", conceptualScore) }
 		})
+	}
+}
+
+export function scorePageToComponentTarget(target, pubScoreUri, MEI) {
+	return { 
+		type: SCORE_PAGE_TO_TARGET,
+		payload: { 
+			data: MEI,
+			uri: pubScoreUri,
+			target: target
+		}
 	}
 }
 

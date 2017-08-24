@@ -7,6 +7,7 @@ import {
 	SEGMENT, 
 	FETCH_COMPONENT_TARGET,
 	SCORE_PREV_PAGE,
+	SCORE_PAGE_TO_TARGET,
 	SCORE_NEXT_PAGE,
 	RESET_NEXT_SESSION_TRIGGER
 } from '../actions/index'
@@ -88,6 +89,7 @@ export default function(state = {publishedScores: {}, conceptualScores: {}, MEI:
 		console.log("FETCH_MANIFESTATIONS: Unembodied target! ", target);
 		return state;
 
+
 	case FETCH_CONCEPTUAL_SCORE:
 		const cS = action.payload;
 		//return update(state, {publishedScores: { $push: [conceptualScore[PUBLISHED_AS]["@id"]] } });
@@ -156,6 +158,20 @@ export default function(state = {publishedScores: {}, conceptualScores: {}, MEI:
 				pageNum: {$set: action.payload.pageNum+1} 
 			});
 		}
+	
+	case SCORE_PAGE_TO_TARGET:
+		if(!action.payload.data) {
+			console.log("SCORE_PAGE_TO_TARGET attempted on non-loaded MEI data - ignoring!");
+			return state;
+		}
+		const frag=action.payload.target.split("#")[1]
+		const pageNum = vrvTk.getPageWithElement(frag)
+		vrvTk.loadData(action.payload.data)
+		svg = vrvTk.renderPage(pageNum)
+		return update(state, {
+			SVG: { $set: { [action.payload.uri]: svg } },
+			pageNum: {$set: pageNum} 
+		});
 	
 	case RESET_NEXT_SESSION_TRIGGER:
 		return update(state, { triggerNextSession: { $set: "" } })
