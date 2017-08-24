@@ -23,13 +23,13 @@ class AnnotationsListing extends Component {
 										{ 
 											annotation["oa:hasTarget"].map( 
 												(t) => { 
-													return <span title={t["@id"]}>{this.props.score.componentTargets[t["@id"]]["description"]}</span> 
+													return <span className = {annotation["oa:motivatedBy"]["@id"].replace(":", "_")} title={t["@id"]} key={t["@id"]}>{this.props.score.componentTargets[t["@id"]]["description"]}</span> 
 												}
-											) 
+											)  
 										}
-									</div>
-									<div className="annotationMotivation">
-										Motivation: { annotation["oa:motivatedBy"]["@id"] }
+										<span className="timestamp" key={annotation["@id"] + "_time"}> 
+											(at { annotation["dct:created"] })
+										</span>
 									</div>
 								</div>
 							)

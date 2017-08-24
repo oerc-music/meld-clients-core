@@ -44,7 +44,8 @@ const context = {
 	"rdfs": "http://www.w3.org/2000/01/rdf-schema#",
 	"meld": "http://meld.linkedmusic.org/terms/",
 	"motivation": "http://meld.linkedmusic.org/motivation/",
-	"so": "http://www.linkedmusic.org/ontologies/segment/"
+	"so": "http://www.linkedmusic.org/ontologies/segment/",
+	"dct": "http://purl.org/dc/terms/"
 }
 
 export function fetchScore(uri) { 

@@ -18,7 +18,6 @@ class ClimbArchive extends Component {
 	
 	render() { 
 		if(this.props.score.publishedScores) {
-			console.log("Climb props: ", this.props);
 			let session = "";
 			let etag = "";
 			if (this.props.graph && this.props.graph.annoGraph) { 
@@ -57,7 +56,7 @@ class ClimbArchive extends Component {
 			});
 			return (
 				<div>
-					<link rel="stylesheet" href="../../style/climb.css" type="text/css" />
+					<link rel="stylesheet" href="../../style/climbArchive.css" type="text/css" />
 					<div id="annotations"></div>
 					{ scores }
 				</div>
