@@ -26,10 +26,26 @@ export const SEQ = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#Seq';
 export const SEQPART = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#_';
 export const SCORE = 'http://purl.org/ontology/mo/Score';
 export const CONTAINS = 'http://www.w3.org/ns/ldp#contains';
-export const MOTIVATED_BY= 'http://www.w3.org/ns/oa#motivatedBy'
-export const SEGMENT = 'http://www.linkedmusic.org/ontologies/segment/Segment'
-export const MUZICODE= 'http://meld.linkedmusic.org/terms/muzicode'
+export const MOTIVATED_BY= 'http://www.w3.org/ns/oa#motivatedBy';
+export const SEGMENT = 'so:Segment';
+export const MUZICODE= 'meld:muzicode';
 
+// TODO move context somewhere global -- most framing happens server side
+// anyway, but in cases where the framed URI contains a fragment ("#"), 
+// we have to do it client-side		
+const context = { 
+	"popRoles": "http://pop.linkedmusic.org/roles/", 
+	"mo": "http://purl.org/ontology/mo/", 
+	"ldp": "http://www.w3.org/ns/ldp#", 
+	"mp": "http://id.loc.gov/authorities/performanceMediums/", 
+	"oa": "http://www.w3.org/ns/oa#",
+	"dct": "http://purl.org/dc/terms/",
+	"frbr": "http://purl.org/vocab/frbr/core#",
+	"rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+	"meld": "http://meld.linkedmusic.org/terms/",
+	"motivation": "http://meld.linkedmusic.org/motivation/",
+	"so": "http://www.linkedmusic.org/ontologies/segment/"
+}
 
 export function fetchScore(uri) { 
 	console.log("FETCH_SCORE ACTION on URI: ", uri);
@@ -162,37 +178,44 @@ export function fetchComponentTarget(uri, conceptualScore = "") {
 	const promise = axios.get(uri, {headers: {'Accept': 'application/ld+json'}});
 	return (dispatch) => {
 		promise.then((data) => { 
-			jsonld.frame(data.data, { "@id":uri}, (err, framed) => {
-				if(err) { console.log("FRAMING ERROR in fetchWork:", err) }
+			jsonld.frame(data.data, { "@id":uri }, (err, framed) => {
+				if(err) { console.log("FRAMING ERROR in fetchComponentTarget:", err) }
 				else { 
-					dispatch( { 
-						type: FETCH_COMPONENT_TARGET,
-						payload: {
-							conceptualScore: conceptualScore,
-							structureTarget: uri
-						}
-					});
-					let typecheck = framed["@graph"][0];
-					typecheck = ensureArray(typecheck, "@type");
-					// have we found a segment?
-					if(typecheck["@type"].includes(SEGMENT) || typecheck["@type"].includes(MUZICODE)) { 
-						// TODO jsonldify context
-						// TODO refine muzicode semantics for this
-						// found a segment or muzicode!
-						// hand it off to the reducer to process the embodibag
-						// nb this is a different route to larrymeld (via expression)
-						// i.e. there is no partonomy here. So send the segment itself as the part.
-						dispatch({ 
-							type: FETCH_MANIFESTATIONS,
-							payload: { 
-								target: framed,
-								part: framed
+					jsonld.compact(framed, context, (err, compacted) => { 
+						if(err) { console.log("COMPACTING ERROR in fetchComponentTarget:", err) }
+						else { 
+							dispatch( { 
+								type: FETCH_COMPONENT_TARGET,
+								payload: {
+									conceptualScore: conceptualScore,
+									structureTarget: uri
+								}
+							});
+							console.log("COMPACTED: ", compacted);
+							let typecheck = compacted;
+							typecheck = ensureArray(typecheck, "@type");
+							// have we found a segment?
+							console.log("TYPECHECK: ", typecheck)
+							if(typecheck["@type"].includes(SEGMENT) || typecheck["@type"].includes(MUZICODE)) { 
+								// TODO jsonldify context
+								// TODO refine muzicode semantics for this
+								// found a segment or muzicode!
+								// hand it off to the reducer to process the embodibag
+								// nb this is a different route to larrymeld (via expression)
+								// i.e. there is no partonomy here. So send the segment itself as the part.
+								dispatch({ 
+									type: FETCH_MANIFESTATIONS,
+									payload: { 
+										target: compacted,
+										part: compacted
+									}
+								});
+							} else { 
+								// if not, continue following links via the target's expression
+								dispatch(fetchTargetExpression(compacted));
 							}
-						});
-					} else { 
-						// if not, continue following links via the target's expression
-						dispatch(fetchTargetExpression(framed));
-					}
+						}
+					})
 				}
 			})
 		});
@@ -201,14 +224,14 @@ export function fetchComponentTarget(uri, conceptualScore = "") {
 }
 
 
-export function fetchTargetExpression(framed) { 
+export function fetchTargetExpression(compacted) { 
 	// traverse from the provided Expression, via a Segment, to Manifestation(s)
 	return(dispatch) => { 
 		dispatch( { 
 			type: FETCH_TARGET_EXPRESSION,
-			payload: framed
+			payload:compacted 
 		});
-		let target = framed["@graph"][0];
+		let target = compacted;  
 		if(target["@type"].includes(EXPRESSION)) { 
 			// found an expression
 			// does it have any parts?
@@ -235,7 +258,7 @@ export function fetchTargetExpression(framed) {
 				});
 				// now fetch the work to continue on to the manifestations associated with these parts
 				if(REALIZATION_OF in target) {
-					dispatch(fetchWork(framed, parts, target[REALIZATION_OF]["@id"]));
+					dispatch(fetchWork(compacted, parts, target[REALIZATION_OF]["@id"]));
 				} else { console.log("Target is an unrealized expression: ", target); }
 			} else { console.log("Target expression without parts", target); }
 		} else { console.log("fetchTargetExpression attempted on a non-Expression! ", target); }
@@ -321,8 +344,8 @@ export function fetchStructure(target, parts, segline) {
 								dispatch({ 
 									type: FETCH_MANIFESTATIONS,
 									payload: { 
-										target: target,
-										part: framed
+										target: target["@graph"][0],
+										part: framed["@graph"][0]
 									}
 								});
 							}

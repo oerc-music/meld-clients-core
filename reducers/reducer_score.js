@@ -11,10 +11,10 @@ import {
 	RESET_NEXT_SESSION_TRIGGER
 } from '../actions/index'
 
-const EMBODIMENT = 'http://purl.org/vocab/frbr/core#embodiment';
-const MEITYPE = 'http://meld.linkedmusic.org/terms/MEIEmbodiment';
-const AUDIOTYPE = 'http://meld.linkedmusic.org/terms/AudioEmbodiment';
-const MEMBER = 'http://www.w3.org/2000/01/rdf-schema#member';
+const EMBODIMENT = 'frbr:embodiment';
+const MEITYPE = 'meld:MEIEmbodiment';
+const AUDIOTYPE = 'meld:AudioEmbodiment';
+const MEMBER = 'rdfs:member';
 
 const vrvTk = new verovio.toolkit();
 
@@ -22,21 +22,17 @@ const scale = 35;
 
 const vrvOptions = {
 			/*
-                pageHeight: 1400,
-                pageWidth: 2000,
-				spacingLinear: 0.05,
-				spacingNonLinear: 0.05,
-				spacingStaff: 0.05,
-				spacingSystem: 0.05,
-				ignoreLayout: true,
-                adjustPageHeight: true,
-                scale: 36 
-			*/
 			ignoreLayout: true,
 			adjustPageHeight: true,
 			scale:scale,
 			pageHeight: 760*100/scale,
 			pageWidth: 1200*100/scale
+			*/
+		ignoreLayout:true,
+		adjustPageHeight:true,
+		scale:scale,
+		pageHeight: 1000*100/scale,
+		pageWidth: 700*100/scale
 };
 
 export default function(state = {publishedScores: {}, conceptualScores: {}, MEI: {}, SVG: {}, componentTargets: {}, pageNum: 1, triggerNextSession: ""}, action) { 
@@ -52,8 +48,8 @@ export default function(state = {publishedScores: {}, conceptualScores: {}, MEI:
 
     case FETCH_MANIFESTATIONS:
 		console.log("IN FETCH_MANIFESTATIONS, payload is: ", action.payload)
-		const target = action.payload.target["@graph"][0];
-		const part = action.payload.part["@graph"][0];
+		const target = action.payload.target;
+		const part = action.payload.part;
 		if(typeof part === "undefined") {
 			// part wasn't on segment line
 			return state;
@@ -84,6 +80,7 @@ export default function(state = {publishedScores: {}, conceptualScores: {}, MEI:
 					fragments[fragtype] = embodiment[MEMBER].map( (member) => {
 						return member["@id"];
 					});
+					fragments["description"] = target["rdfs:label"];
 				} else { console.log("Embodiment without members: ", part, embodiment); }
 			});
 			return update(state, {componentTargets: { $merge: { [target["@id"]]: fragments } } });

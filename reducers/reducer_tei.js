@@ -13,8 +13,8 @@ export default function(state = {TEI: {}, componentTargets: {}, fragImages:{}}, 
 
 	case FETCH_MANIFESTATIONS:
 		// find associated TEI
-		const target = action.payload.target["@graph"][0];
-		const part = action.payload.part["@graph"][0];
+		const target = action.payload.target;
+		const part = action.payload.part;
 		if(typeof part === "undefined") {
 			// part wasn't on segment line
 			return state;
