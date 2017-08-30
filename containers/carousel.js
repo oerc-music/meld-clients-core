@@ -8,7 +8,7 @@ class MEICarousel extends Component {
         super(props);
         this.state = { 
             score: {},
-            width: 400,
+            width: 330,
             layout: this.props.layout,
             ease: 'linear',
             duration: 400
@@ -34,15 +34,19 @@ class MEICarousel extends Component {
 
     render() {
         console.log("Carousel sees :", this.props.score);
-        if("MEI" in this.props.score && Object.keys(this.props.score["MEI"]).length ) { 
+        if("MEI" in this.props.score && Object.keys(this.props.score.MEI).length && Object.keys(this.props.score.scoreMapping).length) { 
+          var k = Object.keys(this.props.score.MEI);
+          var vs = k.filter((k) => { return !this.props.score.scoreMapping[k] || "http://id.loc.gov/authorities/performanceMediums/2013015550" in this.props.score.scoreMapping[k]}, this);
+          var im = vs.map(k => k.replace(".mei", ".svg"));
+          im.push("http://localhost:8080/companion/mei/blank.svg");
+          im.push("http://localhost:8080/companion/mei/blank.svg");
+          im.push("http://localhost:8080/companion/title-page-top.png");
             return (
                 <div className="carouselWrapper">
                     <Carousel width={this.state.width}
-                              images={
-                                  Object.keys(this.props.score.MEI).map(
-                                      (k) => k.replace(".mei", ".svg")
-                                  )
-                              }
+                              images={ im }
+                              motif={this.props.motif}
+                              onMotifChange={this.props.onMotifChange}
                               ease={this.state.ease}
                               duration={this.state.duration}
                               layout={this.state.layout}/>

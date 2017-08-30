@@ -62,7 +62,8 @@ export default function(state = INIT_STATE, action) {
 		if(typeof payload === "string") { 
 			payload = JSON.parse(payload);
 		}
-		payload = payload["@graph"][0];
+		console.log("Hello from FETCH_GRAPH. Action is: ", action);
+		payload = payload["@graph"];
 		console.log("Looking at ", payload);
 		if("ldp:contains" in payload) {
 			payload = ensureArray(payload, "ldp:contains");

@@ -25,7 +25,7 @@ ReactDOM.render(
 			<Route path="/Climb" component={Climb} />
 			<Route path="/ClimbArchive" component={ClimbArchive} />
 			<Route path="/Demo/Rheingold" component={Rheingold}/>
-			<Route path="/Carousel" component={Carousel}/>
+			<Route path="/TimeMachine" component={Carousel}/>
 			<Route path="/ForbiddenQuestion" component={ForbiddenQuestion}/>
 		</Router>
 	</Provider>

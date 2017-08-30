@@ -4,12 +4,14 @@ import jsonld from 'jsonld'
 import { ANNOTATION_PATCHED, ANNOTATION_POSTED, ANNOTATION_HANDLED, ANNOTATION_NOT_HANDLED} from './meldActions';
 
 export const FETCH_SCORE = 'FETCH_SCORE';
+export const FETCH_RIBBON_CONTENT = 'FETCH_RIBBON_CONTENT';
 export const FETCH_CONCEPTUAL_SCORE = 'FETCH_CONCEPTUAL_SCORE';
 export const FETCH_TEI = 'FETCH_TEI';
 export const FETCH_GRAPH = 'FETCH_GRAPH';
 export const FETCH_WORK = 'FETCH_WORK';
 export const FETCH_TARGET_EXPRESSION = 'FETCH_TARGET_EXPRESSION';
 export const FETCH_COMPONENT_TARGET = 'FETCH_COMPONENT_TARGET';
+export const PROCESS_COMPONENT_TARGET = 'PROCESS_COMPONENT_TARGET';
 export const FETCH_STRUCTURE = 'FETCH_STRUCTURE';
 export const FETCH_MANIFESTATIONS = 'FETCH_MANIFESTATIONS';
 export const SCORE_PREV_PAGE = 'SCORE_PREV_PAGE';
@@ -18,6 +20,8 @@ export const SCORE_PAGE_TO_TARGET = 'SCORE_PAGE_TO_TARGET';
 export const PROCESS_ANNOTATION = 'PROCESS_ANNOTATION';
 export const SESSION_GRAPH_ETAG= 'SESSION_GRAPH_ETAG';
 export const RESET_NEXT_SESSION_TRIGGER= 'RESET_NEXT_SESSION_TRIGGER';
+export const REGISTER_PUBLISHED_PERFORMANCE_SCORE= 'REGISTER_PUBLISHED_PERFORMANCE_SCORE';
+// TODO DW 20170830 -- finish JSONLDifying these
 export const REALIZATION_OF = 'http://purl.org/vocab/frbr/core#realizationOf';
 export const EXPRESSION = 'http://purl.org/vocab/frbr/core#Expression';
 export const PART_OF = 'http://purl.org/vocab/frbr/core#partOf';
@@ -30,6 +34,9 @@ export const CONTAINS = 'http://www.w3.org/ns/ldp#contains';
 export const MOTIVATED_BY= 'http://www.w3.org/ns/oa#motivatedBy';
 export const SEGMENT = 'so:Segment';
 export const MUZICODE= 'meld:muzicode';
+export const PUBLISHED_AS = 'http://purl.org/ontology/mo/published_as';
+export const HAS_PERFORMANCE_MEDIUM = 'http://rdaregistry.info/Elements/e/p20215';
+export const HAS_PIANO = "http://id.loc.gov/authorities/performanceMediums/2013015550";
 
 // TODO move context somewhere global -- most framing happens server side
 // anyway, but in cases where the framed URI contains a fragment ("#"), 
@@ -55,6 +62,15 @@ export function fetchScore(uri) {
 	return { 
 		type: FETCH_SCORE,
 		payload: promise 
+	}
+}
+
+export function fetchRibbonContent(uri) {
+	console.log("FETCH_RIBBON_CONTENT ACTION on URI: ", uri);
+	const promise = axios.get(uri);
+	return {
+		type: FETCH_RIBBON_CONTENT,
+		payload: promise
 	}
 }
 
@@ -156,7 +172,8 @@ function processComponentAnnotation(annotation, conceptualScore = "") {
     const targets = annotation["oa:hasTarget"].map( (target) => {
 			return { 
 				"@id": target["@id"],
-				//"@type": target["@type"], 
+				// DW TODO 20170830 may need to validate whether @type exists
+				"@type": target["@type"], 
 			}
 	});
     return (dispatch) => { 
@@ -180,48 +197,75 @@ export function fetchComponentTarget(uri, conceptualScore = "") {
 	const promise = axios.get(uri, {headers: {'Accept': 'application/ld+json'}});
 	return (dispatch) => {
 		promise.then((data) => { 
-			jsonld.frame(data.data, { "@id":uri }, (err, framed) => {
-				if(err) { console.log("FRAMING ERROR in fetchComponentTarget:", err) }
-				else { 
-					jsonld.compact(framed, context, (err, compacted) => { 
-						if(err) { console.log("COMPACTING ERROR in fetchComponentTarget:", err) }
-						else { 
-							dispatch( { 
-								type: FETCH_COMPONENT_TARGET,
-								payload: {
-									conceptualScore: conceptualScore,
-									structureTarget: uri
+			console.log("Attemping to frame data", data);
+			if(!"content-type" in data.headers || 
+				(data.headers["content-type"] !== "application/json" &&
+				 data.headers["content-type"] !== "application/ld+json")
+				) { 
+				// need to convert triples to json
+				// TODO handle arbitrary RDF format here (currently requires ntriples)
+				jsonld.fromRDF(data.data, (err, doc) => {
+					if(err) { console.log("ERROR CONVERTING NQUADS TO JSON-LD: ", err); }
+					else { 
+						dispatch(processComponentTarget(doc, uri, conceptualScore));
+					}
+				});
+			} else { 
+				// already in json format
+				dispatch(processComponentTarget(data.data, uri, conceptualScore));
+			}
+		});
+	}
+}
+
+function processComponentTarget(data, uri, conceptualScore) {
+    console.log("PROCESS_COMPONENT_TARGET ACTION ON URI: ", uri);
+	return (dispatch) => {
+		jsonld.frame(data, { "@id":uri }, (err, framed) => {
+			if(err) { 
+				console.log("FRAMING ERROR in fetchComponentTarget:", err) 
+				return { 
+					type: ANNOTATION_NOT_HANDLED
+				}
+			}
+			else { 
+				jsonld.compact(framed, context, (err, compacted) => { 
+					if(err) { console.log("COMPACTING ERROR in fetchComponentTarget:", err) }
+					else { 
+						dispatch( { 
+							type: FETCH_COMPONENT_TARGET,
+							payload: {
+								conceptualScore: conceptualScore,
+								structureTarget: uri
+							}
+						});
+						console.log("COMPACTED: ", compacted);
+						let typecheck = compacted;
+						typecheck = ensureArray(typecheck, "@type");
+						// have we found a segment?
+						console.log("TYPECHECK: ", typecheck)
+						if(typecheck["@type"].includes(SEGMENT) || typecheck["@type"].includes(MUZICODE)) { 
+							// TODO jsonldify context
+							// TODO refine muzicode semantics for this
+							// found a segment or muzicode!
+							// hand it off to the reducer to process the embodibag
+							// nb this is a different route to larrymeld (via expression)
+							// i.e. there is no partonomy here. So send the segment itself as the part.
+							dispatch({ 
+								type: FETCH_MANIFESTATIONS,
+								payload: { 
+									target: compacted,
+									part: compacted
 								}
 							});
-							console.log("COMPACTED: ", compacted);
-							let typecheck = compacted;
-							typecheck = ensureArray(typecheck, "@type");
-							// have we found a segment?
-							console.log("TYPECHECK: ", typecheck)
-							if(typecheck["@type"].includes(SEGMENT) || typecheck["@type"].includes(MUZICODE)) { 
-								// TODO jsonldify context
-								// TODO refine muzicode semantics for this
-								// found a segment or muzicode!
-								// hand it off to the reducer to process the embodibag
-								// nb this is a different route to larrymeld (via expression)
-								// i.e. there is no partonomy here. So send the segment itself as the part.
-								dispatch({ 
-									type: FETCH_MANIFESTATIONS,
-									payload: { 
-										target: compacted,
-										part: compacted
-									}
-								});
-							} else { 
-								// if not, continue following links via the target's expression
-								dispatch(fetchTargetExpression(compacted));
-							}
+						} else { 
+							// if not, continue following links via the target's expression
+							dispatch(fetchTargetExpression(compacted));
 						}
-					})
-				}
-			})
-		});
-		
+					}
+				})
+			}
+		})
 	}
 }
 
@@ -238,6 +282,7 @@ export function fetchTargetExpression(compacted) {
 			// found an expression
 			// does it have any parts?
 			let parts = [];
+			console.log("part check: ", target)
 			if(PART in target) { 
 				// sometimes we may have multiple parts or part sequences; sometimes only one
 				// so ensure we have an array to work with (even if it's length one)
@@ -300,6 +345,35 @@ export function fetchWork(target, parts, work) {
 										if(attachedScore && "@type" in attachedScore && attachedScore["@type"] === SCORE) {
 											// FIXME breaks with multiple types
 											// Found an attached Score!!!
+											if(PUBLISHED_AS in attachedScore) { 
+												// for now: assume published scores
+												// are attached in same file
+												// FIXME enable external pub_scores
+												attachedScore[PUBLISHED_AS].map( (pubScore) => {
+													console.log("FOUND PUB SCORE: ", pubScore);
+													if(HAS_PERFORMANCE_MEDIUM in pubScore) { 
+														console.log("FOUND PERF MEDIUM: ", pubScore[HAS_PERFORMANCE_MEDIUM]);
+														dispatch({
+															type: REGISTER_PUBLISHED_PERFORMANCE_SCORE,
+															payload: { 
+																work: work,
+																conceptualScore: attachedScore,
+																publishedScore: pubScore,
+																performanceMedium: pubScore[HAS_PERFORMANCE_MEDIUM]
+															}
+														})
+														if(pubScore[HAS_PERFORMANCE_MEDIUM]['@id']==HAS_PIANO) {
+															dispatch(fetchScore(pubScore["@id"]));
+														} else {
+															dispatch(fetchRibbonContent(pubScore["@id"]));
+														}
+													} else { 
+														console.log("Published score without performance medium: ", pubScore["@id"]);
+													}
+												})
+											} else { 
+												console.log("Unpublished score: ", attachedScore);
+											}
 											if(HAS_STRUCTURE in attachedScore) { 
 												dispatch(fetchStructure(target, parts, attachedScore[HAS_STRUCTURE]["@id"]));
 											} else { 
@@ -343,6 +417,7 @@ export function fetchStructure(target, parts, segline) {
 							else { 
 								// and hand to reducers to process associated embodibags
 								// (manifestations of the expression)
+								console.log("fetching manifestations", doc, part, framed);
 								dispatch({ 
 									type: FETCH_MANIFESTATIONS,
 									payload: { 

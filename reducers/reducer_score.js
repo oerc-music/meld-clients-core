@@ -1,9 +1,11 @@
 import update from 'immutability-helper';
 import { 
 	FETCH_SCORE, 
+	FETCH_RIBBON_CONTENT,
 	FETCH_MANIFESTATIONS, 
 	FETCH_CONCEPTUAL_SCORE, 
 	PROCESS_ANNOTATION, 
+	REGISTER_PUBLISHED_PERFORMANCE_SCORE,
 	SEGMENT, 
 	FETCH_COMPONENT_TARGET,
 	SCORE_PREV_PAGE,
@@ -21,13 +23,20 @@ const vrvTk = new verovio.toolkit();
 
 const scale = 35;
 
+let conceptualScore;
+
 const vrvOptions = {
 			/*
-			ignoreLayout: true,
-			adjustPageHeight: true,
-			scale:scale,
-			pageHeight: 760*100/scale,
-			pageWidth: 1200*100/scale
+		// DW 20170830 pre-merge meld-companion options:
+                pageHeight: 1400,
+                pageWidth: 2000,
+				spacingLinear: 0.05,
+				spacingNonLinear: 0.05,
+				spacingStaff: 0.05,
+				spacingSystem: 0.05,
+				ignoreLayout: true,
+                adjustPageHeight: true,
+                scale: 36 
 			*/
 		ignoreLayout:true,
 		adjustPageHeight:true,
@@ -36,7 +45,7 @@ const vrvOptions = {
 		pageWidth: 700*100/scale
 };
 
-export default function(state = {publishedScores: {}, conceptualScores: {}, MEI: {}, SVG: {}, componentTargets: {}, pageNum: 1, triggerNextSession: ""}, action) { 
+export default function(state = {publishedScores: {}, conceptualScores: {}, MEI: {}, SVG: {}, componentTargets: {}, scoreMapping: {}, pageNum: 1, triggerNextSession: ""}, action) { 
 	let svg;
 	switch(action.type) {
 	case FETCH_SCORE:
@@ -47,6 +56,11 @@ export default function(state = {publishedScores: {}, conceptualScores: {}, MEI:
 			pageNum: {$set: 1} 
 		});
 
+    case FETCH_RIBBON_CONTENT:
+		var orch =  new Orchestration(action.payload.data);
+		var svgRibbon = orch.drawOrchestration(false, 0, 400, 0, 600);
+		return update(state, {MEI: { $merge: {[action.payload.config.url]: svgRibbon.outerHTML}}});
+
     case FETCH_MANIFESTATIONS:
 		console.log("IN FETCH_MANIFESTATIONS, payload is: ", action.payload)
 		const target = action.payload.target;
@@ -54,7 +68,7 @@ export default function(state = {publishedScores: {}, conceptualScores: {}, MEI:
 		if(typeof part === "undefined") {
 			// part wasn't on segment line
 			return state;
-		} 
+		}
 		let fragments={};
 		// go through each part, finding embodibags
 		if(EMBODIMENT in part) { 
@@ -78,12 +92,15 @@ export default function(state = {publishedScores: {}, conceptualScores: {}, MEI:
 					if(!Array.isArray(embodiment[MEMBER])) { 
 						embodiment[MEMBER] = [embodiment[MEMBER]];
 					}
-					fragments[fragtype] = embodiment[MEMBER].map( (member) => {
+					fragments[fragtype] = fragments[fragtype] || [];
+					fragments[fragtype] = fragments[fragtype].concat(embodiment[MEMBER].map( (member) => {
 						return member["@id"];
-					});
+					}));
 					fragments["description"] = target["rdfs:label"];
 				} else { console.log("Embodiment without members: ", part, embodiment); }
 			});
+			console.log("Updating state: ");
+			console.log( update(state, {componentTargets: { $merge: { [target["@id"]]: fragments } } }));
 			return update(state, {componentTargets: { $merge: { [target["@id"]]: fragments } } });
 		};
 		console.log("FETCH_MANIFESTATIONS: Unembodied target! ", target);
@@ -103,7 +120,7 @@ export default function(state = {publishedScores: {}, conceptualScores: {}, MEI:
 
 	case FETCH_COMPONENT_TARGET:
 		// ensure that our structure target collection is an array, then push this one in
-		const conceptualScore = action.payload.conceptualScore;
+		conceptualScore = action.payload.conceptualScore;
 		// make sure we have an entry for this conceptual score, and that its value is an array
 		let newState = update(state, {
 			conceptualScores: { 
@@ -158,24 +175,41 @@ export default function(state = {publishedScores: {}, conceptualScores: {}, MEI:
 				pageNum: {$set: action.payload.pageNum+1} 
 			});
 		}
-	
-	case SCORE_PAGE_TO_TARGET:
-		if(!action.payload.data) {
-			console.log("SCORE_PAGE_TO_TARGET attempted on non-loaded MEI data - ignoring!");
-			return state;
-		}
-		const frag=action.payload.target.split("#")[1]
-		const pageNum = vrvTk.getPageWithElement(frag)
-		vrvTk.loadData(action.payload.data)
-		svg = vrvTk.renderPage(pageNum)
-		return update(state, {
-			SVG: { $set: { [action.payload.uri]: svg } },
-			pageNum: {$set: pageNum} 
-		});
-	
-	case RESET_NEXT_SESSION_TRIGGER:
-		return update(state, { triggerNextSession: { $set: "" } })
 
+	case REGISTER_PUBLISHED_PERFORMANCE_SCORE:
+		console.log("Register published performance score: ", action.payload, "on state: ", state);
+		if(action.payload.conceptualScore["@id"] in state.scoreMapping) { 
+			// we already know this conceptual score
+			// do we already know about the published score for this performance medium?
+			if(action.payload.performanceMedium["@id"] in state.scoreMapping[action.payload.publishedScore["@id"]]) {
+				// yes; so nothing to do. FIXME: should we cater for multiple published scores for same performance medium?
+				return state; 
+			} else { 
+				// no; so register the published score for this new performance medium
+				return update(state, {
+					scoreMapping: {
+						[action.payload.publishedScore["@id"]]: {
+							$merge: {
+								[action.payload.performanceMedium["@id"]]: action.payload.conceptualScore["@id"]
+							}
+						}
+					}
+				})
+			}
+		} else { 
+			// first time we see this conceptual score
+			// so attach the published score according to performance medium
+			return update(state, {
+				scoreMapping: { 
+					$merge: {
+						[action.payload.publishedScore["@id"]]: {
+							[action.payload.performanceMedium["@id"]]: action.payload.conceptualScore["@id"]
+						}
+					}
+				}
+			})
+		}
+	
 	default: 
 		return state;
 	};

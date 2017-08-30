@@ -45,7 +45,6 @@ export function TEIScroll(element){
         for(var i=0; i<targetElements.length; i++){
           var textBox = targetElements[i].closest('.TEIContainer');
           if(textBox){
-            console.log(targetElements[i].offsetTop, textBox.offsetTop);
            targetElements[i].scrollIntoView;
            textBox.scrollTop = textBox.offsetTop + targetElements[i].offsetTop  - (textBox.clientHeight / 2);
           }
@@ -71,7 +70,6 @@ export function handleCueAudio(component, annotation, body, uri, fragments) {
                     TEIScroll(element);
                     const query = "audio[data-uri='" + audioUri + "']";
                     let myPlayers = document.querySelectorAll(query);
-					console.log(query, audioFragTime);
                     Array.prototype.map.call(myPlayers, function(p) { p.currentTime = audioFragTime });
                 };
                 applyAnnotationId(element, annotation);
