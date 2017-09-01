@@ -22,10 +22,10 @@ export const SESSION_GRAPH_ETAG= 'SESSION_GRAPH_ETAG';
 export const RESET_NEXT_SESSION_TRIGGER= 'RESET_NEXT_SESSION_TRIGGER';
 export const REGISTER_PUBLISHED_PERFORMANCE_SCORE= 'REGISTER_PUBLISHED_PERFORMANCE_SCORE';
 // TODO DW 20170830 -- finish JSONLDifying these
-export const REALIZATION_OF = 'http://purl.org/vocab/frbr/core#realizationOf';
-export const EXPRESSION = 'http://purl.org/vocab/frbr/core#Expression';
-export const PART_OF = 'http://purl.org/vocab/frbr/core#partOf';
-export const PART = 'http://purl.org/vocab/frbr/core#part';
+export const REALIZATION_OF = 'frbr:realizationOf';
+export const EXPRESSION = 'frbr:Expression';
+export const PART_OF = 'frbr:partOf';
+export const PART = 'frbr:part';
 export const HAS_STRUCTURE= 'http://meld.linkedmusic.org/terms/hasStructure';
 export const SEQ = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#Seq';
 export const SEQPART = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#_';
@@ -331,63 +331,74 @@ export function fetchWork(target, parts, work) {
 					jsonld.frame(doc, { "@id":work}, (err, framed) => {
 						if(err) { console.log("FRAMING ERROR in fetchWork:", err) }
 						else { 
-							work = framed["@graph"][0];
-							// Check if there is a segment line, in which case fetch manifestations
-							// else, check if this is part of another ("parent") work 
-							if(HAS_STRUCTURE in work) { 
-									dispatch(fetchStructure(target, parts, work[HAS_STRUCTURE]["@id"]));
-							} else if(PART_OF in work) {
-								// does our doc attach a Score which realizes the parent work?
-								jsonld.frame(doc, { [REALIZATION_OF]: work[PART_OF]["@id"] }, (err, framed) => {
-									if(err) { console.log("FRAMING ERROR when fetching parent work", err) }
-									else {
-										const attachedScore = framed["@graph"][0];
-										if(attachedScore && "@type" in attachedScore && attachedScore["@type"] === SCORE) {
-											// FIXME breaks with multiple types
-											// Found an attached Score!!!
-											if(PUBLISHED_AS in attachedScore) { 
-												// for now: assume published scores
-												// are attached in same file
-												// FIXME enable external pub_scores
-												attachedScore[PUBLISHED_AS].map( (pubScore) => {
-													console.log("FOUND PUB SCORE: ", pubScore);
-													if(HAS_PERFORMANCE_MEDIUM in pubScore) { 
-														console.log("FOUND PERF MEDIUM: ", pubScore[HAS_PERFORMANCE_MEDIUM]);
-														dispatch({
-															type: REGISTER_PUBLISHED_PERFORMANCE_SCORE,
-															payload: { 
-																work: work,
-																conceptualScore: attachedScore,
-																publishedScore: pubScore,
-																performanceMedium: pubScore[HAS_PERFORMANCE_MEDIUM]
+							jsonld.compact(framed, context, (err, compacted) => { 
+								if(err) { console.log("COMPACTING ERROR in fetchWork:", err) }
+								else { 
+									work=compacted;
+									// Check if there is a segment line, in which case fetch manifestations
+									// else, check if this is part of another ("parent") work 
+									if(HAS_STRUCTURE in work) { 
+											dispatch(fetchStructure(target, parts, work[HAS_STRUCTURE]["@id"]));
+									} else if(PART_OF in work) {
+										// does our doc attach a Score which realizes the parent work?
+										// FIXME HACKHACK:
+										// framing expands the nice compacted URIs
+										// so here we need to use full URIs instead of REALIZATION_OF as defined above
+										jsonld.frame({"@context": context, "@graph": doc}, { 
+											"http://purl.org/vocab/frbr/core#realizationOf": work[PART_OF]["@id"] 
+											}, (err, framed) => {
+											if(err) { console.log("FRAMING ERROR when fetching parent work", err) }
+											else {
+												console.log("Attached score:", framed);
+												const attachedScore = framed["@graph"][0];
+												if(attachedScore && "@type" in attachedScore && attachedScore["@type"] === SCORE) {
+													// FIXME breaks with multiple types
+													// Found an attached Score!!!
+													if(PUBLISHED_AS in attachedScore) { 
+														// for now: assume published scores
+														// are attached in same file
+														// FIXME enable external pub_scores
+														attachedScore[PUBLISHED_AS].map( (pubScore) => {
+															console.log("FOUND PUB SCORE: ", pubScore);
+															if(HAS_PERFORMANCE_MEDIUM in pubScore) { 
+																console.log("FOUND PERF MEDIUM: ", pubScore[HAS_PERFORMANCE_MEDIUM]);
+																dispatch({
+																	type: REGISTER_PUBLISHED_PERFORMANCE_SCORE,
+																	payload: { 
+																		work: work,
+																		conceptualScore: attachedScore,
+																		publishedScore: pubScore,
+																		performanceMedium: pubScore[HAS_PERFORMANCE_MEDIUM]
+																	}
+																})
+																if(pubScore[HAS_PERFORMANCE_MEDIUM]['@id']==HAS_PIANO) {
+																	dispatch(fetchScore(pubScore["@id"]));
+																} else {
+																	dispatch(fetchRibbonContent(pubScore["@id"]));
+																}
+															} else { 
+																console.log("Published score without performance medium: ", pubScore["@id"]);
 															}
 														})
-														if(pubScore[HAS_PERFORMANCE_MEDIUM]['@id']==HAS_PIANO) {
-															dispatch(fetchScore(pubScore["@id"]));
-														} else {
-															dispatch(fetchRibbonContent(pubScore["@id"]));
-														}
 													} else { 
-														console.log("Published score without performance medium: ", pubScore["@id"]);
+														console.log("Unpublished score: ", attachedScore);
 													}
-												})
-											} else { 
-												console.log("Unpublished score: ", attachedScore);
+													if(HAS_STRUCTURE in attachedScore) { 
+														dispatch(fetchStructure(target, parts, attachedScore[HAS_STRUCTURE]["@id"]));
+													} else { 
+														console.log("Score ", attachedScore["@id"], " attached to work ", work["@id"], " has no segment line!!");
+													}
+												}  else { 
+													// no attached Score, so we have to recurse on the parent work
+													dispatch(fetchWork(target, parts, work[PART_OF]["@id"]));
+												}
 											}
-											if(HAS_STRUCTURE in attachedScore) { 
-												dispatch(fetchStructure(target, parts, attachedScore[HAS_STRUCTURE]["@id"]));
-											} else { 
-												console.log("Score ", attachedScore["@id"], " attached to work ", work["@id"], " has no segment line!!");
-											}
-										}  else { 
-											// no attached Score, so we have to recurse on the parent work
-											dispatch(fetchWork(target, parts, work[PART_OF]["@id"]));
-										}
+										});
+									} else { 
+										console.log("Found work without segmentLine or partonomy! ", work); 
 									}
-								});
-							} else { 
-								console.log("Found work without segmentLine or partonomy! ", work); 
-							}
+								}
+							});
 						}
 					});
 				}
@@ -417,11 +428,11 @@ export function fetchStructure(target, parts, segline) {
 							else { 
 								// and hand to reducers to process associated embodibags
 								// (manifestations of the expression)
-								console.log("fetching manifestations", doc, part, framed);
+								console.log("fetching manifestations", doc, target, part, framed);
 								dispatch({ 
 									type: FETCH_MANIFESTATIONS,
 									payload: { 
-										target: target["@graph"][0],
+										target: target,
 										part: framed["@graph"][0]
 									}
 								});
