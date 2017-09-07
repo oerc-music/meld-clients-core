@@ -50,14 +50,16 @@ class Score extends Component {
 		this.props.fetchScore(this.props.uri);
 	}
 
-// DW 20170823: Changing from componentWillUpdate to componentDidUpdate
-// because the new DOM elements weren't yet available to the annotation renderer with Will
 	componentDidUpdate() {
 		let annotations = this.props.annotations;
 		if(!Array.isArray(annotations)) { 
 			annotations = [annotations]
 		}
 		console.log("annotations:", annotations)
+		if(annotations.length && annotations[0]["@type"].includes("meldterm:topLevel")) { 
+			console.log("Found old Larry-meld style topLevel annotation, converting...")
+			annotations = annotations[0]["oa:hasBody"]
+		}
 		annotations.map( (annotation) => {
 			console.log("annotation is: ", annotation)
 			if(typeof annotation === 'undefined') { return }
@@ -91,7 +93,7 @@ class Score extends Component {
 	}
 
 	handleMELDActions(annotation, fragments) { 
-		console.log("HANDING MELD ACTION: ", annotation, fragments);
+		console.log("HANDLING MELD ACTION: ", annotation, fragments);
 		if(HAS_BODY in annotation) { 
 			annotation[HAS_BODY].map( (b) => {
 				// TODO convert to switch statement

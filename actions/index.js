@@ -3,6 +3,7 @@ import axios from 'axios';
 import jsonld from 'jsonld'
 import { ANNOTATION_PATCHED, ANNOTATION_POSTED, ANNOTATION_HANDLED, ANNOTATION_NOT_HANDLED} from './meldActions';
 
+export const HAS_BODY = "oa:hasBody"
 export const FETCH_SCORE = 'FETCH_SCORE';
 export const FETCH_RIBBON_CONTENT = 'FETCH_RIBBON_CONTENT';
 export const FETCH_CONCEPTUAL_SCORE = 'FETCH_CONCEPTUAL_SCORE';
@@ -426,14 +427,19 @@ export function fetchStructure(target, parts, segline) {
 						jsonld.frame(doc, { "@id": part}, (err, framed) => {
 							if(err) { console.log("FRAMING ERROR in fetchStructure: ", err) }
 							else { 
-								// and hand to reducers to process associated embodibags
-								// (manifestations of the expression)
-								console.log("fetching manifestations", doc, target, part, framed);
-								dispatch({ 
-									type: FETCH_MANIFESTATIONS,
-									payload: { 
-										target: target,
-										part: framed["@graph"][0]
+								jsonld.compact(framed, context, (err, compacted) => { 
+									if(err) { console.log("COMPACTING ERROR in fetchStructure:", err) }
+									else { 
+										// and hand to reducers to process associated embodibags
+										// (manifestations of the expression)
+										console.log("fetching manifestations", doc, target, part, compacted);
+										dispatch({ 
+											type: FETCH_MANIFESTATIONS,
+											payload: { 
+												target: target,
+												part: compacted
+											}
+										});
 									}
 								});
 							}
