@@ -56,7 +56,7 @@ class Score extends Component {
 			annotations = [annotations]
 		}
 		console.log("annotations:", annotations)
-		if(annotations.length && annotations[0]["@type"].includes("meldterm:topLevel")) { 
+		if(annotations.length && typeof annotations[0] !== "undefined" && "@type" in annotations[0] && annotations[0]["@type"].includes("meldterm:topLevel")) { 
 			console.log("Found old Larry-meld style topLevel annotation, converting...")
 			annotations = annotations[0]["oa:hasBody"]
 		}
