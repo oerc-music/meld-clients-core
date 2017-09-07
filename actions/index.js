@@ -156,7 +156,7 @@ export function fetchGraph(uri) {
                 payload: data
             });
             // walk through component annotations
-            data["@graph"]["ldp:contains"].map( (topLevel) => { 
+            data["@graph"][0]["ldp:contains"].map( (topLevel) => { 
                 topLevel["oa:hasBody"].map( (annotation) => { 
                     dispatch(processComponentAnnotation(annotation)); 
                 });

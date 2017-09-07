@@ -1,10 +1,10 @@
 import update from 'immutability-helper';
 import { FETCH_TEI, FETCH_MANIFESTATIONS} from '../actions/index'
 
-const EMBODIMENT = 'http://purl.org/vocab/frbr/core#embodiment';
+const EMBODIMENT = 'frbr:embodiment';
 const ASSOCIATED = "http://example.com/must-revisit-these/associatedWith";
-const MEMBER = 'http://www.w3.org/2000/01/rdf-schema#member';
-const TEITYPE = 'http://meld.linkedmusic.org/terms/TEIEmbodiment';
+const MEMBER = 'rdfs:member';
+const TEITYPE = 'meld:TEIEmbodiment';
 
 export default function(state = {TEI: {}, componentTargets: {}, fragImages:{}}, action) {
 	switch(action.type) { 
@@ -41,7 +41,7 @@ export default function(state = {TEI: {}, componentTargets: {}, fragImages:{}}, 
 							return member["@id"];
 						}));
 
-					} else { console.log("Embodiment with unknown type", embodiment); }
+					} else { console.log("TEI Reducer: Embodiment with unknown type", embodiment); }
 					//fragments[fragtype] = embodiment[MEMBER].map( (member) => {
 				} else { console.log("Embodiment without members: ", part, embodiment); }
 			});

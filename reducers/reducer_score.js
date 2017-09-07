@@ -88,7 +88,7 @@ export default function(state = {publishedScores: {}, conceptualScores: {}, MEI:
 						fragtype="MEI";
 					} else if (embodiment["@type"].includes(AUDIOTYPE)) { 
 						fragtype="Audio";
-					} else { console.log("Embodiment with unknown type", embodiment); }
+					} else { console.log("Score Reducer: Embodiment with unknown type", embodiment); }
 					if(!Array.isArray(embodiment[MEMBER])) { 
 						embodiment[MEMBER] = [embodiment[MEMBER]];
 					}
@@ -175,6 +175,20 @@ export default function(state = {publishedScores: {}, conceptualScores: {}, MEI:
 				pageNum: {$set: action.payload.pageNum+1} 
 			});
 		}
+	
+	case SCORE_PAGE_TO_TARGET:
+		if(!action.payload.data) {
+			console.log("SCORE_PAGE_TO_TARGET attempted on non-loaded MEI data - ignoring!");
+			return state;
+		}
+		const frag=action.payload.target.split("#")[1]
+		const pageNum = vrvTk.getPageWithElement(frag)
+		vrvTk.loadData(action.payload.data)
+		svg = vrvTk.renderPage(pageNum)
+		return update(state, {
+			SVG: { $set: { [action.payload.uri]: svg } },
+			pageNum: {$set: pageNum} 
+		});
 
 	case REGISTER_PUBLISHED_PERFORMANCE_SCORE:
 		console.log("Register published performance score: ", action.payload, "on state: ", state);

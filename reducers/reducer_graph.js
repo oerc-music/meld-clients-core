@@ -63,8 +63,9 @@ export default function(state = INIT_STATE, action) {
 			payload = JSON.parse(payload);
 		}
 		console.log("Hello from FETCH_GRAPH. Action is: ", action);
-		payload = payload["@graph"];
+		payload = ensureArray(payload, "@graph");
 		console.log("Looking at ", payload);
+		payload = payload["@graph"][0];
 		if("ldp:contains" in payload) {
 			payload = ensureArray(payload, "ldp:contains");
 			payload["ldp:contains"].map( (a) => { 
