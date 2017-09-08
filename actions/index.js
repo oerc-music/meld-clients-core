@@ -22,6 +22,7 @@ export const PROCESS_ANNOTATION = 'PROCESS_ANNOTATION';
 export const SESSION_GRAPH_ETAG= 'SESSION_GRAPH_ETAG';
 export const RESET_NEXT_SESSION_TRIGGER= 'RESET_NEXT_SESSION_TRIGGER';
 export const REGISTER_PUBLISHED_PERFORMANCE_SCORE= 'REGISTER_PUBLISHED_PERFORMANCE_SCORE';
+export const MUZICODES_UPDATED= 'MUZICODES_UPDATED';
 // TODO DW 20170830 -- finish JSONLDifying these
 export const REALIZATION_OF = 'frbr:realizationOf';
 export const EXPRESSION = 'frbr:Expression';
@@ -38,6 +39,8 @@ export const MUZICODE= 'meld:muzicode';
 export const PUBLISHED_AS = 'http://purl.org/ontology/mo/published_as';
 export const HAS_PERFORMANCE_MEDIUM = 'http://rdaregistry.info/Elements/e/p20215';
 export const HAS_PIANO = "http://id.loc.gov/authorities/performanceMediums/2013015550";
+
+export const muzicodesUri = "http://127.0.0.1:5000/MUZICODES"
 
 // TODO move context somewhere global -- most framing happens server side
 // anyway, but in cases where the framed URI contains a fragment ("#"), 
@@ -659,6 +662,14 @@ export function patchAndProcessAnnotation(action, session, etag, annotation) {
 	}
 }
 
+
+export function updateMuzicodes(muzicodesUri, session) {
+	// inform the muzicodes service that our session has loaded
+	axios.post(muzicodesUri, session);
+	return ({ 
+		type: MUZICODES_UPDATED
+	})
+}
 
 // helper function to ensure that a given key of a JSON obj
 // is an array, rather than a single value

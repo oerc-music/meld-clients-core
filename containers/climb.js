@@ -1,10 +1,11 @@
 import React, { Component } from 'react';
-import { fetchSessionGraph, scorePrevPage, scoreNextPage, postNextPageAnnotation, transitionToSession, resetNextSessionTrigger } from '../actions/index';
+import { fetchSessionGraph, scorePrevPage, scoreNextPage, postNextPageAnnotation, transitionToSession, resetNextSessionTrigger, updateMuzicodes } from '../actions/index';
 import { connect } from 'react-redux' ;
 import { bindActionCreators } from 'redux';
 import { withRouter } from 'react-router';
 import Score from '../containers/score';
 
+const muzicodesUri = "http://localhost:3000/input"
 
 class Climb extends Component {
 	constructor(props) { 
@@ -13,6 +14,7 @@ class Climb extends Component {
 	
 	componentDidMount() { 
 		if(this.props.location.query.session) { 
+			this.props.updateMuzicodes(muzicodesUri, this.props.location.query.session);
 			// start polling
 			this.doPoll();
 		}
@@ -104,7 +106,7 @@ function mapStateToProps({ graph, score}) {
 }
 
 function mapDispatchToProps(dispatch) { 
-	return bindActionCreators({ fetchSessionGraph, scorePrevPage, scoreNextPage, postNextPageAnnotation, transitionToSession, resetNextSessionTrigger }, dispatch);
+	return bindActionCreators({ fetchSessionGraph, scorePrevPage, scoreNextPage, postNextPageAnnotation, transitionToSession, resetNextSessionTrigger, updateMuzicodes }, dispatch);
 }
 
 withRouter(Climb);
