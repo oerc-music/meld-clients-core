@@ -45,15 +45,17 @@ const vrvOptions = {
 		pageWidth: 700*100/scale
 };
 
-export default function(state = {publishedScores: {}, conceptualScores: {}, MEI: {}, SVG: {}, componentTargets: {}, scoreMapping: {}, pageNum: 1, triggerNextSession: ""}, action) { 
+export default function(state = {publishedScores: {}, conceptualScores: {}, MEI: {}, SVG: {}, componentTargets: {}, scoreMapping: {}, pageNum: 1, pageCount: 0, triggerNextSession: ""}, action) { 
 	let svg;
+	const pageCount = vrvTk.getPageCount();
 	switch(action.type) {
 	case FETCH_SCORE:
         svg = vrvTk.renderData(action.payload.data, vrvOptions);
 		return update(state, {
 			SVG: { $merge: { [action.payload.config.url]: svg } },
 			MEI: { $merge: { [action.payload.config.url]: action.payload.data } } ,
-			pageNum: {$set: 1} 
+			pageNum: {$set: 1} ,
+			pageCount: { $set: pageCount }
 		});
 
     case FETCH_RIBBON_CONTENT:
@@ -138,7 +140,7 @@ export default function(state = {publishedScores: {}, conceptualScores: {}, MEI:
 			});
 		} 
 		return newState;
-
+/*
 	case SCORE_PREV_PAGE:
 		// if we're on page 1, do nothing
 		if(action.payload.pageNum === 1) { 
@@ -151,13 +153,12 @@ export default function(state = {publishedScores: {}, conceptualScores: {}, MEI:
 			SVG: { $merge: { [action.payload.uri]: svg } },
 			pageNum: {$set: action.payload.pageNum-1} 
 		});
-		
+	*/	
 	case SCORE_NEXT_PAGE:
 		if(!action.payload.data) { 
 			console.log("SCORE_NEXT_PAGE attempted on non-loaded MEI data - ignoring!");
 			return state;
 		}
-		const pageCount = vrvTk.getPageCount();
 		console.log("Page count: ", pageCount);
 		console.log("Page num: ", action.payload.pageNum);
 		console.log("URI: ", action.payload.uri);
@@ -172,7 +173,33 @@ export default function(state = {publishedScores: {}, conceptualScores: {}, MEI:
 			return update(state, {
 				//SVG: { $merge: { [action.payload.uri]: svg } }, -- DW merge -> set 20170722
 				SVG: { $set: { [action.payload.uri]: svg } },
-				pageNum: {$set: action.payload.pageNum+1} 
+				pageNum: {$set: action.payload.pageNum+1},
+				pageCount: {$set:pageCount}
+			});
+		}
+	
+	case SCORE_PREV_PAGE:
+		console.log("REDUCER GOT PREV");
+		if(!action.payload.data) { 
+			console.log("SCORE_PREV_PAGE attempted on non-loaded MEI data - ignoring!");
+			return state;
+		}
+		console.log("Page count: ", pageCount);
+		console.log("Page num: ", action.payload.pageNum);
+		console.log("URI: ", action.payload.uri);
+		if(action.payload.pageNum === 0) { 
+			// we've left the last page, set up a transfer to the next session
+			console.log("SCORE_PREV_PAGE attempted on first page -- ignoring!");
+			return state;
+		} else { 
+			vrvTk.loadData(action.payload.data);
+			svg = vrvTk.renderPage(action.payload.pageNum-1, vrvOptions);
+
+			return update(state, {
+				//SVG: { $merge: { [action.payload.uri]: svg } }, -- DW merge -> set 20170722
+				SVG: { $set: { [action.payload.uri]: svg } },
+				pageNum: {$set: action.payload.pageNum-1},
+				pageCount: {$set:pageCount}
 			});
 		}
 	

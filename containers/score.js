@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import ReactDOM from 'react-dom'
 import { connect } from 'react-redux';
 import { bindActionCreators} from 'redux';
-import { fetchScore, scoreNextPage, HAS_BODY, HAS_TARGET } from '../actions/index';
+import { fetchScore, scoreNextPage, scorePrevPage, HAS_BODY, HAS_TARGET } from '../actions/index';
 import { 
 	MARKUP_EMPHASIS, 
 	handleEmphasis,
@@ -94,25 +94,7 @@ class Score extends Component {
 
 	handleMELDActions(annotation, fragments) { 
 		console.log("HANDLING MELD ACTION: ", annotation, fragments);
-		if(HAS_BODY in annotation) { 
-			annotation[HAS_BODY].map( (b) => {
-				// TODO convert to switch statement
-				if(b["@id"] === MARKUP_EMPHASIS) { 
-					this.props.handleEmphasis(ReactDOM.findDOMNode(this), annotation, this.props.uri, fragments["MEI"]);
-				} else if(b["@id"] === MARKUP_HIGHLIGHT) { 
-					this.props.handleHighlight(ReactDOM.findDOMNode(this), annotation, this.props.uri, fragments["MEI"]);
-				} else if(b["@id"] === MARKUP_HIGHLIGHT2) { 
-					this.props.handleHighlight2(ReactDOM.findDOMNode(this), annotation, this.props.uri, fragments["MEI"]);
-				}  else if(b["@id"] === CUE_AUDIO) { 
-					this.props.handleCueAudio(ReactDOM.findDOMNode(this), annotation, b, this.props.uri, fragments);
-				} else {
-					console.log("Score component unable to handle meld action: ", b);
-				}
-			});
-		}
-		// FIXME: the above should be phased out as we move into
-		// using motivations instead of bodies for rendering instructions
-		else if("oa:motivatedBy" in annotation) { 
+		if("oa:motivatedBy" in annotation) { 
 			switch(annotation["oa:motivatedBy"]["@id"]) { 
 			case "oa:highlighting":
 				this.props.handleHighlight(ReactDOM.findDOMNode(this), annotation, this.props.uri, fragments["MEI"]);
@@ -133,12 +115,33 @@ class Score extends Component {
 				console.log("----", this.props);
 				this.props.scoreNextPage(this.props.session, this.props.nextSession, this.props.etag, annotation, this.props.uri, this.props.score.pageNum, this.props.score.MEI[this.props.uri]);
 			break;
+			case "motivation:prevPageOrPiece":	
+				console.log("----", this.props);
+				this.props.scorePrevPage(this.props.session, this.props.nextSession, this.props.etag, annotation, this.props.uri, this.props.score.pageNum, this.props.score.MEI[this.props.uri]);
+			break;
 			case "motivation:queueNextSession":
 				this.props.handleQueueNextSession(this.props.session, this.props.etag, annotation);
 			break;
 			default:
 				console.log("Unknown motivation: ", annotation["oa:motivatedBy"]);
 			}
+	 } else if(HAS_BODY in annotation) { 
+			annotation[HAS_BODY].map( (b) => {
+				// TODO convert to switch statement
+				if(b["@id"] === MARKUP_EMPHASIS) { 
+					this.props.handleEmphasis(ReactDOM.findDOMNode(this), annotation, this.props.uri, fragments["MEI"]);
+				} else if(b["@id"] === MARKUP_HIGHLIGHT) { 
+					this.props.handleHighlight(ReactDOM.findDOMNode(this), annotation, this.props.uri, fragments["MEI"]);
+				} else if(b["@id"] === MARKUP_HIGHLIGHT2) { 
+					this.props.handleHighlight2(ReactDOM.findDOMNode(this), annotation, this.props.uri, fragments["MEI"]);
+				}  else if(b["@id"] === CUE_AUDIO) { 
+					this.props.handleCueAudio(ReactDOM.findDOMNode(this), annotation, b, this.props.uri, fragments);
+				} else {
+					console.log("Score component unable to handle meld action: ", b);
+				}
+			});
+		// FIXME: the above should be phased out as we move into
+		// using motivations instead of bodies for rendering instructions
 		} else { console.log("Skipping annotation without rendering instructions: ", annotation) }
 	}
 }
@@ -148,7 +151,7 @@ function mapStateToProps({ score }) {
 }
 
 function mapDispatchToProps(dispatch) { 
-	return bindActionCreators({ fetchScore, handleEmphasis, handleHighlight, handleHighlight2, handleCueAudio, scoreNextPage, handleQueueNextSession, handleIdentifyMuzicode, handleChoiceMuzicode, handleChallengePassed, handleDisklavierStart}, dispatch);
+	return bindActionCreators({ fetchScore, handleEmphasis, handleHighlight, handleHighlight2, handleCueAudio, scorePrevPage, scoreNextPage, handleQueueNextSession, handleIdentifyMuzicode, handleChoiceMuzicode, handleChallengePassed, handleDisklavierStart}, dispatch);
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(Score);

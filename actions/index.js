@@ -42,6 +42,9 @@ export const HAS_PIANO = "http://id.loc.gov/authorities/performanceMediums/20130
 
 export const muzicodesUri = "http://127.0.0.1:5000/MUZICODES"
 
+const MAX_RETRIES = 3;
+const RETRY_DELAY = 10;
+
 // TODO move context somewhere global -- most framing happens server side
 // anyway, but in cases where the framed URI contains a fragment ("#"), 
 // we have to do it client-side		
@@ -206,6 +209,7 @@ export function fetchComponentTarget(uri, conceptualScore = "") {
 				(data.headers["content-type"] !== "application/json" &&
 				 data.headers["content-type"] !== "application/ld+json")
 				) { 
+				console.log("Converting to JSON...");
 				// need to convert triples to json
 				// TODO handle arbitrary RDF format here (currently requires ntriples)
 				jsonld.fromRDF(data.data, (err, doc) => {
@@ -485,18 +489,6 @@ export function scorePageToComponentTarget(target, pubScoreUri, MEI) {
 	}
 }
 
-export function scorePrevPage(pubScoreUri, pageNum, MEI) { 
-	return (dispatch) => {
-		dispatch({
-			type: SCORE_PREV_PAGE,
-			payload: { 
-				pageNum: pageNum,
-				data: MEI,
-				uri: pubScoreUri
-			}
-		});
-	}
-}
 
 export function scoreNextPageStatic(pubScoreUri, pageNum, MEI) { 
 	return (dispatch) => {
@@ -515,6 +507,43 @@ export function scoreNextPage(session, nextSession, etag, annotation, pubScoreUr
 		if(MEI) { 
 			const action = {
 				type: SCORE_NEXT_PAGE,
+				payload: { 
+					pageNum: pageNum,
+					data: MEI,
+					uri: pubScoreUri, 
+					nextSession: nextSession
+				}
+			};
+			dispatch( 
+				patchAndProcessAnnotation(action, session, etag, annotation)
+			);
+		} else { 
+			dispatch({
+				type: ANNOTATION_NOT_HANDLED,
+				payload:"Page flip attempted on non-existing MEI. Has it loaded yet?"
+			})
+		}
+	}
+}
+
+export function scorePrevPageStatic(pubScoreUri, pageNum, MEI) { 
+	return (dispatch) => {
+		dispatch({
+			type: SCORE_PREV_PAGE,
+			payload: { 
+				pageNum: pageNum,
+				data: MEI,
+				uri: pubScoreUri
+			}
+		});
+	}
+}
+
+export function scorePrevPage(session, nextSession, etag, annotation, pubScoreUri, pageNum, MEI) { 
+	return (dispatch) => {
+		if(MEI) { 
+			const action = {
+				type: SCORE_PREV_PAGE,
 				payload: { 
 					pageNum: pageNum,
 					data: MEI,
@@ -559,106 +588,150 @@ export function postNextPageAnnotation(session, etag) {
 	}
 }
 
-export function postAnnotation(session, etag, json) {
-	console.log("Posting annotation: ", session, etag, json)
-	axios.post(
-		session, 
-		json, 
-		{ headers: {'Content-Type': 'application/ld+json', 'If-None-Match':etag} }
-	).catch(function (error) { 
-		if(error.response.status == 412) {
-			console.log("Mid-air collision while attempting to post annotation. Retrying.");
-			// GET the session resource to figure out new etag
-			axios.get(session).then( (response) => {
-				// and try again
-				return (dispatch) => { 
-					dispatch(postAnnotation(session, response.headers.etag, json));
-				}
-			});
-		} else { 
-			console.log("Error while posting annotation: ", error);
-			console.log("Retrying.");
-			return (dispatch) => { 
-				dispatch(postAnnotation(session, etag, json));
-			}
-		}	
-	});
-
-	return { 
-		type: ANNOTATION_POSTED
-	}
-}
-
-export function markAnnotationProcessed(session, etag, annotation) {
-	console.log("PATCHING: ", session, etag, annotation);
-	const patchJson = JSON.stringify( { 
-		"@id": annotation["@id"],
-		"meld:state": {"@id": "meld:processed"}
-	});
-	axios.patch(
-		session,
-		patchJson,
-		{ headers: {'Content-Type': 'application/ld+json', 'If-None-Match':etag} }
-	).catch(function (error) { 
-		if(error.response.status == 412) {
-			console.log("Mid-air collision while attempting to patch annotation. Retrying.");
-			// GET the session resource to figure out new etag
-			axios.get(session).then( (response) => {
-				// and try again
-				return (dispatch) => { 
-					dispatch(markAnnotationProcessed(session, response.headers.etag, annotation));
-				}
-			});
-		} else { 
-			console.log("Error while patching annotation: ", error);
-			console.log("Retrying.");
-			return (dispatch) => { 
-				dispatch(markAnnotationProcessed(session, etag, json));
-			}
-		}	
-	}).then("Done?");
-
-	return { 
-		type: ANNOTATION_PATCHED
-	}
-}
-
-export function patchAndProcessAnnotation(action, session, etag, annotation) {
-	console.log("PATCHING: ", session, etag, annotation);
-	const patchJson = JSON.stringify( { 
-		"@id": annotation["@id"],
-		"meld:state": {"@id": "meld:processed"}
-	});
+export function postPrevPageAnnotation(session, etag) { 
 	return (dispatch) => {
-		axios.patch(
-			session,
-			patchJson,
+		dispatch(
+			postAnnotation(session, etag, JSON.stringify({
+				"oa:hasTarget": { "@id": session },
+				"oa:motivatedBy": { "@id": "motivation:prevPageOrPiece" }
+			}))
+		)
+	}
+}
+
+export function postAnnotation(session, etag, json, retries=MAX_RETRIES) {
+	if(retries) { 
+		console.log("Posting annotation: ", session, etag, json)
+		axios.post(
+			session, 
+			json, 
 			{ headers: {'Content-Type': 'application/ld+json', 'If-None-Match':etag} }
-		).then( function (response) {
-			console.log("Dispatching action: ", action);
-			dispatch(action);
-		}).catch(function (error) { 
+		).catch(function (error) { 
 			if(error.response.status == 412) {
-				console.log("Mid-air collision while attempting to patch annotation. Retrying.");
+				console.log("Mid-air collision while attempting to POST annotation. Retrying.", session, etag, json);
 				// GET the session resource to figure out new etag
 				axios.get(session).then( (response) => {
 					// and try again
 					return (dispatch) => { 
-						dispatch(patchAndProcessAnnotation(action, session, response.headers.etag, annotation));
+						setTimeout(() => {
+							dispatch(postAnnotation(session, response.headers.etag, json, retries-1))
+						}, RETRY_DELAY);
+					}
+				});
+			} else { 
+				console.log("Error while posting annotation: ", error);
+				console.log("Retrying.");
+				return (dispatch) => { 
+					setTimeout(() => {
+						dispatch(postAnnotation(session, response.headers.etag, json, retries-1))
+					}, RETRY_DELAY);
+				}
+			}	
+		});
+
+		return { 
+			type: ANNOTATION_POSTED
+		}
+	} else { 
+		console.log("FAILED TO POST ANNOTATION (MAX RETRIES EXCEEDED): ", session, etag, json)
+		return { 
+			type: ANNOTATION_NOT_HANDLED
+		}
+	}
+}
+
+export function markAnnotationProcessed(session, etag, annotation, retries=MAX_RETRIES) {
+	if(retries) { 
+		console.log("PATCHING: ", session, etag, annotation);
+		const patchJson = JSON.stringify( { 
+			"@id": annotation["@id"],
+			"meld:state": {"@id": "meld:processed"}
+		});
+		axios.patch(
+			session,
+			patchJson,
+			{ headers: {'Content-Type': 'application/ld+json', 'If-None-Match':etag} }
+		).catch(function (error) { 
+			if(error.response.status == 412) {
+				console.log("Mid-air collision while attempting to MARK annotation processed. Retrying.", session, etag, annotation);
+				// GET the session resource to figure out new etag
+				axios.get(session).then( (response) => {
+					// and try again
+					return (dispatch) => { 
+						setTimeout(() => {
+							dispatch(markAnnotationProcessed(session, response.headers.etag, annotation, retries-1))
+						}, RETRY_DELAY);
 					}
 				});
 			} else { 
 				console.log("Error while patching annotation: ", error);
 				console.log("Retrying.");
 				return (dispatch) => { 
-					dispatch(patchAndProcessAnnotation(action, session, etag, json));
+					setTimeout(() => {
+						dispatch(markAnnotationProcessed(session, response.headers.etag, annotation, retries-1))
+					}, RETRY_DELAY);
 				}
 			}	
-		});
+		}).then("Done?");
 
-		return dispatch({ 
+		return { 
 			type: ANNOTATION_PATCHED
-		})
+		}
+	} else { 
+		console.log("FAILED TO PATCH ANNOTATION (MAX RETRIES EXCEEDED): ", session, etag, annotation)
+		return { 
+			type: ANNOTATION_NOT_HANDLED
+		}
+	}
+}
+
+export function patchAndProcessAnnotation(action, session, etag, annotation, retries=MAX_RETRIES) {
+	if(retries) { 
+		console.log("PATCHING: ", session, etag, annotation);
+		const patchJson = JSON.stringify( { 
+			"@id": annotation["@id"],
+			"meld:state": {"@id": "meld:processed"}
+		});
+		return (dispatch) => {
+			axios.patch(
+				session,
+				patchJson,
+				{ headers: {'Content-Type': 'application/ld+json', 'If-None-Match':etag} }
+			).then( function (response) {
+				console.log("Dispatching action: ", action);
+				dispatch(action);
+			}).catch(function (error) { 
+				if(error.response.status == 412) {
+					console.log("Mid-air collision while attempting to PATCH annotation. Retrying.", session, etag, annotation);
+					// GET the session resource to figure out new etag
+					axios.get(session).then( (response) => {
+						// and try again
+						return (dispatch) => { 
+							setTimeout(() => {
+								dispatch(patchAndProcessAnnotation(action, session, response.headers.etag, annotation, retries-1))
+							}, RETRY_DELAY);
+						}
+					});
+				} else { 
+					console.log("Error while patching annotation: ", error);
+					console.log("Retrying.");
+					return (dispatch) => { 
+						setTimeout(() => {
+							dispatch(patchAndProcessAnnotation(action, session, response.headers.etag, annotation, retries-1))
+						}, RETRY_DELAY);
+					}
+				}	
+			});
+
+			return dispatch({ 
+				type: ANNOTATION_PATCHED
+			})
+		}
+	} else { 
+		console.log("FAILED TO PATCH ANNOTATION (MAX RETRIES EXCEEDED): ", session, etag, annotation)
+		return { 
+			type: ANNOTATION_NOT_HANDLED
+		}
 	}
 }
 
