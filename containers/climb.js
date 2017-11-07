@@ -56,10 +56,14 @@ class Climb extends Component {
 				etag = this.props.graph.etags[session];
 				console.log("session: ", session, " etag: ", etag, " etags: ", this.props.graph.etags);
 			}
-	
+
+			const currentSessionPretty = session.substring(session.lastIndexOf('/')+1);
+			const nextSession = this.props.graph.nextSession;
+			const nextSessionPretty = nextSession ? nextSession.substring(nextSession.lastIndexOf('/')+1) : ""; 
 			const byId = this.props.graph.targetsById;
 			const publishedScores = this.props.score.publishedScores;
 			const conceptualScores = this.props.score.conceptualScores;
+
 			const scores = Object.keys(publishedScores).map((pS) => {
 				console.log("MAP ON PS: ", pS);
 				//return <Score key={ sc } uri={ sc } annotations={ byId[sc]["annotations"] } />;
@@ -86,9 +90,9 @@ class Climb extends Component {
 								this.props.postNextPageAnnotation(session, etag);
 							}}> Next </button>
 							<span id="indicator">
-								Current: <span id="indicatorCurrent"> { session } </span> | 
+								Current: <span id="indicatorCurrent"> { currentSessionPretty } </span> | 
 								Page { this.props.score.pageNum } of { this.props.score.pageCount } | 
-								Queued: <span id="indicatorQueued"> { this.props.graph.nextSession } </span> 
+								Queued: <span id="indicatorQueued"> { nextSessionPretty } </span> 
 							</span>
 						</div>
 					<Score key={ pS } uri={ pS } annotations={ annotations } session={ session } etag={ etag } nextSession = { this.props.nextSession } />
