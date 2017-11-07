@@ -13,6 +13,7 @@ export const ANNOTATION_HANDLED = "ANNOTATION_HANDLED";
 export const ANNOTATION_NOT_HANDLED = "ANNOTATION_NOT_HANDLED";
 export const ANNOTATION_PATCHED = "ANNOTATION_PATCHED";
 export const ANNOTATION_POSTED = "ANNOTATION_POSTED";
+export const ANNOTATION_SKIPPED = "ANNOTATION_SKIPPED";
 export const QUEUE_NEXT_SESSION = "QUEUE_NEXT_SESSION";
 
 export function handleCueImage(component, annotation, uri, fragments, fragImages) {

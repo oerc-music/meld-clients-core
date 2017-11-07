@@ -1,7 +1,7 @@
 import {browserHistory} from 'react-router';
 import axios from 'axios';
 import jsonld from 'jsonld'
-import { ANNOTATION_PATCHED, ANNOTATION_POSTED, ANNOTATION_HANDLED, ANNOTATION_NOT_HANDLED} from './meldActions';
+import { ANNOTATION_PATCHED, ANNOTATION_POSTED, ANNOTATION_HANDLED, ANNOTATION_NOT_HANDLED, ANNOTATION_SKIPPED } from './meldActions';
 
 export const HAS_BODY = "oa:hasBody"
 export const FETCH_SCORE = 'FETCH_SCORE';
@@ -174,14 +174,20 @@ export function fetchGraph(uri) {
 }
 
 function processComponentAnnotation(annotation, conceptualScore = "") { 
+	if("meld:state" in annotation && annotation["meld:state"]["@id"] === "meld:processed") { 
+ 	// skip previously processed annotation
+		return {
+			type: ANNOTATION_SKIPPED
+		}
+	}
 	annotation = ensureArray(annotation, "oa:hasTarget");
 	console.log("Processing component annotation: ", annotation, conceptualScore)
-    const targets = annotation["oa:hasTarget"].map( (target) => {
-			return { 
-				"@id": target["@id"],
-				// DW TODO 20170830 may need to validate whether @type exists
-				"@type": target["@type"], 
-			}
+	const targets = annotation["oa:hasTarget"].map( (target) => {
+		return { 
+			"@id": target["@id"],
+			// DW TODO 20170830 may need to validate whether @type exists
+			"@type": target["@type"], 
+		}
 	});
     return (dispatch) => { 
 		targets.map( (target) => {
