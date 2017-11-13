@@ -39,6 +39,7 @@ export const MUZICODE= 'meld:muzicode';
 export const PUBLISHED_AS = 'http://purl.org/ontology/mo/published_as';
 export const HAS_PERFORMANCE_MEDIUM = 'http://rdaregistry.info/Elements/e/p20215';
 export const HAS_PIANO = "http://id.loc.gov/authorities/performanceMediums/2013015550";
+export const CREATE_SESSION = "CREATE_SESSION";
 
 export const muzicodesUri = "http://127.0.0.1:5000/MUZICODES"
 
@@ -765,5 +766,24 @@ export function ensureArray(theObj, theKey) {
 		return theObj;
 	} else { 
 		console.log("ensureArray: Provided structure is NOT AN OBJECT!") 
+	}
+}
+
+export function createSession(sessionsUri, scoreUri, performerUri = "", retries=MAX_RETRIES) { 
+	// use the session service to create a new session
+	// (a performance of scoreUri, by performerUri if supplied)
+	const promise = axios.post(
+		sessionsUri,
+		JSON.stringify({
+			"@type": ["mo:Performance", "ldp:BasicContainer"],
+			"mo:performance_of": { "@id": scoreUri }
+		}),
+		{ 
+			headers: { "Content-Type": "application/ld+json" } 
+		}
+	)
+	return { 
+		type: CREATE_SESSION,
+		payload: promise
 	}
 }

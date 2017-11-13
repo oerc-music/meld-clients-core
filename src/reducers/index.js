@@ -3,14 +3,14 @@ import GraphReducer from './reducer_graph';
 import ScoreReducer from './reducer_score';
 import TEIReducer from './reducer_tei';
 import AppReducer from './reducer_app';
-import FooReducer from './fooReducer';
+import SessionControlReducer from './reducer_sessionControl'
 
 const rootReducer = combineReducers({
 	graph: GraphReducer,
 	score: ScoreReducer,
 	tei: TEIReducer,
 	app: AppReducer,
-	foo: FooReducer
+	sessionControl: SessionControlReducer
 });
 
 export default rootReducer;
