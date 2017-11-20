@@ -84,7 +84,7 @@ class Climb extends Component {
 				console.log("WORKING WITH (flattened):", annotations);
 
 				return (
-					<div key={ "wrapper" + pS } onKeyDown={() => {alert("HELLO")}}>
+					<div key={ "wrapper" + pS }>
 						<div id="indicatorBar">
 							<button id="prevButton" key={ "prev"+pS } onClick={() => {
 								console.log("prev clicked, ps: ", pS, this.props.score.pageNum, this.props.score.MEI);

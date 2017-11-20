@@ -35,7 +35,7 @@ export const SCORE = 'http://purl.org/ontology/mo/Score';
 export const CONTAINS = 'http://www.w3.org/ns/ldp#contains';
 export const MOTIVATED_BY= 'http://www.w3.org/ns/oa#motivatedBy';
 export const SEGMENT = 'so:Segment';
-export const MUZICODE= 'meld:muzicode';
+export const MUZICODE= 'meld:Muzicode';
 export const PUBLISHED_AS = 'http://purl.org/ontology/mo/published_as';
 export const HAS_PERFORMANCE_MEDIUM = 'http://rdaregistry.info/Elements/e/p20215';
 export const HAS_PIANO = "http://id.loc.gov/authorities/performanceMediums/2013015550";
@@ -238,14 +238,14 @@ function processComponentTarget(data, uri, conceptualScore) {
 	return (dispatch) => {
 		jsonld.frame(data, { "@id":uri }, (err, framed) => {
 			if(err) { 
-				console.log("FRAMING ERROR in fetchComponentTarget:", err) 
+				console.log("FRAMING ERROR in processComponentTarget:", err) 
 				return { 
 					type: ANNOTATION_NOT_HANDLED
 				}
 			}
 			else { 
 				jsonld.compact(framed, context, (err, compacted) => { 
-					if(err) { console.log("COMPACTING ERROR in fetchComponentTarget:", err) }
+					if(err) { console.log("COMPACTING ERROR in processComponentTarget:", err) }
 					else { 
 						dispatch( { 
 							type: FETCH_COMPONENT_TARGET,
@@ -287,6 +287,7 @@ function processComponentTarget(data, uri, conceptualScore) {
 
 export function fetchTargetExpression(compacted) { 
 	// traverse from the provided Expression, via a Segment, to Manifestation(s)
+	console.log("In fetchTargetExpression: ", compacted);
 	return(dispatch) => { 
 		dispatch( { 
 			type: FETCH_TARGET_EXPRESSION,
@@ -512,6 +513,7 @@ export function scoreNextPageStatic(pubScoreUri, pageNum, MEI) {
 export function scoreNextPage(session, nextSession, etag, annotation, pubScoreUri, pageNum, MEI) { 
 	return (dispatch) => {
 		if(MEI) { 
+			console.log("Attempting to action SCORE_NEXT_PAGE");
 			const action = {
 				type: SCORE_NEXT_PAGE,
 				payload: { 
