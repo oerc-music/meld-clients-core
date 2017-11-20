@@ -86,6 +86,9 @@ export default function(state = {publishedScores: {}, conceptualScores: {}, MEI:
 					if(!Array.isArray(embodiment["@type"])) { 
 						embodiment["@type"] = [embodiment["@type"]];
 					}
+					if(!Array.isArray(target["@type"])) { 
+						target["@type"] = [target["@type"]];
+					}
 					if (embodiment["@type"].includes(MEITYPE)) {
 						fragtype="MEI";
 					} else if (embodiment["@type"].includes(AUDIOTYPE)) { 
@@ -99,6 +102,11 @@ export default function(state = {publishedScores: {}, conceptualScores: {}, MEI:
 						return member["@id"];
 					}));
 					fragments["description"] = target["rdfs:label"];
+					console.log("WHOA", target["@type"])
+					if(target["@type"].includes("meld:Muzicode")) {
+						fragments["muzicodeType"] = target["mc:type"];
+						fragments["cue"] = target["climb:cue"];
+					}
 				} else { console.log("Embodiment without members: ", part, embodiment); }
 			});
 			console.log("Updating state: ");

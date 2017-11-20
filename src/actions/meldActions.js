@@ -116,6 +116,28 @@ export function handleDisklavierStart(component, annotation, uri, fragments) {
 	return annotationHandled();
 }
 
+export function handleMuzicodeTriggered(component, annotation, uri, fragments, muzicodeTarget) {
+	console.log("Muzicode triggered:", component, annotation, uri, fragments, muzicodeTarget);
+	return (dispatch) => {
+		// dispatch appropriate handler depending on muzicode type
+		switch(muzicodeTarget["muzicodeType"]["@id"]) {
+			case "mc:Choice": 
+				dispatch(handleChoiceMuzicode(component, annotation, uri, fragments));
+				break;
+			case "mc:Disklavier":
+				dispatch(handleDisklavierStart(component, annotation, uri, fragments));
+				break;
+			case "mc:Challenge": 
+				dispatch(handleChallengePassed(component, annotation, uri, fragments));
+				break;
+
+			default: 
+				console.log("Muzicode of unknown type: ", muzicodeTarget);
+		}
+		return annotationHandled();
+	}
+}
+
 export function handleQueueNextSession(session, etag, annotation) {
 	console.log("Queueing next session: ", annotation);
 	return (dispatch) => { 

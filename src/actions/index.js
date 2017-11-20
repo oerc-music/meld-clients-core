@@ -43,8 +43,8 @@ export const CREATE_SESSION = "CREATE_SESSION";
 
 export const muzicodesUri = "http://127.0.0.1:5000/MUZICODES"
 
-const MAX_RETRIES = 3;
-const RETRY_DELAY = 10;
+export const MAX_RETRIES = 3;
+export const RETRY_DELAY = 10;
 
 // TODO move context somewhere global -- most framing happens server side
 // anyway, but in cases where the framed URI contains a fragment ("#"), 
@@ -61,7 +61,10 @@ const context = {
 	"meld": "http://meld.linkedmusic.org/terms/",
 	"motivation": "http://meld.linkedmusic.org/motivation/",
 	"so": "http://www.linkedmusic.org/ontologies/segment/",
-	"dct": "http://purl.org/dc/terms/"
+	"dct": "http://purl.org/dc/terms/",
+	"climb": "http://meld.linkedmusic.org/climb/terms/",
+	"mc": "http://meld.linkedmusic.org/climb/muzicodeTypes/",
+
 }
 
 export function fetchScore(uri) { 

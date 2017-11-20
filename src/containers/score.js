@@ -16,7 +16,8 @@ import {
 	handleIdentifyMuzicode,
 	handleChoiceMuzicode,
 	handleChallengePassed,
-	handleDisklavierStart
+	handleDisklavierStart,
+	handleMuzicodeTriggered
 } from '../actions/meldActions';
 
 
@@ -111,6 +112,11 @@ class Score extends Component {
 			case "motivation:muzicodeDisklavierStart":
 				this.props.handleDisklavierStart(ReactDOM.findDOMNode(this), annotation, this.props.uri, fragments["MEI"]);
 			break;
+			case "motivation:muzicodeTriggered":
+				// for muzicodes, the component target contains information on muzicode type and climb cue
+				const muzicodeTarget = this.props.score.componentTargets[annotation["oa:hasTarget"][0]["@id"]]; //FIXME handle n>1 targets
+				this.props.handleMuzicodeTriggered(ReactDOM.findDOMNode(this), annotation, this.props.uri, fragments["MEI"], muzicodeTarget, this.props.session);
+			break;
 			case "motivation:nextPageOrPiece":	
 				console.log("----", this.props);
 				this.props.scoreNextPage(this.props.session, this.props.nextSession, this.props.etag, annotation, this.props.uri, this.props.score.pageNum, this.props.score.MEI[this.props.uri]);
@@ -151,7 +157,7 @@ function mapStateToProps({ score }) {
 }
 
 function mapDispatchToProps(dispatch) { 
-	return bindActionCreators({ fetchScore, handleEmphasis, handleHighlight, handleHighlight2, handleCueAudio, scorePrevPage, scoreNextPage, handleQueueNextSession, handleIdentifyMuzicode, handleChoiceMuzicode, handleChallengePassed, handleDisklavierStart}, dispatch);
+	return bindActionCreators({ fetchScore, handleEmphasis, handleHighlight, handleHighlight2, handleCueAudio, scorePrevPage, scoreNextPage, handleQueueNextSession, handleIdentifyMuzicode, handleChoiceMuzicode, handleChallengePassed, handleDisklavierStart, handleMuzicodeTriggered}, dispatch);
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(Score);
