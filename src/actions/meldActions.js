@@ -1,6 +1,6 @@
 import ReactDOM from 'react-dom';
 
-import { patchAndProcessAnnotation } from './index'
+import { patchAndProcessAnnotation, createSession } from './index'
 
 export const MARKUP_EMPHASIS = "meldterm:emphasis";
 export const MARKUP_HIGHLIGHT = "meldterm:highlight";
@@ -116,13 +116,25 @@ export function handleDisklavierStart(component, annotation, uri, fragments) {
 	return annotationHandled();
 }
 
-export function handleMuzicodeTriggered(component, annotation, uri, fragments, muzicodeTarget) {
+export function handleMuzicodeTriggered(component, annotation, uri, fragments, muzicodeTarget, session, nextSession, etag) {
 	console.log("Muzicode triggered:", component, annotation, uri, fragments, muzicodeTarget);
 	return (dispatch) => {
-		// dispatch appropriate handler depending on muzicode type
+		// dispatch appropriate rendering handler depending on muzicode type
+		let renderer;
 		switch(muzicodeTarget["muzicodeType"]["@id"]) {
 			case "mc:Choice": 
-				dispatch(handleChoiceMuzicode(component, annotation, uri, fragments));
+				dispatch(
+					patchAndProcessAnnotation(
+						handleChoiceMuzicode(component, annotation, uri, fragments),
+						session,
+						etag,
+						annotation,
+						createSession(
+							session.substr(0,session.lastIndexOf("/")),
+							muzicodeTarget["cue"]
+						)
+					)
+				);
 				break;
 			case "mc:Disklavier":
 				dispatch(handleDisklavierStart(component, annotation, uri, fragments));
@@ -130,11 +142,18 @@ export function handleMuzicodeTriggered(component, annotation, uri, fragments, m
 			case "mc:Challenge": 
 				dispatch(handleChallengePassed(component, annotation, uri, fragments));
 				break;
-
 			default: 
 				console.log("Muzicode of unknown type: ", muzicodeTarget);
 		}
+		// if muzicode is associated with a cue, create a session for it
+		// (it will be queued up in response to sessionControl reducer)
+		if("cue" in muzicodeTarget) {
+			dispatch(
+			)
+		}
+
 		return annotationHandled();
+
 	}
 }
 

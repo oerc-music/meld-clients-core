@@ -118,8 +118,8 @@ class Climb extends Component {
 
 }
 
-function mapStateToProps({ graph, score}) {
-	return { graph, score }
+function mapStateToProps({ graph, score, sessionControl}) {
+	return { graph, score, sessionControl }
 }
 
 function mapDispatchToProps(dispatch) { 

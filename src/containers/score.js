@@ -115,7 +115,7 @@ class Score extends Component {
 			case "motivation:muzicodeTriggered":
 				// for muzicodes, the component target contains information on muzicode type and climb cue
 				const muzicodeTarget = this.props.score.componentTargets[annotation["oa:hasTarget"][0]["@id"]]; //FIXME handle n>1 targets
-				this.props.handleMuzicodeTriggered(ReactDOM.findDOMNode(this), annotation, this.props.uri, fragments["MEI"], muzicodeTarget, this.props.session);
+				this.props.handleMuzicodeTriggered(ReactDOM.findDOMNode(this), annotation, this.props.uri, fragments["MEI"], muzicodeTarget, this.props.session, this.props.nextSession, this.props.etag);
 			break;
 			case "motivation:nextPageOrPiece":	
 				console.log("----", this.props);

@@ -40,6 +40,7 @@ export const PUBLISHED_AS = 'http://purl.org/ontology/mo/published_as';
 export const HAS_PERFORMANCE_MEDIUM = 'http://rdaregistry.info/Elements/e/p20215';
 export const HAS_PIANO = "http://id.loc.gov/authorities/performanceMediums/2013015550";
 export const CREATE_SESSION = "CREATE_SESSION";
+export const SESSION_NOT_CREATED = "SESSION_NOT_CREATED";
 
 export const muzicodesUri = "http://127.0.0.1:5000/MUZICODES"
 
@@ -697,7 +698,7 @@ export function markAnnotationProcessed(session, etag, annotation, retries=MAX_R
 	}
 }
 
-export function patchAndProcessAnnotation(action, session, etag, annotation, retries=MAX_RETRIES) {
+export function patchAndProcessAnnotation(action, session, etag, annotation, success={type: ANNOTATION_PATCHED}, retries=MAX_RETRIES) {
 	if(retries) { 
 		console.log("PATCHING: ", session, etag, annotation);
 		const patchJson = JSON.stringify( { 
@@ -734,10 +735,7 @@ export function patchAndProcessAnnotation(action, session, etag, annotation, ret
 					}
 				}	
 			});
-
-			return dispatch({ 
-				type: ANNOTATION_PATCHED
-			})
+			return dispatch(success)
 		}
 	} else { 
 		console.log("FAILED TO PATCH ANNOTATION (MAX RETRIES EXCEEDED): ", session, etag, annotation)
@@ -774,21 +772,101 @@ export function ensureArray(theObj, theKey) {
 	}
 }
 
-export function createSession(sessionsUri, scoreUri, performerUri = "", retries=MAX_RETRIES) { 
-	// use the session service to create a new session
-	// (a performance of scoreUri, by performerUri if supplied)
-	const promise = axios.post(
-		sessionsUri,
-		JSON.stringify({
-			"@type": ["mo:Performance", "ldp:BasicContainer"],
-			"mo:performance_of": { "@id": scoreUri }
-		}),
-		{ 
-			headers: { "Content-Type": "application/ld+json" } 
+export function createSession(sessionsUri, scoreUri, etag="", retries=MAX_RETRIES, performerUri="") { 
+	if(retries) { 
+		console.log("Trying to create session: ", sessionsUri, scoreUri, etag, retries, performerUri);
+		axios.get(sessionsUri).then( (getResponse) => { 
+			axios.post(
+				sessionsUri,
+				JSON.stringify({
+					"@type": ["mo:Performance", "ldp:BasicContainer"],
+					"mo:performance_of": { "@id": scoreUri }
+				}),
+				{ 
+					headers: { 
+						"Content-Type": "application/ld+json",
+						"If-None-Match": getResponse.headers.etag
+					} 
+				}
+			).then(function(response) {
+					return { 
+						type: CREATE_SESSION,
+						payload: response
+					}
+				}).catch(function (error) { 
+					if(error.response.status == 412) {
+						console.log("Mid-air collision while attempting to POST annotation. Retrying.", session, etag, json);
+						return (dispatch) => { 
+							setTimeout(() => {
+								dispatch(createSession(sessionsUri, scoreUri, response.headers.etag, retries-1, performerUri))
+							}, RETRY_DELAY);
+						}
+					} else { 
+						console.log("Error while creating session: ", error);
+						console.log("Retrying.");
+						return (dispatch) => { 
+							setTimeout(() => {
+								dispatch(createSession(sessionsUri, scoreUri, response.headers.etag, retries-1, performerUri))
+							}, RETRY_DELAY);
+						}
+					}
+				});
+			});
+
+	} else { 
+		console.log("FAILED TO CREATE SESSION (MAX RETRIES EXCEEDED): ", sessionsUri, scoreUri, response.headers.etag, retries-1, performerUri);
+		return { 
+			type: SESSION_NOT_CREATED
 		}
-	)
-	return { 
-		type: CREATE_SESSION,
-		payload: promise
 	}
 }
+//export function createSession(sessionsUri, scoreUri, etag="", retries=MAX_RETRIES, performerUri="") { 
+//	// use the session service to create a new session
+//	// (a performance of scoreUri, by performerUri if supplied)
+//	
+//	if(retries) { 
+//		console.log("Trying to create session: ", sessionsUri, scoreUri, etag, retries, performerUri);
+//		axios.post(
+//			sessionsUri,
+//			JSON.stringify({
+//				"@type": ["mo:Performance", "ldp:BasicContainer"],
+//				"mo:performance_of": { "@id": scoreUri }
+//			}),
+//			{ 
+//				headers: { 
+//					"Content-Type": "application/ld+json",
+//					"If-None-Match": etag
+//				} 
+//			}
+//		).then(function(response) { 
+//			return { 
+//				type: CREATE_SESSION,
+//				payload: response
+//			}
+//		}).catch(function(error) { 
+//				if(error.response.status == 412) {
+//					console.log("Mid-air collision while attempting to POST annotation. Retrying.", session, etag, json);
+//					// GET the session resource to figure out new etag
+//					axios.get(sessionsUri).then( (response) => {
+//						// and try again
+//						return (dispatch) => { 
+//							setTimeout(() => {
+//								dispatch(createSession(sessionsUri, scoreUri, response.headers.etag, retries-1, performerUri))
+//							}, RETRY_DELAY);
+//						}
+//					})
+//				} else {
+//					console.log("Error while posting annotation: ", error);
+//					console.log("Retrying.");
+//					return (dispatch) => { 
+//							dispatch(createSession(sessionsUri, scoreUri, response.headers.etag, retries-1, performerUri));
+//					}
+//				}
+//		})
+//	} else { 
+//		console.log("FAILED TO CREATE SESSION (MAX RETRIES EXCEEDED)");
+//		return {
+//			type: SESSION_NOT_CREATED
+//		}
+//	}
+//}
