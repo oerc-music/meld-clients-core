@@ -1,4 +1,5 @@
 import update from 'immutability-helper';
+
 import { CREATE_SESSION } from '../actions/index';
 
 export default function(state = {newSessionUri:"", newSessionScore:""}, action) {

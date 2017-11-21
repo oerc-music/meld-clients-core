@@ -735,7 +735,6 @@ export function patchAndProcessAnnotation(action, session, etag, annotation, suc
 					}
 				}	
 			});
-			return dispatch(success)
 		}
 	} else { 
 		console.log("FAILED TO PATCH ANNOTATION (MAX RETRIES EXCEEDED): ", session, etag, annotation)
@@ -773,50 +772,52 @@ export function ensureArray(theObj, theKey) {
 }
 
 export function createSession(sessionsUri, scoreUri, etag="", retries=MAX_RETRIES, performerUri="") { 
-	if(retries) { 
-		console.log("Trying to create session: ", sessionsUri, scoreUri, etag, retries, performerUri);
-		axios.get(sessionsUri).then( (getResponse) => { 
-			axios.post(
-				sessionsUri,
-				JSON.stringify({
-					"@type": ["mo:Performance", "ldp:BasicContainer"],
-					"mo:performance_of": { "@id": scoreUri }
-				}),
-				{ 
-					headers: { 
-						"Content-Type": "application/ld+json",
-						"If-None-Match": getResponse.headers.etag
-					} 
-				}
-			).then(function(response) {
-					return { 
-						type: CREATE_SESSION,
-						payload: response
+	return (dispatch) => { 
+		if(retries) { 
+			console.log("Trying to create session: ", sessionsUri, scoreUri, etag, retries, performerUri);
+			axios.get(sessionsUri).then( (getResponse) => { 
+				axios.post(
+					sessionsUri,
+					JSON.stringify({
+						"@type": ["mo:Performance", "ldp:BasicContainer"],
+						"mo:performance_of": { "@id": scoreUri }
+					}),
+					{ 
+						headers: { 
+							"Content-Type": "application/ld+json",
+							"If-None-Match": getResponse.headers.etag
+						} 
 					}
-				}).catch(function (error) { 
-					if(error.response.status == 412) {
-						console.log("Mid-air collision while attempting to POST annotation. Retrying.", session, etag, json);
-						return (dispatch) => { 
-							setTimeout(() => {
-								dispatch(createSession(sessionsUri, scoreUri, response.headers.etag, retries-1, performerUri))
-							}, RETRY_DELAY);
+				).then( (postResponse) => {
+						console.log("Woop! calling the reducer with: ", postResponse);
+						dispatch({
+							type: CREATE_SESSION,
+							payload: postResponse
+						})
+					}).catch(function (error) { 
+						if(error.response.status == 412) {
+							console.log("Mid-air collision while attempting to POST annotation. Retrying.", session, etag, json);
+							dispatch( () => {
+								setTimeout(() => {
+									dispatch(createSession(sessionsUri, scoreUri, response.headers.etag, retries-1, performerUri))
+								}, RETRY_DELAY);
+							})
+						} else { 
+							console.log("Error while creating session: ", error);
+							console.log("Retrying.");
+							dispatch( () => {
+								setTimeout(() => {
+									dispatch(createSession(sessionsUri, scoreUri, response.headers.etag, retries-1, performerUri))
+								}, RETRY_DELAY);
+							})
 						}
-					} else { 
-						console.log("Error while creating session: ", error);
-						console.log("Retrying.");
-						return (dispatch) => { 
-							setTimeout(() => {
-								dispatch(createSession(sessionsUri, scoreUri, response.headers.etag, retries-1, performerUri))
-							}, RETRY_DELAY);
-						}
-					}
-				});
-			});
-
-	} else { 
-		console.log("FAILED TO CREATE SESSION (MAX RETRIES EXCEEDED): ", sessionsUri, scoreUri, response.headers.etag, retries-1, performerUri);
-		return { 
-			type: SESSION_NOT_CREATED
+					})
+				})
+		} else { 
+			console.log("FAILED TO CREATE SESSION (MAX RETRIES EXCEEDED): ", sessionsUri, scoreUri, response.headers.etag, retries-1, performerUri);
+			return { 
+				type: SESSION_NOT_CREATED
+			}
 		}
 	}
 }
