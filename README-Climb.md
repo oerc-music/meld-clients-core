@@ -31,7 +31,8 @@ When a muzicode triggers:
 ---------
 	#headers
 	{
-		"Content-Type": "application/ld+json", "If-None-Match": $ETag
+		"Content-Type": "application/ld+json", 
+		"If-None-Match": $ETag
 	}
 ---
 	#body
