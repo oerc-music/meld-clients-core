@@ -23,7 +23,7 @@ On stage load:
 
 When a muzicode triggers:
 -------------------------
-- 	Determine **$MC_URI** as the score URI, score name, "#", and mc name (as per [https://github.com/cgreenhalgh/fast-performance-demo/blob/master/scoretools/test/mkGameEngine-meld.json](https://github.com/cgreenhalgh/fast-performance-demo/blob/master/scoretools/test/mkGameEngine-meld.json)
+- 	Determine **$MC_URI** as the score URI, score name, "#", and mc name (as per [https://github.com/cgreenhalgh/fast-performance-demo/blob/master/scoretools/test/mkGameEngine-meld.json](https://github.com/cgreenhalgh/fast-performance-demo/blob/master/scoretools/test/mkGameEngine-meld.json))
 	* e.g. http://127.0.0.1:5000/score/basecamp#BC_Ending1
 * 	 GET the current session, determine **$ETag** by the ETag response header
 * 	 POST annotation to the current session as follows:
