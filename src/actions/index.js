@@ -713,6 +713,8 @@ export function patchAndProcessAnnotation(action, session, etag, annotation, suc
 			).then( function (response) {
 				console.log("Dispatching action: ", action);
 				dispatch(action);
+				console.log("Dispatching success callback: ", success)
+				dispatch(success);
 			}).catch(function (error) { 
 				if(error.response.status == 412) {
 					console.log("Mid-air collision while attempting to PATCH annotation. Retrying.", session, etag, annotation);
@@ -721,7 +723,7 @@ export function patchAndProcessAnnotation(action, session, etag, annotation, suc
 						// and try again
 						return (dispatch) => { 
 							setTimeout(() => {
-								dispatch(patchAndProcessAnnotation(action, session, response.headers.etag, annotation, retries-1))
+								dispatch(patchAndProcessAnnotation(action, session, response.headers.etag, annotation, success, retries-1))
 							}, RETRY_DELAY);
 						}
 					});
@@ -730,7 +732,7 @@ export function patchAndProcessAnnotation(action, session, etag, annotation, suc
 					console.log("Retrying.");
 					return (dispatch) => { 
 						setTimeout(() => {
-							dispatch(patchAndProcessAnnotation(action, session, response.headers.etag, annotation, retries-1))
+							dispatch(patchAndProcessAnnotation(action, session, response.headers.etag, annotation, success, retries-1))
 						}, RETRY_DELAY);
 					}
 				}	
