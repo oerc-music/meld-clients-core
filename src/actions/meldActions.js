@@ -107,6 +107,7 @@ export function handleChoiceMuzicode(component, annotation, uri, fragments) {
 }
 
 export function handleChallengePassed(component, annotation, uri, fragments) { 
+	console.log("Challenge passed!");
 	assignClass("meld-muzicode-challenge-passed", component, annotation, uri, fragments);
 	return annotationHandled();
 }
@@ -122,7 +123,7 @@ export function handleMuzicodeTriggered(component, annotation, uri, fragments, m
 		// dispatch appropriate rendering handler depending on muzicode type
 		let renderer;
 		switch(muzicodeTarget["muzicodeType"]["@id"]) {
-			case "mc:Choice": 
+			case "mc:Choice":
 				dispatch(
 					patchAndProcessAnnotation(
 						handleChoiceMuzicode(component, annotation, uri, fragments),
@@ -131,16 +132,34 @@ export function handleMuzicodeTriggered(component, annotation, uri, fragments, m
 						annotation,
 						createSession(
 							session.substr(0,session.lastIndexOf("/")),
-							muzicodeTarget["cue"]
+							muzicodeTarget["cue"]["@id"]
 						)
 					)
 				);
 				break;
 			case "mc:Disklavier":
-				dispatch(handleDisklavierStart(component, annotation, uri, fragments));
+				dispatch(
+					patchAndProcessAnnotation(
+						handleDisklavierStart(component, annotation, uri, fragments),
+						session,
+						etag,
+						annotation
+					)
+				);
 				break;
 			case "mc:Challenge": 
-				dispatch(handleChallengePassed(component, annotation, uri, fragments));
+				dispatch(
+					patchAndProcessAnnotation(
+						handleChallengePassed(component, annotation, uri, fragments),
+						session,
+						etag,
+						annotation,
+						createSession(
+							session.substr(0,session.lastIndexOf("/")),
+							muzicodeTarget["cue"]["@id"]
+						)
+					)
+				);
 				break;
 			default: 
 				console.log("Muzicode of unknown type: ", muzicodeTarget);

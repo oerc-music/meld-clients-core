@@ -41,10 +41,10 @@ class Climb extends Component {
 		if(this.props.score.publishedScores) {
 			if(this.props.score.triggerNextSession) { 
 				// have we got a next session queued up?
-				if(this.props.graph.nextSession) { 
+				if(this.props.sessionControl.newSessionUri) { 
 					this.props.transitionToSession(
 						this.props.graph.annoGraph["@id"], 
-						this.props.graph.nextSession
+						this.props.sessionControl.newSessionUri
 					)
 					return <div>Loading next session...</div>
 				} else { 
@@ -72,8 +72,8 @@ class Climb extends Component {
 				const cS = publishedScores[pS];
 				const annotationTargets = conceptualScores[cS];
 				const currentCSPretty = cS.substring(cS.lastIndexOf('/')+1);
-				const nextSession = this.props.graph.nextSession;
-				const nextSessionPretty = nextSession ? nextSession.substring(nextSession.lastIndexOf('/')+1) : ""; 
+				const nextCS = this.props.sessionControl.newSessionScore;
+				const nextCSPretty = nextCS ? nextCS.substring(nextCS.lastIndexOf('/')+1) : ""; 
 				annotations = Object.keys(byId).map((t) => {
 					if(annotationTargets && annotationTargets.includes(t)) { 
 						return byId[t].annotations
@@ -97,10 +97,10 @@ class Climb extends Component {
 							<span id="indicator">
 								Current: <span id="indicatorCurrent"> { currentCSPretty} </span> | 
 								Page { this.props.score.pageNum } of { this.props.score.pageCount } | 
-								Queued: <span id="indicatorQueued"> { nextSessionPretty } </span> 
+								Queued: <span id="indicatorQueued"> { nextCSPretty } </span> 
 							</span>
 						</div>
-					<Score key={ pS } uri={ pS } annotations={ annotations } session={ session } etag={ etag } nextSession = { this.props.nextSession } />
+					<Score key={ pS } uri={ pS } annotations={ annotations } session={ session } etag={ etag } nextSession = { this.props.sessionControl.newSessionUri } />
 					
 					</div>
 				)
