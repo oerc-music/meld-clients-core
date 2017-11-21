@@ -125,7 +125,7 @@ export function fetchSessionGraph(uri, etag = "") {
 				// first time through: follow your nose along the conceptual score
 				// to retrieve the published score (MEI file)
 				if ("mo:performance_of" in session) { 
-					dispatch(fetchConceptualScore(session["mo:performance_of"]["@id"]));
+					dispatch(fetchConceptualScore(session["@id"], session["mo:performance_of"]["@id"]));
 				} else { console.log("SESSION IS NOT A PERFORMANCE OF A SCORE: ", session); }
 			} 
 			if(response.headers.etag !== etag) { 
@@ -470,22 +470,34 @@ export function fetchStructure(target, parts, segline) {
 	}
 }
 
-export function fetchConceptualScore(uri) { 
+export function fetchConceptualScore(session, uri) { 
 	console.log("FETCH_CONCEPTUAL_SCORE ON URI: ", uri);
 	const promise = axios.get(uri, {headers: {'Accept': 'application/ld+json'}});
 
     return (dispatch) => { 
-        promise.then( (response) => { 
-			const framed = response.data;
-			const conceptualScore = framed["@graph"][0];
-			if("mo:published_as" in conceptualScore) { 
-				// dispatch the conceptual score (containing the mei URI) so that we can initialise a <Score> component
-				dispatch( { 
-					type: FETCH_CONCEPTUAL_SCORE,
-					payload: conceptualScore 
-				});
-				dispatch(fetchScore(conceptualScore["mo:published_as"]["@id"]));
-			} else { console.log("Unpublished conceptual score: ", conceptualScore) }
+			promise.then( (response) => { 
+				const framed = response.data;
+				const conceptualScore = framed["@graph"][0];
+				if("mo:published_as" in conceptualScore) { 
+					// dispatch the conceptual score (containing the mei URI) so that we can initialise a <Score> component
+					dispatch( { 
+						type: FETCH_CONCEPTUAL_SCORE,
+						payload: conceptualScore 
+					});
+					dispatch(fetchScore(conceptualScore["mo:published_as"]["@id"]));
+					// for climb (and possibly other dynamic things in future:
+					// create a new session for the default next score
+					// (which sessionControl will then queue up)
+				} else { console.log("Unpublished conceptual score: ", conceptualScore) }
+				if("climb:next" in conceptualScore) { 
+					console.log("About to create next session for conceptual score: ", conceptualScore);
+					dispatch(
+						createSession(
+							session.substr(0,session.lastIndexOf("/")),
+							conceptualScore["climb:next"]["@id"]
+						)
+					)
+				}
 		})
 	}
 }
@@ -749,6 +761,7 @@ export function patchAndProcessAnnotation(action, session, etag, annotation, suc
 
 export function updateMuzicodes(muzicodesUri, session) {
 	// inform the muzicodes service that our session has loaded
+	console.log("Updating muzicodes:", muzicodesUri, session);
 	axios.post(muzicodesUri, session);
 	return ({ 
 		type: MUZICODES_UPDATED
@@ -791,7 +804,6 @@ export function createSession(sessionsUri, scoreUri, etag="", retries=MAX_RETRIE
 						} 
 					}
 				).then( (postResponse) => {
-						console.log("Woop! calling the reducer with: ", postResponse);
 						dispatch({
 							type: CREATE_SESSION,
 							payload: postResponse
