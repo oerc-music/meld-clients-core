@@ -64,11 +64,11 @@ When the footpedal triggers:
 Creating a session
 ------------------
 - MELD will automatically create new sessions to present stages that are cued in response to muzicode triggerings. But we still need a default for the case where no muzicode triggers.
-- To set this up, muzicodes must POST the following annotation on each stage load after receiving the session identifer from MELD (headers as above). $NextStageURI is score URI path plus stage name, e.g. 'http://127.0.0.1:5000/score/1a':
+- To set this up, muzicodes must POST the following annotation on each stage load after receiving the session identifer from MELD (headers as above). **$NextStageURI** is score URI path plus stage name, e.g. 'http://127.0.0.1:5000/score/1a':
 ----
 	#body for queueing up default next stage on stage load
 	{
 		"oa:hasTarget": { "@id": $Session_URI},
 		"oa:motivatedBy": { "@id": "motivation:createNextSession" },
-		"oa:hasBody": { "@id": $NextScoreURI}
+		"oa:hasBody": { "@id": $NextStageURI}
 	}
