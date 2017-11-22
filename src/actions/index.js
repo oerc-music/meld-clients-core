@@ -1,6 +1,7 @@
 import {browserHistory} from 'react-router';
 import axios from 'axios';
 import jsonld from 'jsonld'
+import querystring from 'querystring';
 import { ANNOTATION_PATCHED, ANNOTATION_POSTED, ANNOTATION_HANDLED, ANNOTATION_NOT_HANDLED, ANNOTATION_SKIPPED } from './meldActions';
 
 export const HAS_BODY = "oa:hasBody"
@@ -182,7 +183,8 @@ function processComponentAnnotation(annotation, conceptualScore = "") {
 	if("meld:state" in annotation && annotation["meld:state"]["@id"] === "meld:processed") { 
  	// skip previously processed annotation
 		return {
-			type: ANNOTATION_SKIPPED
+			type: ANNOTATION_SKIPPED,
+			payload: annotation
 		}
 	}
 	annotation = ensureArray(annotation, "oa:hasTarget");
@@ -761,10 +763,16 @@ export function patchAndProcessAnnotation(action, session, etag, annotation, suc
 }
 
 
-export function updateMuzicodes(muzicodesUri, session) {
+export function updateMuzicodes(muzicodesUri, session, mei="") {
 	// inform the muzicodes service that our session has loaded
 	console.log("Updating muzicodes:", muzicodesUri, session);
-	axios.post(muzicodesUri, session);
+	const params = querystring.stringify({ 
+		"name": "meld.load",
+		"meldcollection": session,
+		"meldmei": mei
+	})
+	
+	axios.post(muzicodesUri, params);
 	return ({ 
 		type: MUZICODES_UPDATED
 	})

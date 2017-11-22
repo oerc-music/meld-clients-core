@@ -1,9 +1,14 @@
 import update from 'immutability-helper';
 
-import { CREATE_SESSION } from '../actions/index';
+import { CREATE_SESSION, MUZICODES_UPDATED } from '../actions/index';
 
-export default function(state = {newSessionUri:"", newSessionScore:""}, action) {
+export default function(state = {newSessionUri:"", newSessionScore:"", muzicodesUpdated: false}, action) {
 	switch (action.type) {
+	case MUZICODES_UPDATED:
+		console.log("Muzicodes has been updated.");
+		return update(state, {
+			$set: { "muzicodesUpdated": true}
+		});
 	case CREATE_SESSION:
 		console.log("Created session: ", action.payload);
 		return update(state, { 

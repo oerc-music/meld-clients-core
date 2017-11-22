@@ -30,6 +30,7 @@
     "jsonld": "^0.4.11",
     "lodash": "^3.10.1",
     "n3": "^0.10.0",
+    "querystring": "^0.2.0",
     "react": "^0.14.3",
     "react-3d-carousel": "0.0.6",
     "react-3d-obj-carousel": "0.0.8",

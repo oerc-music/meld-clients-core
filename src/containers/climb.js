@@ -19,7 +19,6 @@ class Climb extends Component {
 	
 	componentDidMount() { 
 		if(this.props.location.query.session) { 
-			this.props.updateMuzicodes(muzicodesUri, this.props.location.query.session);
 			// start polling
 			this.doPoll();
 		}
@@ -39,6 +38,7 @@ class Climb extends Component {
 
 	render() {
 		if(this.props.score.publishedScores) {
+
 			if(this.props.score.triggerNextSession) { 
 				// have we got a next session queued up?
 				if(this.props.sessionControl.newSessionUri) { 
@@ -60,6 +60,7 @@ class Climb extends Component {
 				session = this.props.graph.annoGraph["@id"];
 				etag = this.props.graph.etags[session];
 				console.log("session: ", session, " etag: ", etag, " etags: ", this.props.graph.etags);
+
 			}
 
 			const byId = this.props.graph.targetsById;
@@ -82,6 +83,11 @@ class Climb extends Component {
 				console.log("Flattening array:", annotations)
 				annotations = annotations.reduce( (a, b) => a.concat(b), []);
 				console.log("WORKING WITH (flattened):", annotations);
+				
+				// if required, inform muzicodes
+				if(!this.props.sessionControl.muzicodesUpdated) { 
+					this.props.updateMuzicodes(muzicodesUri, this.props.graph.annoGraph["@id"], pS)
+				}
 
 				return (
 					<div key={ "wrapper" + pS }>
