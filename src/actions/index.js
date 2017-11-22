@@ -485,11 +485,13 @@ export function fetchConceptualScore(session, uri) {
 						payload: conceptualScore 
 					});
 					dispatch(fetchScore(conceptualScore["mo:published_as"]["@id"]));
-					// for climb (and possibly other dynamic things in future:
+				} else { console.log("Unpublished conceptual score: ", conceptualScore) }
+				/*if("climb:next" in conceptualScore) { 
+				    //TODO REVISIT FOR JAM -- NO LONGER RELEVANT FOR CLIMB, AS MUZICODES NEEDS TO MAKE A DECISION
+				    // BEFORE THE 'DEFAULT' NEXT SCORE CAN BE DETERMINED
+					// for dynamic meld applications:
 					// create a new session for the default next score
 					// (which sessionControl will then queue up)
-				} else { console.log("Unpublished conceptual score: ", conceptualScore) }
-				if("climb:next" in conceptualScore) { 
 					console.log("About to create next session for conceptual score: ", conceptualScore);
 					dispatch(
 						createSession(
@@ -497,7 +499,7 @@ export function fetchConceptualScore(session, uri) {
 							conceptualScore["climb:next"]["@id"]
 						)
 					)
-				}
+				}*/
 		})
 	}
 }
@@ -835,53 +837,3 @@ export function createSession(sessionsUri, scoreUri, etag="", retries=MAX_RETRIE
 		}
 	}
 }
-//export function createSession(sessionsUri, scoreUri, etag="", retries=MAX_RETRIES, performerUri="") { 
-//	// use the session service to create a new session
-//	// (a performance of scoreUri, by performerUri if supplied)
-//	
-//	if(retries) { 
-//		console.log("Trying to create session: ", sessionsUri, scoreUri, etag, retries, performerUri);
-//		axios.post(
-//			sessionsUri,
-//			JSON.stringify({
-//				"@type": ["mo:Performance", "ldp:BasicContainer"],
-//				"mo:performance_of": { "@id": scoreUri }
-//			}),
-//			{ 
-//				headers: { 
-//					"Content-Type": "application/ld+json",
-//					"If-None-Match": etag
-//				} 
-//			}
-//		).then(function(response) { 
-//			return { 
-//				type: CREATE_SESSION,
-//				payload: response
-//			}
-//		}).catch(function(error) { 
-//				if(error.response.status == 412) {
-//					console.log("Mid-air collision while attempting to POST annotation. Retrying.", session, etag, json);
-//					// GET the session resource to figure out new etag
-//					axios.get(sessionsUri).then( (response) => {
-//						// and try again
-//						return (dispatch) => { 
-//							setTimeout(() => {
-//								dispatch(createSession(sessionsUri, scoreUri, response.headers.etag, retries-1, performerUri))
-//							}, RETRY_DELAY);
-//						}
-//					})
-//				} else {
-//					console.log("Error while posting annotation: ", error);
-//					console.log("Retrying.");
-//					return (dispatch) => { 
-//							dispatch(createSession(sessionsUri, scoreUri, response.headers.etag, retries-1, performerUri));
-//					}
-//				}
-//		})
-//	} else { 
-//		console.log("FAILED TO CREATE SESSION (MAX RETRIES EXCEEDED)");
-//		return {
-//			type: SESSION_NOT_CREATED
-//		}
-//	}
-//}

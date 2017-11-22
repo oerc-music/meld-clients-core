@@ -10,7 +10,7 @@ export default function(state = {newSessionUri:"", newSessionScore:""}, action) 
 			$set: { 
 				"newSessionUri": action.payload.headers.location,
 				"newSessionScore": action.payload.data["@graph"][0]["mo:performance_of"]["@id"]
-					} 
+			} 
 		});
 	default: 
 		console.log("Unknown action: ", action);

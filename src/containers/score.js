@@ -13,6 +13,7 @@ import {
 	CUE_AUDIO, 
 	handleCueAudio,
 	handleQueueNextSession,
+	handleCreateNextSession,
 	handleIdentifyMuzicode,
 	handleChoiceMuzicode,
 	handleChallengePassed,
@@ -128,6 +129,9 @@ class Score extends Component {
 			case "motivation:queueNextSession":
 				this.props.handleQueueNextSession(this.props.session, this.props.etag, annotation);
 			break;
+			case "motivation:createNextSession": 
+				this.props.handleCreateNextSession(this.props.session, this.props.etag, annotation);
+			break;
 			default:
 				console.log("Unknown motivation: ", annotation["oa:motivatedBy"]);
 			}
@@ -157,7 +161,7 @@ function mapStateToProps({ score }) {
 }
 
 function mapDispatchToProps(dispatch) { 
-	return bindActionCreators({ fetchScore, handleEmphasis, handleHighlight, handleHighlight2, handleCueAudio, scorePrevPage, scoreNextPage, handleQueueNextSession, handleIdentifyMuzicode, handleChoiceMuzicode, handleChallengePassed, handleDisklavierStart, handleMuzicodeTriggered}, dispatch);
+	return bindActionCreators({ fetchScore, handleEmphasis, handleHighlight, handleHighlight2, handleCueAudio, scorePrevPage, scoreNextPage, handleQueueNextSession, handleCreateNextSession, handleIdentifyMuzicode, handleChoiceMuzicode, handleChallengePassed, handleDisklavierStart, handleMuzicodeTriggered}, dispatch);
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(Score);

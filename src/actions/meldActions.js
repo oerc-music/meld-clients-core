@@ -187,6 +187,24 @@ export function handleQueueNextSession(session, etag, annotation) {
 	}
 }
 
+export function handleCreateNextSession(session, etag, annotation) { 
+	console.log("Handling createNextSession: ", session, etag, annotation);
+	return (dispatch) => {
+		dispatch(
+			patchAndProcessAnnotation(
+				createSession(
+					session.substr(0,session.lastIndexOf("/")),
+					annotation["oa:hasBody"]["@id"]
+				),
+				session,
+				etag,
+				annotation
+			)
+		)
+	}
+}
+
+
 function annotationHandled(annotation) {
 	return {
 		type: ANNOTATION_HANDLED,

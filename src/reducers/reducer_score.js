@@ -102,7 +102,6 @@ export default function(state = {publishedScores: {}, conceptualScores: {}, MEI:
 						return member["@id"];
 					}));
 					fragments["description"] = target["rdfs:label"];
-					console.log("WHOA", target["@type"])
 					if(target["@type"].includes("meld:Muzicode")) {
 						fragments["muzicodeType"] = target["mc:type"];
 						fragments["cue"] = target["climb:cue"];
