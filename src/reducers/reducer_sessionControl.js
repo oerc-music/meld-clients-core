@@ -7,12 +7,12 @@ export default function(state = {newSessionUri:"", newSessionScore:"", muzicodes
 	case MUZICODES_UPDATED:
 		console.log("Muzicodes has been updated.");
 		return update(state, {
-			$set: { "muzicodesUpdated": true}
+			$merge: { "muzicodesUpdated": true}
 		});
 	case CREATE_SESSION:
 		console.log("Created session: ", action.payload);
 		return update(state, { 
-			$set: { 
+			$merge: { 
 				"newSessionUri": action.payload.headers.location,
 				"newSessionScore": action.payload.data["@graph"][0]["mo:performance_of"]["@id"]
 			} 
