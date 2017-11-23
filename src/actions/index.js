@@ -824,7 +824,7 @@ export function createSession(sessionsUri, scoreUri, etag="", retries=MAX_RETRIE
 							console.log("Mid-air collision while attempting to POST annotation. Retrying.");
 							dispatch( () => {
 								setTimeout(() => {
-									dispatch(createSession(sessionsUri, scoreUri, response.headers.etag, retries-1, performerUri))
+									dispatch(createSession(sessionsUri, scoreUri, getResponse.headers.etag, retries-1, performerUri))
 								}, RETRY_DELAY);
 							})
 						} else { 
@@ -832,7 +832,7 @@ export function createSession(sessionsUri, scoreUri, etag="", retries=MAX_RETRIE
 							console.log("Retrying.");
 							dispatch( () => {
 								setTimeout(() => {
-									dispatch(createSession(sessionsUri, scoreUri, response.headers.etag, retries-1, performerUri))
+									dispatch(createSession(sessionsUri, scoreUri, getResponse.headers.etag, retries-1, performerUri))
 								}, RETRY_DELAY);
 							})
 						}
