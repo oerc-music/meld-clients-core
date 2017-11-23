@@ -821,7 +821,7 @@ export function createSession(sessionsUri, scoreUri, etag="", retries=MAX_RETRIE
 						})
 					}).catch(function (error) { 
 						if(error.response.status == 412) {
-							console.log("Mid-air collision while attempting to POST annotation. Retrying.", etag, json);
+							console.log("Mid-air collision while attempting to POST annotation. Retrying.");
 							dispatch( () => {
 								setTimeout(() => {
 									dispatch(createSession(sessionsUri, scoreUri, response.headers.etag, retries-1, performerUri))
