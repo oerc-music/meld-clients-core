@@ -11,7 +11,8 @@ import {
 	SCORE_PREV_PAGE,
 	SCORE_PAGE_TO_TARGET,
 	SCORE_NEXT_PAGE,
-	RESET_NEXT_SESSION_TRIGGER
+	RESET_NEXT_SESSION_TRIGGER,
+	TRANSITION_TO_NEXT_SESSION
 } from '../actions/index'
 
 const EMBODIMENT = 'frbr:embodiment';
@@ -209,7 +210,11 @@ export default function(state = {publishedScores: {}, conceptualScores: {}, MEI:
 				pageCount: {$set:pageCount}
 			});
 		}
-	
+
+	case TRANSITION_TO_NEXT_SESSION:
+		console.log("forcing transition to next session if queued");
+		return update(state, { triggerNextSession: { $set: true  } });
+
 	case SCORE_PAGE_TO_TARGET:
 		if(!action.payload.data) {
 			console.log("SCORE_PAGE_TO_TARGET attempted on non-loaded MEI data - ignoring!");

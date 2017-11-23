@@ -1,6 +1,6 @@
 import ReactDOM from 'react-dom';
 
-import { patchAndProcessAnnotation, createSession } from './index'
+import { patchAndProcessAnnotation, createSession, TRANSITION_TO_NEXT_SESSION } from './index'
 
 export const MARKUP_EMPHASIS = "meldterm:emphasis";
 export const MARKUP_HIGHLIGHT = "meldterm:highlight";
@@ -202,6 +202,11 @@ export function handleCreateNextSession(session, etag, annotation) {
 			)
 		)
 	}
+}
+
+export function handleTransitionToNextSession(session, etag, annotation) { 
+	console.log("Transitioning to next session!");
+	return { type: TRANSITION_TO_NEXT_SESSION }
 }
 
 

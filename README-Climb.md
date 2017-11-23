@@ -67,3 +67,13 @@ Creating a session
 		"oa:motivatedBy": { "@id": "motivation:createNextSession" },
 		"oa:hasBody": { "@id": $NextStageURI}
 	}
+
+Forcing a session transition
+------------------
+- To force a session transition (for rehearsal), ASSUMING A SESSION HAS BEEN QUEUED, send the following annotation:
+----
+	#body for forcing a session transition
+	{
+		"oa:hasTarget": { "@id": $Session_URI},
+		"oa:motivatedBy": { "@id": "motivation:transitionToNextSession" }
+	}
