@@ -164,12 +164,6 @@ export function handleMuzicodeTriggered(component, annotation, uri, fragments, m
 			default: 
 				console.log("Muzicode of unknown type: ", muzicodeTarget);
 		}
-		// if muzicode is associated with a cue, create a session for it
-		// (it will be queued up in response to sessionControl reducer)
-		if("cue" in muzicodeTarget) {
-			dispatch(
-			)
-		}
 
 		return annotationHandled();
 
