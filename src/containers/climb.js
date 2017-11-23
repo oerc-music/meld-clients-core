@@ -75,7 +75,7 @@ class Climb extends Component {
 				const currentCSPretty = cS.substring(cS.lastIndexOf('/')+1);
 				const nextCS = this.props.sessionControl.newSessionScore;
 				const nextCSPretty = nextCS ? nextCS.substring(nextCS.lastIndexOf('/')+1) : ""; 
-				annotations = Object.keys(byId).map((t) => {
+				let annotations = Object.keys(byId).map((t) => {
 					if(annotationTargets && annotationTargets.includes(t)) { 
 						return byId[t].annotations
 					}
