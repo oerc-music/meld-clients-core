@@ -8,21 +8,48 @@ import Score from '../containers/score';
 const muzicodesUri = "http://localhost:3000/input"
 
 class Climb extends Component {
-	monitorKeys(event) { 
-		if(event.keyCode === "39") { 
-			alert("WOOOOOOP");
-		}
-	}
 	constructor(props) { 
 		super(props);
+		this.monitorKeys= this.monitorKeys.bind(this);
 	}
 	
 	componentDidMount() { 
+		document.addEventListener('keydown', this.monitorKeys);
 		if(this.props.location.query.session) { 
 			// start polling
 			this.doPoll();
 		}
 		
+	}
+	
+	componentWillUnmount() { 
+		// clean up...
+		document.removeEventListener('keydown', this.monitorKeys);
+	}
+
+	monitorKeys(ev) { 
+		if (this.props.graph && this.props.graph.annoGraph) { 
+			const session = this.props.graph.annoGraph["@id"];
+			const etag = this.props.graph.etags[session];
+			switch(ev.which) {
+				case 34://page down
+				case 39://right
+				case 40://down
+					console.log('next (key)');
+					ev.preventDefault();
+					this.props.postNextPageAnnotation(session, etag);
+					break;
+				case 33://page up
+				case 37://left
+				case 38://up
+					console.log('prev (key)');
+					ev.preventDefault();
+					this.props.postPrevPageAnnotation(session, etag);
+					break;
+				default:
+					console.log('ignore key: '+ev.which);
+			}	
+		}
 	}
 
 	doPoll() { 
@@ -38,7 +65,6 @@ class Climb extends Component {
 
 	render() {
 		if(this.props.score.publishedScores) {
-
 			if(this.props.score.triggerNextSession) { 
 				// have we got a next session queued up?
 				if(this.props.sessionControl.newSessionUri) { 
