@@ -147,6 +147,16 @@ export function handleMuzicodeTriggered(component, annotation, uri, fragments, m
 					)
 				);
 				break;
+			case "mc:Approaching":
+				dispatch(
+					patchAndProcessAnnotation(
+						handleIdentifyMuzicode(component, annotation, uri, fragments),
+						session,
+						etag,
+						annotation
+					)
+				);
+				break;
 			case "mc:Challenge": 
 				dispatch(
 					patchAndProcessAnnotation(

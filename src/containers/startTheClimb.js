@@ -33,9 +33,9 @@ class StartTheClimb extends Component {
 		}
 	}
 	
-	handleChange(event) { 
-		this.setState({performerUri: event.target.value});
-	}
+//	handleChange(event) { 
+//		this.setState({performerUri: event.target.value});
+//	}
 
 	startClimb() { 
 		this.props.createSession(this.state.sessionsUri, this.state.scoreUri, this.state.performerUri);
