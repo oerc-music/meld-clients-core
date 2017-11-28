@@ -10,6 +10,7 @@ import App from './containers/app';
 import Jam from './containers/jam';
 import Climb from './containers/climb';
 import StartTheClimb from './containers/startTheClimb';
+import StartTheJam from './containers/startTheJam';
 import ClimbArchive from './containers/climbArchive';
 import ForbiddenQuestion from './containers/musicology/forbiddenQuestion';
 import Rheingold from './containers/musicology/rheingold';
@@ -25,6 +26,7 @@ ReactDOM.render(
 			<Route path="/jam" component={Jam} />
 			<Route path="/Climb" component={Climb} />
 			<Route path="/StartTheClimb" component={StartTheClimb} />
+			<Route path="/StartTheJam" component={StartTheJam} />
 			<Route path="/ClimbArchive" component={ClimbArchive} />
 			<Route path="/Demo/Rheingold" component={Rheingold}/>
 			<Route path="/TimeMachine" component={Carousel}/>

@@ -797,7 +797,7 @@ export function ensureArray(theObj, theKey) {
 	}
 }
 
-export function createSession(sessionsUri, scoreUri, etag="", retries=MAX_RETRIES, performerUri="") { 
+export function createSession(sessionsUri, scoreUri, {etag="", retries=MAX_RETRIES, performerUri="", slug=""} = {}) { 
 	return (dispatch) => { 
 		if(retries) { 
 			console.log("Trying to create session: ", sessionsUri, scoreUri, etag, retries, performerUri);
@@ -811,7 +811,8 @@ export function createSession(sessionsUri, scoreUri, etag="", retries=MAX_RETRIE
 					{ 
 						headers: { 
 							"Content-Type": "application/ld+json",
-							"If-None-Match": getResponse.headers.etag
+							"If-None-Match": getResponse.headers.etag,
+							"Slug": slug
 						} 
 					}
 				).then( (postResponse) => {
@@ -824,7 +825,7 @@ export function createSession(sessionsUri, scoreUri, etag="", retries=MAX_RETRIE
 							console.log("Mid-air collision while attempting to POST annotation. Retrying.");
 							dispatch( () => {
 								setTimeout(() => {
-									dispatch(createSession(sessionsUri, scoreUri, getResponse.headers.etag, retries-1, performerUri))
+									dispatch(createSession(sessionsUri, scoreUri, {etag: getResponse.headers.etag, retries: retries-1, performerUri: performerUri, slug:slug}))
 								}, RETRY_DELAY);
 							})
 						} else { 
@@ -832,7 +833,7 @@ export function createSession(sessionsUri, scoreUri, etag="", retries=MAX_RETRIE
 							console.log("Retrying.");
 							dispatch( () => {
 								setTimeout(() => {
-									dispatch(createSession(sessionsUri, scoreUri, getResponse.headers.etag, retries-1, performerUri))
+									dispatch(createSession(sessionsUri, scoreUri, {etag: getResponse.headers.etag, retries: retries-1, performerUri: performerUri, slug:slug}))
 								}, RETRY_DELAY);
 							})
 						}
