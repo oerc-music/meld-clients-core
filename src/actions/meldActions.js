@@ -108,7 +108,7 @@ export function handleChoiceMuzicode(component, annotation, uri, fragments) {
 
 export function handleChallengePassed(component, annotation, uri, fragments) { 
 	console.log("Challenge passed!");
-	assignClass("meld-muzicode-challenge-passed", component, annotation, uri, fragments);
+	assignClassToClosestMeasure("meld-muzicode-challenge-passed", component, annotation, uri, fragments);
 	return annotationHandled();
 }
 
@@ -240,6 +240,29 @@ function assignClass(className, component, annotation, uri, fragments) {
 	fragments.map((f) => {  
 		const fLocalId = f.substr(f.indexOf("#"))
 		const element = component.querySelector(fLocalId);
+		if (element) { 
+			if(!element.classList.contains(className)) {
+				element.classList.add(className);
+			}
+			applyAnnotationId(element, annotation);
+			element.onmouseover = function(){ 
+				let highlighted = document.querySelectorAll("."+className);
+				Array.prototype.map.call(highlighted, function(em) { em.classList.add("infocus")});
+			}
+			element.onmouseleave = function(){ 
+				let highlighted= document.querySelectorAll("."+className);
+				Array.prototype.map.call(highlighted, function(em) { em.classList.remove("infocus")});
+			}
+		}
+	});
+}
+
+function assignClassToClosestMeasure(className, component, annotation, uri, fragments) { 
+	// for each fragment, assign the class label to the nearest parent that is an mei measure
+	// n.b. could be the fragment itself
+	fragments.map((f) => {  
+		const fLocalId = f.substr(f.indexOf("#"))
+		const element = component.querySelector(fLocalId).closest(".measure");
 		if (element) { 
 			if(!element.classList.contains(className)) {
 				element.classList.add(className);
