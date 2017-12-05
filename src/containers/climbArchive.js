@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { fetchSessionGraph, scorePrevPage, scoreNextPageStatic, postNextPageAnnotation, transitionToSession, resetNextSessionTrigger } from '../actions/index';
+import { fetchSessionGraph, scorePrevPageStatic, scoreNextPageStatic, postNextPageAnnotation, transitionToSession, resetNextSessionTrigger } from '../actions/index';
 import { connect } from 'react-redux' ;
 import { bindActionCreators } from 'redux';
 import { withRouter } from 'react-router';
@@ -44,7 +44,7 @@ class ClimbArchive extends Component {
 					
 						<div id="prev" key={ "prev"+pS } onClick={() => {
 							console.log("prev clicked, ps: ", pS, this.props.score.pageNum, this.props.score.MEI);
-							this.props.scorePrevPage(pS, this.props.score.pageNum, this.props.score.MEI[pS])
+							this.props.scorePrevPageStatic(pS, this.props.score.pageNum, this.props.score.MEI[pS])
 						}}> Previous </div>
 						<div id="next" key={ "next"+pS } onClick={() => {
 							console.log("next clicked, ps: ", pS, this.props.score.pageNum, this.props.score.MEI);
@@ -72,7 +72,7 @@ function mapStateToProps({ graph, score }) {
 }
 
 function mapDispatchToProps(dispatch) { 
-	return bindActionCreators({ fetchSessionGraph, scorePrevPage, scoreNextPageStatic, postNextPageAnnotation, transitionToSession, resetNextSessionTrigger }, dispatch);
+	return bindActionCreators({ fetchSessionGraph, scorePrevPageStatic, scoreNextPageStatic, postNextPageAnnotation, transitionToSession, resetNextSessionTrigger }, dispatch);
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(ClimbArchive);
