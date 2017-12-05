@@ -70,8 +70,17 @@ export default function(state = INIT_STATE, action) {
 			payload = ensureArray(payload, "ldp:contains");
 			payload["ldp:contains"].map( (a) => { 
 				if("meld:state" in a && a["meld:state"]["@id"] == "meld:processed") { 
-					// skip annotations that have already been processed
-					return
+					// Decide whether we want to render the processed annotation 
+					// ... and modify its motivation if necessary to signal its new purpose
+					// This is required for annotations that both have renderings (should always show)
+					// and side effects (should only happen once)
+					if(a["oa:motivatedBy"]["@id"] === "motivation:muzicodeTriggered") { 
+						a["oa:motivatedBy"]["@id"] = "motivation:archivedMuzicodeTrigger";
+						delete(a["meld:state"]);
+					} else {
+					// We can skip this processed annotation
+						return
+					}
 				}
 				a = ensureArray(a, "oa:hasTarget");
 				a["oa:hasTarget"].map( (targetResource) => {

@@ -39,7 +39,6 @@ class ClimbArchive extends Component {
 				annotations = annotations.reduce( (a, b) => a.concat(b), []);
 				return (
 					<div key={ "wrapper" + pS } >
-						 <AnnotationsListing annotations={ annotations } scoreUri={pS}/>
 						 <Score key={ pS } uri={ pS } annotations={ annotations } session={ session } etag={ etag } nextSession = { this.props.nextSession } />
 					
 						<div id="prev" key={ "prev"+pS } onClick={() => {

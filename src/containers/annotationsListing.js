@@ -19,7 +19,6 @@ class AnnotationsListing extends Component {
 			console.log("--Props: ", this.props)
 			return ( 
 				<div className="annotationsWrapper">
-					<img src="../../images/climbMap.jpg" width="300px"/>
 					<div>Events:</div>
 					{
 						anno.map( (annotation) => {

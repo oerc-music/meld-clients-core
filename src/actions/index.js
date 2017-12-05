@@ -182,7 +182,7 @@ export function fetchGraph(uri) {
 
 function processComponentAnnotation(annotation, conceptualScore = "") { 
 	if("meld:state" in annotation && annotation["meld:state"]["@id"] === "meld:processed") { 
- 	// skip previously processed annotation
+		// We can skip this processed annotation
 		return {
 			type: ANNOTATION_SKIPPED,
 			payload: annotation
