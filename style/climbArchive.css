@@ -1,25 +1,25 @@
 .score .meld-muzicode-identify { 
-	fill: red;
-	stroke: red;
-	color: red;
+	fill: #080;
+	stroke: #080;
+	color: #080;
 }
 
 .score .meld-muzicode-choice { 
-	fill: slateblue !important;
-	stroke: slateblue !important;
-	color: slateblue !important;
+	fill: #c00 !important;
+	stroke: #c00 !important;
+	color: #c00 !important;
 }
 
 .score .meld-muzicode-challenge-passed { 
-	fill: seagreen !important;
-	stroke: seagreen !important;
-	color: seagreen !important;
+	fill: #c00 !important;
+	stroke: #c00 !important;
+	color: #c00 !important;
 }
 
 .score .meld-muzicode-disklavier-start { 
-	fill: orange !important;
-	stroke: orange !important;
-	color: orange !important;
+	fill: #00d !important;
+	stroke: #00d !important;
+	color: #00d !important;
 }
 
 .scorepane {
