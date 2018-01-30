@@ -1,0 +1,16 @@
+#modalPane { 
+	background: black;
+	color: white;
+	height: 100vh;
+	width:3em;
+}
+
+#modalPane.tall { 
+	height: 100vh;
+	width:3em;
+}
+
+#modalPane.wide {  /* n.b.: default */
+	width: 100%;
+	height:3em;
+}
