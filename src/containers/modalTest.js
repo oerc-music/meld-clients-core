@@ -12,7 +12,6 @@ export default class ModalTest extends Component {
 	constructor(props) { 
 		super(props);
 		this.state = { modes };
-		console.log("Hello: ", modes)
 	}
 
 	componentDidMount() { 

@@ -23,8 +23,36 @@ class ModalUI extends Component {
 
 	}
 
+/*
+	buildPaneConsitutents(mode) { 
+		// turn each constituent UI element listed for this mode into a JSX element
+		let constituents;
+		let tag;
+		mode.map({c} => {
+			let image = 
+			constituents += 
+				<div className = "modalPaneConstituent">
+					<div className = "image">
+						{c["image"] ? <img src=
+	} */
+
 	render() { 
-		return <div id="modalPane" className = {this.state.orientation} > {this.state.mode} </div>
+		const constituents = this.state.mode.map((c, ix) => { 
+			return (<div className = "constituent" key={ix}> 
+				{/* display image if available */}
+				{c.hasOwnProperty("image") &&
+					<img src={c["image"]} />
+				}
+				<div className="label">
+					{c["label"]} 
+				</div>
+			</div> );
+		});
+		return (
+			<div id="modalPane" className = {this.state.orientation}> 
+				{constituents}
+			</div>
+		)
 	}
 
 }
