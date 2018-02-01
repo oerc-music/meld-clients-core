@@ -2,24 +2,24 @@
 	background: black;
 	color: white;
 	height: 100vh;
-	width:4em;
+	width:5em;
 }
 
 #modalPane.tall { 
 	height: 100vh;
-	width:4em;
+	width:5em;
 }
 
 #modalPane.wide {  /* n.b.: default */
 	width: 100%;
-	height:4em;
+	height:5em;
 }
 
 .constituent { 
 	float:left;
-	padding-right: 2em;
-	max-width: 3em;
-	max-height: 3em;
+	padding-right: 3em;
+	max-width: 4em;
+	height: 100%;
 }
 
 .constituent.active { 
@@ -27,12 +27,12 @@
 }
 
 #modalPane.tall .constituent img { 
-	max-width: 2em;
-	max-height: 3em;
+	max-width: 3em;
+	max-height: 4em;
 }
 
 #modalPane.wide .constituent img { 
-	max-height: 2em;
-	max-width: 3em;
+	max-height: 3em;
+	max-width: 4em;
 }
 

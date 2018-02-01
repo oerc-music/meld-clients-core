@@ -1,6 +1,8 @@
 import ReactDOM from 'react-dom';
 
 export const UI_CONSTITUENT_CLICKED = "UI_CONSTITUENT_CLICKED";
+export const SET_MODE = "SET_MODE";
+export const CLEAR_CONSTITUENTS = "CLEAR_CONSTITUENTS";
 
 export function constituentClicked(e) {
 	const constituentid = e.target.closest(".constituent").getAttribute("id");
@@ -9,5 +11,18 @@ export function constituentClicked(e) {
 		payload: constituentid
 	}
 }	
+export function setMode(mode) {
+	return {
+		type: SET_MODE,
+		payload: mode 
+	}
+}
+	
+export function clearConstituents() {
+	return {
+		type: CLEAR_CONSTITUENTS
+	}
+}	
+
 
 
