@@ -6,7 +6,7 @@ import Score from '../containers/score';
 import Modal from '../containers/modalUI';
 
 import { modes } from '../../config/deliusModes';
-import { setMode, clearConstituents } from '../actions/modalUI'
+import { setMode, clearConstituents, elementClicked } from '../actions/modalUI'
 
 class ModalTest extends Component { 
 	constructor(props) { 
@@ -14,9 +14,13 @@ class ModalTest extends Component {
 		this.state = { modes };
 	}
 
+	componentDidMount() { 
+		console.log("I've found these notes: ",document.querySelectorAll('.note'));
+	}
+
 	componentWillReceiveProps(nextProps) { 
 		// this is where we do app-specific logic for the modal UI
-		if (nextProps.modalUI.constituents.has("dynamics")) {
+		if (this.props.modalUI.mode == "baseMode" && nextProps.modalUI.constituents.has("dynamics")) {
 			// user has selected dynamics - clear selections, and switch modes
 			this.props.clearConstituents();
 			this.props.setMode("dynamicsMode");
@@ -28,8 +32,14 @@ class ModalTest extends Component {
 			<div> 
 					<link rel="stylesheet" href="../../style/modalUI.css" type="text/css" />
 					<Modal modes={this.state.modes} orientation="wide"/> 
+					<Score uri="http://meld.linkedmusic.org/mei/Late_Swallows-dolet-musescore-II.mei" 
+						onClick={(e) =>  this.handleScoreClick(e) } ref="score" />
 			</div>
 		)
+	}
+
+	handleScoreClick(e) { 
+		console.log("score clicked: ", e);
 	}
 }
 

@@ -3,6 +3,7 @@
 	color: white;
 	height: 100vh;
 	width:5em;
+	position: fixed;
 }
 
 #modalPane.tall { 
@@ -11,6 +12,7 @@
 }
 
 #modalPane.wide {  /* n.b.: default */
+	top: 0;
 	width: 100%;
 	height:5em;
 }

@@ -28,8 +28,7 @@ export default function(state = { constituents: new Set(), elements: new Set(), 
 		// n.b. also clears out all selected constituents
 		console.log("Setting mode: ", action.payload);
 		return update(state, {
-			 mode: { "$set": action.payload }, 
-			 constituents: new Set()
+			 mode: { "$set": action.payload }
 		})
 	case CLEAR_CONSTITUENTS:
 		console.log("Clearing constituents");
