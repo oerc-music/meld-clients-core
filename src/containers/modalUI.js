@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import ReactDOM from 'react-dom';
 import { connect } from 'react-redux';
 import { bindActionCreators} from 'redux';
-//import { scorePageToComponentTarget } from '../actions/index';
+import { constituentClicked } from '../actions/modalUI';
 
 class ModalUI extends Component {
 	constructor(props) { 
@@ -20,33 +20,25 @@ class ModalUI extends Component {
 			mode: mode ? mode : "_NO_MODE_DEFINED",
 			orientation : this.props.orientation ? this.props.orientation : "wide"
 		}
-
 	}
 
-/*
-	buildPaneConsitutents(mode) { 
-		// turn each constituent UI element listed for this mode into a JSX element
-		let constituents;
-		let tag;
-		mode.map({c} => {
-			let image = 
-			constituents += 
-				<div className = "modalPaneConstituent">
-					<div className = "image">
-						{c["image"] ? <img src=
-	} */
-
 	render() { 
-		const constituents = this.state.mode.map((c, ix) => { 
-			return (<div className = "constituent" key={ix}> 
-				{/* display image if available */}
-				{c.hasOwnProperty("image") &&
-					<img src={c["image"]} />
-				}
-				<div className="label">
-					{c["label"]} 
-				</div>
-			</div> );
+		console.log(this.props.modalUI);
+		const constituents = this.state.mode.map((c) => { 
+			const classNameString = this.props.modalUI.constituents.has(c["id"]) ? 
+				"constituent active" : "constituent"
+			return (
+				<div className = {classNameString} key={c["id"]} id = {c["id"]}
+				onClick = {(e) => this.props.constituentClicked(e)}> 
+					{/* display image if available */}
+					{c.hasOwnProperty("image") &&
+						<img src={c["image"]} />
+					}
+					<div className="label">
+						{c["label"]} 
+					</div>
+				</div> 
+			);
 		});
 		return (
 			<div id="modalPane" className = {this.state.orientation}> 
@@ -57,12 +49,12 @@ class ModalUI extends Component {
 
 }
 
-function mapStateToProps({}) {
-	return { }
+function mapStateToProps({ modalUI }) {
+	return { modalUI }
 }
 
 function mapDispatchToProps(dispatch) { 
-	return bindActionCreators({ }, dispatch);
+	return bindActionCreators({ constituentClicked }, dispatch);
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(ModalUI);

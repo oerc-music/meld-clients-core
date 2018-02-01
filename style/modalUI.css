@@ -22,6 +22,10 @@
 	max-height: 3em;
 }
 
+.constituent.active { 
+	background: red;
+}
+
 #modalPane.tall .constituent img { 
 	max-width: 2em;
 	max-height: 3em;

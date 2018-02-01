@@ -2,13 +2,12 @@ import React, { Component } from 'react';
 import { fetchSessionGraph } from '../actions/index';
 import { connect } from 'react-redux' ;
 import { bindActionCreators } from 'redux';
-import { withRouter } from 'react-router';
 import Score from '../containers/score';
 import Modal from '../containers/modalUI';
 
 import { modes } from '../config/modalTestModes';
 
-export default class ModalTest extends Component { 
+class ModalTest extends Component { 
 	constructor(props) { 
 		super(props);
 		this.state = { modes };
@@ -28,3 +27,13 @@ export default class ModalTest extends Component {
 		)
 	}
 }
+
+function mapStateToProps({ modalUI }) {
+	return { modalUI }
+}
+
+function mapDispatchToProps(dispatch) { 
+	return bindActionCreators({}, dispatch);
+}
+
+export default connect(mapStateToProps,mapDispatchToProps)(ModalTest);
