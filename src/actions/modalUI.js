@@ -1,8 +1,11 @@
 import ReactDOM from 'react-dom';
 
-export const UI_CONSTITUENT_CLICKED = "UI_CONSTITUENT_CLICKED";
-export const SET_MODE = "SET_MODE";
 export const CLEAR_CONSTITUENTS = "CLEAR_CONSTITUENTS";
+export const CLEAR_ELEMENTS = "CLEAR_ELEMENTS";
+export const POP_ELEMENTS = "POP_ELEMENTS";
+export const ELEMENT_CLICKED = "ELEMENT_CLICKED";
+export const SET_MODE = "SET_MODE";
+export const UI_CONSTITUENT_CLICKED = "UI_CONSTITUENT_CLICKED";
 
 export function constituentClicked(e) {
 	const constituentid = e.target.closest(".constituent").getAttribute("id");
@@ -24,5 +27,15 @@ export function clearConstituents() {
 	}
 }	
 
+export function clearElements() {
+	return {
+		type: CLEAR_ELEMENTS
+	}
+}	
 
+export function popElements() {
+	return {
+		type: POP_ELEMENTS 
+	}
+}	
 

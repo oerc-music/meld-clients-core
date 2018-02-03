@@ -1,11 +1,18 @@
 import update from 'immutability-helper';
 
-import { UI_CONSTITUENT_CLICKED, SET_MODE, CLEAR_CONSTITUENTS } from '../actions/modalUI';
+import { 
+	CLEAR_CONSTITUENTS, 
+	CLEAR_ELEMENTS,
+	ELEMENT_CLICKED, 
+	POP_ELEMENTS,
+	SET_MODE, 
+	UI_CONSTITUENT_CLICKED
+} from '../actions/modalUI';
 
 // terminology: "constituents" are items in the modal UI pane;
 // "elements" are selectable bits of content (e.g. score elements, divs, ...)
 
-export default function(state = { constituents: new Set(), elements: new Set(), mode: "" }, action) {
+export default function(state = { constituents: new Set(), elements: [], mode: "" }, action) {
 	let newState;
 	switch (action.type) {
 	case UI_CONSTITUENT_CLICKED:
@@ -33,6 +40,31 @@ export default function(state = { constituents: new Set(), elements: new Set(), 
 	case CLEAR_CONSTITUENTS:
 		console.log("Clearing constituents");
 		return update(state, { constituents: new Set() })
+	case CLEAR_ELEMENTS:
+		console.log("Clearing elements");
+		return update(state, { elements: [] })
+	case POP_ELEMENTS:
+		console.log("Popping oldest element selection");
+		return update(state, { 
+			elements: {"$set": state.elements.slice(0,state.elements.length-1)}
+		}) // n.b. slice is non-mutating, so reducer-safe. 
+	case ELEMENT_CLICKED:
+		console.log("Element clicked:", action);
+		if (state.elements.includes(action.payload)) { 
+			// we already had this element, so remove it
+			newState = update(state, { 
+				elements: { "$set": state.elements.filter(e => e !== action.payload) }
+			});
+		} else {
+			// add this element as the new front of the list 
+			newState = update(state, { 
+				elements: { 
+					"$unshift": [ action.payload ]
+				} 
+			});
+		}
+		return newState;
+		return state;
 	default: 
 		console.log("reducer_modalUI: Unknown action: ", action);
 		return state;
