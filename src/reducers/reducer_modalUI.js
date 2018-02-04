@@ -39,10 +39,14 @@ export default function(state = { constituents: new Set(), elements: [], mode: "
 		})
 	case CLEAR_CONSTITUENTS:
 		console.log("Clearing constituents");
-		return update(state, { constituents: new Set() })
+		return update(state, { 
+			constituents: { "$set": new Set() }
+		})
 	case CLEAR_ELEMENTS:
 		console.log("Clearing elements");
-		return update(state, { elements: [] })
+		return update(state, { 
+			elements: { "$set": [] }
+		})
 	case POP_ELEMENTS:
 		console.log("Popping oldest element selection");
 		return update(state, { 
