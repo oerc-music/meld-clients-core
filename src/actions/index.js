@@ -630,44 +630,42 @@ export function postPrevPageAnnotation(session, etag) {
 }
 
 export function postAnnotation(session, etag, json, retries=MAX_RETRIES) {
-	if(retries) { 
-		console.log("Posting annotation: ", session, etag, json)
-		axios.post(
-			session, 
-			json, 
-			{ headers: {'Content-Type': 'application/ld+json', 'If-None-Match':etag} }
-		).catch(function (error) { 
-			if(error.response.status == 412) {
-				console.log("Mid-air collision while attempting to POST annotation. Retrying.", session, etag, json);
-				// GET the session resource to figure out new etag
-				axios.get(session).then( (response) => {
-					// and try again
-					return (dispatch) => { 
+	return( (dispatch) => {
+		if(retries) { 
+			console.log("Posting annotation: ", session, etag, json)
+			axios.post(
+				session, 
+				json, 
+				{ headers: {'Content-Type': 'application/ld+json', 'If-None-Match':etag} }
+			).catch(function (error) { 
+				if(error.response.status == 412) {
+					console.log("Mid-air collision while attempting to POST annotation. Retrying.", session, etag, json);
+					// GET the session resource to figure out new etag
+					axios.get(session).then( (response) => {
+						// and try again
+						console.log("Dispatching again....");
 						setTimeout(() => {
 							dispatch(postAnnotation(session, response.headers.etag, json, retries-1))
 						}, RETRY_DELAY);
-					}
-				});
-			} else { 
-				console.log("Error while posting annotation: ", error);
-				console.log("Retrying.");
-				return (dispatch) => { 
+					}).catch( (err) => { console.log("Error while GETing to determine etag: ", err) });
+				} else { 
+					console.log("Error while posting annotation: ", error);
+					console.log("Retrying.");
 					setTimeout(() => {
 						dispatch(postAnnotation(session, response.headers.etag, json, retries-1))
 					}, RETRY_DELAY);
-				}
-			}	
-		});
-
-		return { 
-			type: ANNOTATION_POSTED
+				}	
+			});
+			return { 
+				type: ANNOTATION_POSTED
+			}
+		} else { 
+			console.log("FAILED TO POST ANNOTATION (MAX RETRIES EXCEEDED): ", session, etag, json)
+			return { 
+				type: ANNOTATION_NOT_HANDLED
+			}
 		}
-	} else { 
-		console.log("FAILED TO POST ANNOTATION (MAX RETRIES EXCEEDED): ", session, etag, json)
-		return { 
-			type: ANNOTATION_NOT_HANDLED
-		}
-	}
+	})
 }
 
 export function markAnnotationProcessed(session, etag, annotation, retries=MAX_RETRIES) {
