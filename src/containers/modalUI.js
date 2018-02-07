@@ -34,7 +34,6 @@ class ModalUI extends Component {
 			console.log("Looking up ", mode, " in ", this.props.modes);
 			console.log(this.props.modes[mode])
 			const constituents = this.props.modes[mode].map((c) => { 
-				console.log("HELLO", c)
 				const classNameString = this.props.modalUI.constituents.has(c["id"]) ? 
 					"constituent active" : "constituent"
 				return (

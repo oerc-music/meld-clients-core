@@ -14,16 +14,11 @@ import {
 
 export default function(state = { constituents: new Set(), elements: [], mode: "" }, action) {
 	let newState;
+	let tmpState;
 	switch (action.type) {
 	case UI_CONSTITUENT_CLICKED:
 		console.log("UI constituent clicked: ", action.payload);
-		if (state.constituents.has(action.payload)) { 
-			newState = update(state, { 
-				constituents: { 
-					"$remove": [ action.payload ]
-				} 
-			});
-		} else { 
+		if (!state.constituents.has(action.payload)) { 
 			newState = update(state, { 
 				constituents: { 
 					"$add": [ action.payload ]
@@ -55,18 +50,18 @@ export default function(state = { constituents: new Set(), elements: [], mode: "
 	case ELEMENT_CLICKED:
 		console.log("Element clicked:", action);
 		if (state.elements.includes(action.payload)) { 
-			// we already had this element, so remove it
-			newState = update(state, { 
+			// we already had this element, so remove it before re-adding
+			// (as we need to promote to front)
+			tmpState = update(state, { 
 				elements: { "$set": state.elements.filter(e => e !== action.payload) }
 			});
-		} else {
-			// add this element as the new front of the list 
-			newState = update(state, { 
-				elements: { 
-					"$unshift": [ action.payload ]
-				} 
-			});
-		}
+		} else { tmpState = update(state, {}) }
+		// add this element as the new front of the list 
+		newState = update(tmpState, { 
+			elements: { 
+				"$unshift": [ action.payload ]
+			} 
+		});
 		return newState;
 		return state;
 	default: 
