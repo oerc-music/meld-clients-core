@@ -17,13 +17,7 @@ export default function(state = { constituents: new Set(), elements: [], mode: "
 	switch (action.type) {
 	case UI_CONSTITUENT_CLICKED:
 		console.log("UI constituent clicked: ", action.payload);
-		if (state.constituents.has(action.payload)) { 
-			newState = update(state, { 
-				constituents: { 
-					"$remove": [ action.payload ]
-				} 
-			});
-		} else { 
+		if (!state.constituents.has(action.payload)) { 
 			newState = update(state, { 
 				constituents: { 
 					"$add": [ action.payload ]
@@ -55,20 +49,21 @@ export default function(state = { constituents: new Set(), elements: [], mode: "
 	case ELEMENT_CLICKED:
 		console.log("Element clicked:", action);
 		if (state.elements.includes(action.payload)) { 
-			// we already had this element, so remove it
-			newState = update(state, { 
-				elements: { "$set": state.elements.filter(e => e !== action.payload) }
-			});
+			// we already had this element, 
+			// make it the only selection
+			return update(state, {
+				elements: {
+					"$set": [action.payload]
+				}
+			})
 		} else {
 			// add this element as the new front of the list 
-			newState = update(state, { 
+			return update(state, { 
 				elements: { 
 					"$unshift": [ action.payload ]
 				} 
-			});
+			})
 		}
-		return newState;
-		return state;
 	default: 
 		console.log("reducer_modalUI: Unknown action: ", action);
 		return state;

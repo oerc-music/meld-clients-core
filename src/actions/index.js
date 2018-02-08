@@ -630,6 +630,11 @@ export function postPrevPageAnnotation(session, etag) {
 }
 
 export function postAnnotation(session, etag, json, retries=MAX_RETRIES) {
+	json = JSON.parse(json)
+	if(!json["oa:annotatedAt"]) { 
+		json["oa:annotatedAt"] = new Date().toISOString();
+	}
+	json = JSON.stringify(json);
 	return( (dispatch) => {
 		if(retries) { 
 			console.log("Posting annotation: ", session, etag, json)
