@@ -42,6 +42,7 @@ const vrvOptions = {
 	noLayout:1,
 		adjustPageHeight:0,
 	scale:scale,
+	spacingStaff: 20,
 		pageHeight: 700*100/scale,
 		pageWidth: 1000*100/scale
 };
