@@ -40,11 +40,14 @@ class ModalUI extends Component {
 					onClick = {(e) => this.props.constituentClicked(e)}> 
 						{/* display image if available */}
 						{c.hasOwnProperty("image") &&
-							<img src={c["image"]} />
+							<img src={c["image"]} alt={c["label"]} title={c["label"]}/>
 						}
-						<div className="label">
-							{c["label"]} 
-						</div>
+						{/* If no image, display label */}
+						{!(c.hasOwnProperty("image")) &&
+							<div className="label">
+								{c["label"]} 
+							</div>
+						}
 					</div> 
 				);
 			});
