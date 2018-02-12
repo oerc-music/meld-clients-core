@@ -29,12 +29,12 @@
 }
 
 #modalPane.tall .constituent img { 
-	max-width: 3em;
+	max-width: 4em;
 	max-height: 4em;
 }
 
 #modalPane.wide .constituent img { 
-	max-height: 3em;
+	max-height: 4em;
 	max-width: 4em;
 }
 
