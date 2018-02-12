@@ -12,7 +12,7 @@ import {
 // terminology: "constituents" are items in the modal UI pane;
 // "elements" are selectable bits of content (e.g. score elements, divs, ...)
 
-export default function(state = { constituents: new Set(), elements: [], mode: "" }, action) {
+export default function(state = { constituents: new Set(), elements: {}, mode: "" }, action) {
 	let newState;
 	switch (action.type) {
 	case UI_CONSTITUENT_CLICKED:
@@ -39,28 +39,46 @@ export default function(state = { constituents: new Set(), elements: [], mode: "
 	case CLEAR_ELEMENTS:
 		console.log("Clearing elements");
 		return update(state, { 
-			elements: { "$set": [] }
+				elements: {
+					[action.payload]: { "$set": [] }
+				}
 		})
 	case POP_ELEMENTS:
 		console.log("Popping oldest element selection");
 		return update(state, { 
-			elements: {"$set": state.elements.slice(0,state.elements.length-1)}
+			[state.elements[action.payload.elementType]]: {"$set": state.elements.slice(0,state.elements.length-1)}
 		}) // n.b. slice is non-mutating, so reducer-safe. 
 	case ELEMENT_CLICKED:
 		console.log("Element clicked:", action);
-		if (state.elements.includes(action.payload)) { 
-			// we already had this element, 
+		newState = update(state, {});
+		if(!(action.payload.elementType in state.elements)) { 
+			// if we don't yet have this element type, start recording it 
+			return update(state, { 
+				 elements: {
+					 "$merge": { 
+						 [action.payload.elementType]: [ action.payload.elementId ] 
+					 }
+				 }
+			})
+		}
+		if (state.elements[action.payload.elementType].includes(action.payload.elementId)) { 
+			// we already have this particular element, 
 			// make it the only selection
 			return update(state, {
-				elements: {
-					"$set": [action.payload]
+				elements: { 
+					[action.payload.elementType]: {
+						"$set": [action.payload.elementId]
+					}
 				}
 			})
 		} else {
 			// add this element as the new front of the list 
+			console.log("!!!", action.payload)
 			return update(state, { 
 				elements: { 
-					"$unshift": [ action.payload ]
+					[action.payload.elementType]: {
+						"$unshift": [ action.payload.elementId ]
+					}
 				} 
 			})
 		}

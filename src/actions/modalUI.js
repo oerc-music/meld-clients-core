@@ -27,9 +27,10 @@ export function clearConstituents() {
 	}
 }	
 
-export function clearElements() {
+export function clearElements(elementType) {
 	return {
-		type: CLEAR_ELEMENTS
+		type: CLEAR_ELEMENTS,
+		payload: elementType
 	}
 }	
 
