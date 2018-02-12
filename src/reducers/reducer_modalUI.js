@@ -10,7 +10,7 @@ import {
 } from '../actions/modalUI';
 
 // terminology: "constituents" are items in the modal UI pane;
-// "elements" are selectable bits of content (e.g. score elements, divs, ...)
+// "elements" are selectable bits of content (e.g. score elements, annotation glyphs, ...)
 
 export default function(state = { constituents: new Set(), elements: {}, mode: "" }, action) {
 	let newState;
@@ -45,8 +45,14 @@ export default function(state = { constituents: new Set(), elements: {}, mode: "
 		})
 	case POP_ELEMENTS:
 		console.log("Popping oldest element selection");
+		const elements = state.elements[action.payload];
+		console.log("State: ", state, " Action: ", action)
 		return update(state, { 
-			[state.elements[action.payload.elementType]]: {"$set": state.elements.slice(0,state.elements.length-1)}
+			elements: {
+				[action.payload]: {
+					"$set": elements.slice(0,elements.length-1)
+				}
+			}
 		}) // n.b. slice is non-mutating, so reducer-safe. 
 	case ELEMENT_CLICKED:
 		console.log("Element clicked:", action);

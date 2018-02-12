@@ -34,9 +34,10 @@ export function clearElements(elementType) {
 	}
 }	
 
-export function popElements() {
+export function popElements(elementType) {
 	return {
-		type: POP_ELEMENTS 
+		type: POP_ELEMENTS,
+		payload: elementType
 	}
 }	
 
