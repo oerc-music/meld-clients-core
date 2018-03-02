@@ -12,7 +12,7 @@ export function boxesForMeasures(verovioSVG, extraClasses){
                 var sysBBox = systems[sysi].getBBox();
                 var maxHeight = sysBBox.height;
                 var maxy = sysBBox.y;
-                var vu =  getStafflineGap(sysMeasures[0]);
+                var vu =  getStafflineGap(sysMeasures[0])/4;
                 for(var measi=0; measi<sysMeasures.length; measi++){
                         var box = document.createElementNS(SVGNS, "rect");
                         var staff1 = sysMeasures[measi].getElementsByClassName('staff')[0];
