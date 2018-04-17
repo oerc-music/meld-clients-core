@@ -139,7 +139,7 @@ class Score extends Component {
 				console.log("Unknown motivation: ", annotation["oa:motivatedBy"]);
 			}
 	 } else if(HAS_BODY in annotation) { 
-			annotation[HAS_BODY].map( (b) => {
+		 annotation[HAS_BODY].map( (b) => {
 				// TODO convert to switch statement
 				if(b["@id"] === MARKUP_EMPHASIS) { 
 					this.props.handleEmphasis(ReactDOM.findDOMNode(this), annotation, this.props.uri, fragments["MEI"]);

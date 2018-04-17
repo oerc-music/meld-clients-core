@@ -26,7 +26,7 @@ const scale = 35;
 
 let conceptualScore;
 
-const vrvOptions = {
+var vrvOptions = {
 			/*
 		// DW 20170830 pre-merge meld-companion options:
                 pageHeight: 1400,
@@ -47,12 +47,16 @@ const vrvOptions = {
 		pageWidth: 1000*100/scale
 };
 
-export default function(state = {publishedScores: {}, conceptualScores: {}, MEI: {}, SVG: {}, componentTargets: {}, scoreMapping: {}, pageNum: 1, pageCount: 0, triggerNextSession: ""}, action) { 
+export function setScoreReducerVerovioOptions(options){
+	vrvOptions = options;
+};
+
+export function ScoreReducer(state = {publishedScores: {}, conceptualScores: {}, MEI: {}, SVG: {}, componentTargets: {}, scoreMapping: {}, pageNum: 1, pageCount: 0, triggerNextSession: ""}, action) { 
 	let svg;
 	const pageCount = vrvTk.getPageCount();
 	switch(action.type) {
 	case FETCH_SCORE:
-        svg = vrvTk.renderData(action.payload.data, vrvOptions);
+      svg = vrvTk.renderData(action.payload.data, vrvOptions);
 		return update(state, {
 			SVG: { $merge: { [action.payload.config.url]: svg } },
 			MEI: { $merge: { [action.payload.config.url]: action.payload.data } } ,
@@ -61,9 +65,12 @@ export default function(state = {publishedScores: {}, conceptualScores: {}, MEI:
 		});
 
     case FETCH_RIBBON_CONTENT:
-		var orch =  new Orchestration(action.payload.data);
+/*		var orch =  new Orchestration(action.payload.data);
 		var svgRibbon = orch.drawOrchestration(false, 0, 400, 0, 600);
-		return update(state, {MEI: { $merge: {[action.payload.config.url]: svgRibbon.outerHTML}}});
+		return update(state, {MEI: { $merge: {[action.payload.config.url]: svgRibbon.outerHTML}}});*/
+			var data = action.payload.data;
+			if(!state.MEIfile) state.MEIfile = {};
+			return update(state, {MEIfile: { $merge: {[action.payload.config.url]: action.payload.data}}});
 
     case FETCH_MANIFESTATIONS:
 		console.log("IN FETCH_MANIFESTATIONS, payload is: ", action.payload)
