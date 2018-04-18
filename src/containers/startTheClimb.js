@@ -9,7 +9,6 @@ class StartTheClimb extends Component {
 	constructor(props) { 
 		super(props);
 		this.state = {
-			performerUri: "",
 			scoreUri: "http://127.0.0.1:5000/score/basecamp",
 			sessionsUri: "http://127.0.0.1:5000/sessions"
 		};
@@ -38,7 +37,7 @@ class StartTheClimb extends Component {
 //	}
 
 	startClimb() { 
-		this.props.createSession(this.state.sessionsUri, this.state.scoreUri, this.state.performerUri);
+		this.props.createSession(this.state.sessionsUri, this.state.scoreUri)
 	}
 }
 
