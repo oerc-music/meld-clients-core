@@ -14,6 +14,7 @@ import ClimbArchive from './containers/climbArchive';
 import ForbiddenQuestion from './containers/musicology/forbiddenQuestion';
 import Rheingold from './containers/musicology/rheingold';
 import Carousel from './containers/musicology/demo/carousel';
+import ModalTest from './containers/modalTest';
 import reducers from './reducers';
 
 const createStoreWithMiddleware = applyMiddleware(thunk, ReduxPromise)(createStore);
@@ -23,6 +24,7 @@ ReactDOM.render(
 		<Router history={browserHistory}> 
 			<Route path="/" component={App} />
 			<Route path="/jam" component={Jam} />
+			<Route path="/test" component={ModalTest} />
 			<Route path="/Climb" component={Climb} />
 			<Route path="/StartTheClimb" component={StartTheClimb} />
 			<Route path="/ClimbArchive" component={ClimbArchive} />
