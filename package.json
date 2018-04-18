@@ -1,9 +1,9 @@
 {
-  "name": "meld-client",
-  "version": "0.0.1",
-  "description": "Music Encoding and Linked Data (MELD) client",
+  "name": "meld-clients-core",
+  "version": "0.0.2",
+  "description": "Music Encoding and Linked Data (MELD) clients core library",
   "main": "index.js",
-  "repository": "git@github.com:musicog/meld-client.git",
+  "repository": "git@github.com:musicog/meld-clients-core.git",
   "scripts": {
     "start": "node ./node_modules/webpack-dev-server/bin/webpack-dev-server.js"
   },
