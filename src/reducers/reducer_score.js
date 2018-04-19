@@ -27,24 +27,14 @@ const scale = 35;
 let conceptualScore;
 
 var vrvOptions = {
-			/*
-		// DW 20170830 pre-merge meld-companion options:
-                pageHeight: 1400,
-                pageWidth: 2000,
-				spacingLinear: 0.05,
-				spacingNonLinear: 0.05,
-				spacingStaff: 0.05,
-				spacingSystem: 0.05,
-				ignoreLayout: true,
-                adjustPageHeight: true,
-                scale: 36 
-			*/
-	noLayout:1,
-		adjustPageHeight:0,
-	scale:scale,
-	spacingStaff: 24,
-		pageHeight: 700*100/scale,
-		pageWidth: 1000*100/scale
+		// override these defaults from your MELD app using 
+		// setScoreReducerVerovioOptions (below)
+		ignoreLayout:1,
+		adjustPageHeight:1,
+		scale:scale,
+		spacingStaff: 24,
+		pageHeight: 1000*100/scale,
+		pageWidth: 700*100/scale
 };
 
 export function setScoreReducerVerovioOptions(options){
