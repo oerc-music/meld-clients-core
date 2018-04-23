@@ -299,17 +299,18 @@ function assignClassToClosestMeasure(className, component, annotation, uri, frag
 	// n.b. could be the fragment itself
 	fragments.map((f) => {  
 		const fLocalId = f.substr(f.indexOf("#"))
-		const element = component.querySelector(fLocalId).closest(".measure");
-		if (element) { 
-			if(!element.classList.contains(className)) {
-				element.classList.add(className);
+		const element = component.querySelector(fLocalId);
+		const closestMeasure = element ? element.closest(".measure") : null;
+		if (closestMeasure) { 
+			if(!closestMeasure.classList.contains(className)) {
+				closestMeasure.classList.add(className);
 			}
-			applyAnnotationId(element, annotation);
-			element.onmouseover = function(){ 
+			applyAnnotationId(closestMeasure, annotation);
+			closestMeasure.onmouseover = function(){ 
 				let highlighted = document.querySelectorAll("."+className);
 				Array.prototype.map.call(highlighted, function(em) { em.classList.add("infocus")});
 			}
-			element.onmouseleave = function(){ 
+			closestMeasure.onmouseleave = function(){ 
 				let highlighted= document.querySelectorAll("."+className);
 				Array.prototype.map.call(highlighted, function(em) { em.classList.remove("infocus")});
 			}

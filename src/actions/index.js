@@ -30,6 +30,7 @@ export const REALIZATION_OF = 'frbr:realizationOf';
 export const EXPRESSION = 'frbr:Expression';
 export const PART_OF = 'frbr:partOf';
 export const PART = 'frbr:part';
+export const HARMONY = 'http://meld.linkedmusic.org/companion/vocab/harmony';
 export const HAS_STRUCTURE= 'http://meld.linkedmusic.org/terms/hasStructure';
 export const SEQ = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#Seq';
 export const SEQPART = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#_';
@@ -303,6 +304,18 @@ export function fetchTargetExpression(compacted) {
 		let target = compacted;  
 		if(target["@type"].includes(EXPRESSION)) { 
 			// found an expression
+			// Do we have a harmony declaration?
+			let chords = [];
+			console.log("no harmony?", target);
+			if(HARMONY in target){
+				var counter=1;
+				var urlBegins = "http://www.w3.org/1999/02/22-rdf-syntax-ns#_";
+				console.log("harmony check", target[HARMONY]);
+				while(urlBegins+counter in target[HARMONY]){
+					chords.push(target[HARMONY][urlBegins+counter]);
+					counter++;
+				}
+			}
 			// does it have any parts?
 			let parts = [];
 			console.log("part check: ", target)
@@ -328,7 +341,7 @@ export function fetchTargetExpression(compacted) {
 				});
 				// now fetch the work to continue on to the manifestations associated with these parts
 				if(REALIZATION_OF in target) {
-					dispatch(fetchWork(compacted, parts, target[REALIZATION_OF]["@id"]));
+					dispatch(fetchWork(compacted, parts, target[REALIZATION_OF]["@id"], chords));
 				} else { console.log("Target is an unrealized expression: ", target); }
 			} else { console.log("Target expression without parts", target); }
 		} else { console.log("fetchTargetExpression attempted on a non-Expression! ", target); }
@@ -336,15 +349,16 @@ export function fetchTargetExpression(compacted) {
 }
 
 
-export function fetchWork(target, parts, work) { 
-	console.log("STARTING FETCHWORK WITH ", work, parts);
+export function fetchWork(target, parts, work, chords) { 
+	console.log("STARTING FETCHWORK WITH ", work, parts, chords);
 	return(dispatch) => {
 		dispatch({
 			type: FETCH_WORK,
 			payload: { 
 				target: target,
 				parts: parts,
-				works: work
+				works: work,
+				chords: chords
 			}
 		});
 		axios.get(work).then((data) => { 
@@ -595,7 +609,7 @@ export function scorePrevPage(session, nextSession, etag, annotation, pubScoreUr
 
 export function transitionToSession(thisSession, nextSession) { 	
 	// TODO do this properly using react.router to avoid full reload
-	window.location.assign(nextSession)
+	window.location.assign('/Climb?session=' + nextSession)
 	return { 
 		type: ANNOTATION_HANDLED 
 	}
