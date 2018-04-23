@@ -17,7 +17,21 @@ class ClimbArchive extends Component {
 	}
 	
 	render() { 
+		console.log("Archive props: ", this.props)
 		if(this.props.score.publishedScores) {
+			if(this.props.score.triggerNextSession) { 
+				// have we got a next session queued up?
+				if(this.props.graph.nextSession) { 
+					this.props.transitionToSession(
+						this.props.graph.annoGraph["@id"], 
+						"/ClimbArchive?session=" + this.props.graph.nextSession
+					)
+					return <div>Loading next session...</div>
+				} else { 
+				// if not, ignore this request and reset trigger
+					this.props.resetNextSessionTrigger();
+				}
+			}
 			let session = "";
 			let etag = "";
 			if (this.props.graph && this.props.graph.annoGraph) { 

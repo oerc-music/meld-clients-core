@@ -46,7 +46,7 @@ const vrvOptions = {
 		pageWidth: 700*100/scale
 };
 
-export default function(state = {publishedScores: {}, conceptualScores: {}, MEI: {}, SVG: {}, componentTargets: {}, scoreMapping: {}, pageNum: 1, pageCount: 0, triggerNextSession: ""}, action) { 
+export default function(state = {publishedScores: {}, conceptualScores: {}, MEI: {}, SVG: {}, componentTargets: {}, scoreMapping: {}, pageNum: 1, pageCount: 0, triggerNextSession: "", triggerPrevSession:""}, action) { 
 	let svg;
 	const pageCount = vrvTk.getPageCount();
 	switch(action.type) {
@@ -196,9 +196,10 @@ export default function(state = {publishedScores: {}, conceptualScores: {}, MEI:
 		console.log("Page num: ", action.payload.pageNum);
 		console.log("URI: ", action.payload.uri);
 		if(action.payload.pageNum === 0) { 
-			// we've left the last page, set up a transfer to the next session
-			console.log("SCORE_PREV_PAGE attempted on first page -- ignoring!");
-			return state;
+			// we've left the first page, go back in history (to previous session)
+			// TODO do this within react-router
+			console.log("SCORE_PREV_PAGE attempted on first page -- go back to previous session!");
+			return update(state, { triggerPrevSession: { $set: true  } });
 		} else { 
 			vrvTk.loadData(action.payload.data);
 			svg = vrvTk.renderPage(action.payload.pageNum-1, vrvOptions);

@@ -595,7 +595,7 @@ export function scorePrevPage(session, nextSession, etag, annotation, pubScoreUr
 
 export function transitionToSession(thisSession, nextSession) { 	
 	// TODO do this properly using react.router to avoid full reload
-	window.location.assign('/Climb?session=' + nextSession)
+	window.location.assign(nextSession)
 	return { 
 		type: ANNOTATION_HANDLED 
 	}
@@ -630,42 +630,43 @@ export function postPrevPageAnnotation(session, etag) {
 }
 
 export function postAnnotation(session, etag, json, retries=MAX_RETRIES) {
-	if(retries) { 
-		console.log("Posting annotation: ", session, etag, json)
-		axios.post(
-			session, 
-			json, 
-			{ headers: {'Content-Type': 'application/ld+json', 'If-None-Match':etag} }
-		).catch(function (error) { 
-			if(error.response.status == 412) {
-				console.log("Mid-air collision while attempting to POST annotation. Retrying.", session, etag, json);
-				// GET the session resource to figure out new etag
-				axios.get(session).then( (response) => {
-					// and try again
-					return (dispatch) => { 
-						setTimeout(() => {
-							dispatch(postAnnotation(session, response.headers.etag, json, retries-1))
-						}, RETRY_DELAY);
-					}
-				});
-			} else { 
-				console.log("Error while posting annotation: ", error);
-				console.log("Retrying.");
-				return (dispatch) => { 
+	return(dispatch) => {
+		if(retries) { 
+			console.log("Posting annotation: ", session, etag, json)
+			axios.post(
+				session, 
+				json, 
+				{ headers: {'Content-Type': 'application/ld+json', 'If-None-Match':etag} }
+			).catch(function (error) { 
+				if(error.response.status == 412) {
+					console.log("ARF Mid-air collision while attempting to POST annotation. Retrying.", session, etag, json);
+					// GET the session resource to figure out new etag
+					axios.get(session).then( (response) => {
+						return(dispatch) => {
+							// and try again
+							setTimeout(() => {
+								console.log("ARF trying agian to post annotation after timeout")
+								dispatch(postAnnotation(session, response.headers.etag, json, retries-1))
+							}, RETRY_DELAY);
+						}
+					});
+				} else { 
+					console.log("ARF Error while posting annotation: ", error);
+					console.log("Retrying.");
 					setTimeout(() => {
 						dispatch(postAnnotation(session, response.headers.etag, json, retries-1))
 					}, RETRY_DELAY);
-				}
-			}	
-		});
+				}	
+			});
 
-		return { 
-			type: ANNOTATION_POSTED
-		}
-	} else { 
-		console.log("FAILED TO POST ANNOTATION (MAX RETRIES EXCEEDED): ", session, etag, json)
-		return { 
-			type: ANNOTATION_NOT_HANDLED
+			return { 
+				type: ANNOTATION_POSTED
+			}
+		} else { 
+			console.log("FAILED TO POST ANNOTATION (MAX RETRIES EXCEEDED): ", session, etag, json)
+			return { 
+				type: ANNOTATION_NOT_HANDLED
+			}
 		}
 	}
 }
@@ -797,7 +798,7 @@ export function ensureArray(theObj, theKey) {
 	}
 }
 
-export function createSession(sessionsUri, scoreUri, {etag="", retries=MAX_RETRIES, performerUri="", slug=""} = {}) { 
+export function createSession(sessionsUri, scoreUri, {session="", etag="", retries=MAX_RETRIES, performerUri="", slug=""} = {}) { 
 	return (dispatch) => { 
 		if(retries) { 
 			console.log("Trying to create session: ", sessionsUri, scoreUri, etag, retries, performerUri);
@@ -816,10 +817,28 @@ export function createSession(sessionsUri, scoreUri, {etag="", retries=MAX_RETRI
 						} 
 					}
 				).then( (postResponse) => {
+						// 1.Note that we've created the session
+						// (for real-time client-side queueing)
 						dispatch({
 							type: CREATE_SESSION,
 							payload: postResponse
-						})
+						});
+						// 2.If we've been called inside a session context,
+						// post a corresponding queue annotation
+						// (for later static revisits, e.g. in archive)
+						if(session) { 
+							dispatch(
+								postAnnotation(
+									session,
+									etag, 
+									{
+										"oa:hasTarget": {"@id": session},
+										"oa:motivatedBy": {"@id": "motivation:queueNextSession"},
+										"oa:hasBody": {"@id": postResponse.headers.location}
+									}
+								)
+							)
+						}
 					}).catch(function (error) { 
 						if(error.response.status == 412) {
 							console.log("Mid-air collision while attempting to POST annotation. Retrying.");
