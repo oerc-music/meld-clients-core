@@ -1,11 +1,12 @@
 import update from 'immutability-helper';
 import { 
-	FETCH_GRAPH, 
+	FETCH_GRAPH,
+	FETCH_WORK,
 	FETCH_COMPONENT_TARGET, 
 	SESSION_GRAPH_ETAG,
 	ensureArray
 } from '../actions/index'
-import { QUEUE_NEXT_SESSION } from '../actions/meldActions'
+import { QUEUE_NEXT_SESSION } from '../actions/meldActions';
 
 const INIT_STATE = {
     graph: { 
@@ -14,7 +15,8 @@ const INIT_STATE = {
         targetsByType: {}
     },
 	etags: {},
-	nextSession: ""
+	nextSession: "",
+	chords: {}
 }
 
 export default function(state = INIT_STATE, action) { 
@@ -121,7 +123,11 @@ export default function(state = INIT_STATE, action) {
 		return update(state, { 
 			nextSession: { $set: action.payload }
 		});
-	default:
-		return state;
+		case FETCH_WORK:
+			if(action.payload.chords){
+				return update(state, { chords: {$merge: { [action.payload.target["@id"]]: action.payload.chords } }});
+			};
+		default:
+			return state;
 	}
 }

@@ -1,11 +1,15 @@
-MELD Client
-===========
+MELD Clients Core
+=================
+A React.js library providing common MELD web page elements, graph traversal actions, rendering and interaction handlers, and state reducers. 
 
+For an overview of the MELD (Music Encoding and Linked Data) Framework, plese see: [oerc-music/meld](http://github.com/oerc-music/meld). 
 
-To install:
-	npm install
+To include the MELD Clients Core in your MELD app, add the following entry to the dependencies in your application's package.json file:
 
-To run: (default port: 8080)
-	npm start
+```
+"meld-clients-core": "oerc-music/meld-clients-core"
+```
 
-seeAlso: http://github.com/oerc-music/meld (server)
+MELD Clients Core depends on a number of npm modules, including React, Redux, and Redux-Thunk (web application framework), Axios (HTTP communication), and "jsonld" and "n3" (Linked Data functionalities around RDF graph handling and JSON-LD conversion). A full list of dependencies is available in the package.json file.
+
+MELD Clients Core also includes JavaScript components of Verovio, a music engraving library developed by the Swiss RISM office (see [rism-ch/verovio](http://github.com/rism-ch/verovio) repository).

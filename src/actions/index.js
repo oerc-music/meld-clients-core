@@ -30,6 +30,7 @@ export const REALIZATION_OF = 'frbr:realizationOf';
 export const EXPRESSION = 'frbr:Expression';
 export const PART_OF = 'frbr:partOf';
 export const PART = 'frbr:part';
+export const HARMONY = 'http://meld.linkedmusic.org/companion/vocab/harmony';
 export const HAS_STRUCTURE= 'http://meld.linkedmusic.org/terms/hasStructure';
 export const SEQ = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#Seq';
 export const SEQPART = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#_';
@@ -300,9 +301,21 @@ export function fetchTargetExpression(compacted) {
 			type: FETCH_TARGET_EXPRESSION,
 			payload:compacted 
 		});
-		let target = compacted;  
+		let target = compacted;
 		if(target["@type"].includes(EXPRESSION)) { 
 			// found an expression
+			// Do we have a harmony declaration?
+			let chords = [];
+			console.log("no harmony?", target);
+			if(HARMONY in target){
+				var counter=1;
+				var urlBegins = "http://www.w3.org/1999/02/22-rdf-syntax-ns#_";
+				console.log("harmony check", target[HARMONY]);
+				while(urlBegins+counter in target[HARMONY]){
+					chords.push(target[HARMONY][urlBegins+counter]);
+					counter++;
+				}
+			}
 			// does it have any parts?
 			let parts = [];
 			console.log("part check: ", target)
@@ -328,7 +341,7 @@ export function fetchTargetExpression(compacted) {
 				});
 				// now fetch the work to continue on to the manifestations associated with these parts
 				if(REALIZATION_OF in target) {
-					dispatch(fetchWork(compacted, parts, target[REALIZATION_OF]["@id"]));
+					dispatch(fetchWork(compacted, parts, target[REALIZATION_OF]["@id"], chords));
 				} else { console.log("Target is an unrealized expression: ", target); }
 			} else { console.log("Target expression without parts", target); }
 		} else { console.log("fetchTargetExpression attempted on a non-Expression! ", target); }
@@ -336,15 +349,16 @@ export function fetchTargetExpression(compacted) {
 }
 
 
-export function fetchWork(target, parts, work) { 
-	console.log("STARTING FETCHWORK WITH ", work, parts);
+export function fetchWork(target, parts, work, chords) { 
+	console.log("STARTING FETCHWORK WITH ", work, parts, chords);
 	return(dispatch) => {
 		dispatch({
 			type: FETCH_WORK,
 			payload: { 
 				target: target,
 				parts: parts,
-				works: work
+				works: work,
+				chords: chords
 			}
 		});
 		axios.get(work).then((data) => { 
@@ -630,44 +644,47 @@ export function postPrevPageAnnotation(session, etag) {
 }
 
 export function postAnnotation(session, etag, json, retries=MAX_RETRIES) {
-	if(retries) { 
-		console.log("Posting annotation: ", session, etag, json)
-		axios.post(
-			session, 
-			json, 
-			{ headers: {'Content-Type': 'application/ld+json', 'If-None-Match':etag} }
-		).catch(function (error) { 
-			if(error.response.status == 412) {
-				console.log("Mid-air collision while attempting to POST annotation. Retrying.", session, etag, json);
-				// GET the session resource to figure out new etag
-				axios.get(session).then( (response) => {
-					// and try again
-					return (dispatch) => { 
+	json = JSON.parse(json)
+	if(!json["oa:annotatedAt"]) { 
+		json["oa:annotatedAt"] = new Date().toISOString();
+	}
+	json = JSON.stringify(json);
+	return( (dispatch) => {
+		if(retries) { 
+			console.log("Posting annotation: ", session, etag, json)
+			axios.post(
+				session, 
+				json, 
+				{ headers: {'Content-Type': 'application/ld+json', 'If-None-Match':etag} }
+			).catch(function (error) { 
+				if(error.response.status == 412) {
+					console.log("Mid-air collision while attempting to POST annotation. Retrying.", session, etag, json);
+					// GET the session resource to figure out new etag
+					axios.get(session).then( (response) => {
+						// and try again
+						console.log("Dispatching again....");
 						setTimeout(() => {
 							dispatch(postAnnotation(session, response.headers.etag, json, retries-1))
 						}, RETRY_DELAY);
-					}
-				});
-			} else { 
-				console.log("Error while posting annotation: ", error);
-				console.log("Retrying.");
-				return (dispatch) => { 
+					}).catch( (err) => { console.log("Error while GETing to determine etag: ", err) });
+				} else { 
+					console.log("Error while posting annotation: ", error);
+					console.log("Retrying.");
 					setTimeout(() => {
 						dispatch(postAnnotation(session, response.headers.etag, json, retries-1))
 					}, RETRY_DELAY);
-				}
-			}	
-		});
-
-		return { 
-			type: ANNOTATION_POSTED
+				}	
+			});
+			return { 
+				type: ANNOTATION_POSTED
+			}
+		} else { 
+			console.log("FAILED TO POST ANNOTATION (MAX RETRIES EXCEEDED): ", session, etag, json)
+			return { 
+				type: ANNOTATION_NOT_HANDLED
+			}
 		}
-	} else { 
-		console.log("FAILED TO POST ANNOTATION (MAX RETRIES EXCEEDED): ", session, etag, json)
-		return { 
-			type: ANNOTATION_NOT_HANDLED
-		}
-	}
+	})
 }
 
 export function markAnnotationProcessed(session, etag, annotation, retries=MAX_RETRIES) {
