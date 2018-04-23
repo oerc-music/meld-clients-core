@@ -26,7 +26,7 @@ const scale = 35;
 
 let conceptualScore;
 
-const vrvOptions = {
+let vrvOptions = {
 		// override these defaults from your MELD app using 
 		// setScoreReducerVerovioOptions (below)
 		ignoreLayout:1,
