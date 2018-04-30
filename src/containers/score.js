@@ -24,6 +24,19 @@ import {
 
 
 import InlineSVG from 'svg-inline-react';
+const defaultVrvOptions = {
+	ignoreLayout:1,
+	adjustPageHeight:1,
+	spacingStaff: 0,
+	spacingSystem: 4,
+	spacingLinear: 0.2,
+	spacingNonLinear: 0.55,
+	noFooter: 1,
+	noHeader: 1,
+	scale: 30,
+	pageHeight: 3000,
+	pageWidth: 1800
+};
 
 
 class Score extends Component { 
@@ -32,17 +45,25 @@ class Score extends Component {
 
 		this.state = { 
 			score: {},
-            annotations:{}
+			vrvTk: new verovio.toolkit();
+      annotations:{}
 		};
 	}
 
 	render() {
-		if(Object.keys(this.props.score).length) { 
+		if(Object.keys(this.props.score).length) {
+			if(this.props.score.MEI[this.props.uri]) {
+				var svg = this.state.vrvTk.renderData(this.props.score.MEI[this.props.uri], this.props.options ? this.props.options : defaultVrvOptions);
+			} else if (this.props.score.SVG[this.props.uri]) {
+				svg = this.props.score.SVG[this.props.uri];
+			} else {
+				svg = '';
+			}			
 			return (
 				<div id={this.props.uri} className="scorepane">
 					<div className="controls" />
 					<div className="annotations" />
-					<InlineSVG className="score" src={ this.props.score["SVG"][this.props.uri] } />
+					<InlineSVG className="score" src={ svg } />
 				</div>
 			);
 		}
