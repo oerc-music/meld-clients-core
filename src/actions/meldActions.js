@@ -83,6 +83,7 @@ export function handleCueAudio(component, annotation, body, uri, fragments) {
 
 export function handleEmphasis(component, annotation, uri, fragments) {
 	assignClass("meld-emphasis", component, annotation, uri, fragments);
+	return annotationHandled();
 }
 
 export function handleHighlight(component, annotation, uri, fragments) {
