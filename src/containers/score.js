@@ -45,7 +45,7 @@ class Score extends Component {
 
 		this.state = { 
 			score: {},
-			vrvTk: new verovio.toolkit();
+			vrvTk: new verovio.toolkit(),
       annotations:{}
 		};
 	}
