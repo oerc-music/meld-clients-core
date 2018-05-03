@@ -30,7 +30,11 @@ export const REALIZATION_OF = 'frbr:realizationOf';
 export const EXPRESSION = 'frbr:Expression';
 export const PART_OF = 'frbr:partOf';
 export const PART = 'frbr:part';
+export const KEY = 'mo:key';
 export const HARMONY = 'http://meld.linkedmusic.org/companion/vocab/harmony';
+export const CADENCE = 'http://meld.linkedmusic.org/companion/vocab/cadentialGoal';
+export const DEGREE = 'http://meld.linkedmusic.org/companion/vocab/hasDegree';
+export const CHORD_TYPE = 'http://meld.linkedmusic.org/companion/vocab/chordType';
 export const HAS_STRUCTURE= 'http://meld.linkedmusic.org/terms/hasStructure';
 export const SEQ = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#Seq';
 export const SEQPART = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#_';
@@ -306,8 +310,21 @@ export function fetchTargetExpression(compacted) {
 			// found an expression
 			// Do we have a harmony declaration?
 			let chords = [];
-			console.log("no harmony?", target);
+			let expressionObj = {};
+			expressionObj['@id'] = target['@id'];
+			if(PART_OF in target){
+				expressionObj.motif = target[PART_OF]['@id'];
+				expressionObj.n = parseInt(/\d*$/.exec(target['@id'])[0]); // FIXME: bad hack for not having seq available
+			}
+			if(REALIZATION_OF in target){
+				expressionObj.segment = target[REALIZATION_OF]['@id'];
+			}
+			if(KEY in target) expressionObj.key = target[KEY]['@id'];
 			if(HARMONY in target){
+				if(PART_OF in target){
+					expressionObj.motif = target[PART_OF]['@id'];
+					expressionObj.chords = chords;
+				}
 				var counter=1;
 				var urlBegins = "http://www.w3.org/1999/02/22-rdf-syntax-ns#_";
 				console.log("harmony check", target[HARMONY]);
@@ -315,6 +332,12 @@ export function fetchTargetExpression(compacted) {
 					chords.push(target[HARMONY][urlBegins+counter]);
 					counter++;
 				}
+			}
+			if(CADENCE in target){
+				var cadenceData = target[CADENCE];
+				expressionObj.cadence = {};
+				if(DEGREE in cadenceData) expressionObj.cadence.degree = cadenceData[DEGREE]['@id'];
+				if(CHORD_TYPE in cadenceData) expressionObj.cadence.chordType = cadenceData[CHORD_TYPE]['@id'];
 			}
 			// does it have any parts?
 			let parts = [];
@@ -341,7 +364,7 @@ export function fetchTargetExpression(compacted) {
 				});
 				// now fetch the work to continue on to the manifestations associated with these parts
 				if(REALIZATION_OF in target) {
-					dispatch(fetchWork(compacted, parts, target[REALIZATION_OF]["@id"], chords));
+					dispatch(fetchWork(compacted, parts, target[REALIZATION_OF]["@id"], expressionObj));
 				} else { console.log("Target is an unrealized expression: ", target); }
 			} else { console.log("Target expression without parts", target); }
 		} else { console.log("fetchTargetExpression attempted on a non-Expression! ", target); }
@@ -349,8 +372,8 @@ export function fetchTargetExpression(compacted) {
 }
 
 
-export function fetchWork(target, parts, work, chords) { 
-	console.log("STARTING FETCHWORK WITH ", work, parts, chords);
+export function fetchWork(target, parts, work, expressionObj) { 
+	console.log("STARTING FETCHWORK WITH ", work, parts, expressionObj);
 	return(dispatch) => {
 		dispatch({
 			type: FETCH_WORK,
@@ -358,7 +381,7 @@ export function fetchWork(target, parts, work, chords) {
 				target: target,
 				parts: parts,
 				works: work,
-				chords: chords
+				chords: expressionObj
 			}
 		});
 		axios.get(work).then((data) => { 

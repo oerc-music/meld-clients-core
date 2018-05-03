@@ -16,7 +16,7 @@ const INIT_STATE = {
     },
 	etags: {},
 	nextSession: "",
-	chords: {}
+	info: {}
 }
 
 export default function(state = INIT_STATE, action) { 
@@ -124,8 +124,8 @@ export default function(state = INIT_STATE, action) {
 			nextSession: { $set: action.payload }
 		});
 		case FETCH_WORK:
-			if(action.payload.chords){
-				return update(state, { chords: {$merge: { [action.payload.target["@id"]]: action.payload.chords } }});
+			if(action.payload.info){
+				return update(state, { info: {$merge: { [action.payload.target["@id"]]: action.payload.info } }});
 			};
 		default:
 			return state;
