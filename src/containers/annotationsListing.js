@@ -10,6 +10,7 @@ class AnnotationsListing extends Component {
 	}
 
 	render() { 
+		console.log("annolisting props: ", this.props)
 		if(Object.keys(this.props.score).length && Object.keys(this.props.score.componentTargets).length) { 
 			// filter out undefined annotations
 			const anno = annotations.filter( (annotation) => { return annotation })
@@ -19,7 +20,6 @@ class AnnotationsListing extends Component {
 			console.log("--Props: ", this.props)
 			return ( 
 				<div className="annotationsWrapper">
-					<img src="../../images/climbMap.jpg" width="300px"/>
 					<div>Events:</div>
 					{
 						anno.map( (annotation) => {

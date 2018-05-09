@@ -26,37 +26,26 @@ const scale = 35;
 
 let conceptualScore;
 
-var vrvOptions = {
-			/*
-		// DW 20170830 pre-merge meld-companion options:
-                pageHeight: 1400,
-                pageWidth: 2000,
-				spacingLinear: 0.05,
-				spacingNonLinear: 0.05,
-				spacingStaff: 0.05,
-				spacingSystem: 0.05,
-				ignoreLayout: true,
-                adjustPageHeight: true,
-                scale: 36 
-			*/
-	noLayout:1,
-		adjustPageHeight:0,
-	scale:scale,
-	spacingStaff: 24,
-		pageHeight: 700*100/scale,
-		pageWidth: 1000*100/scale
+let vrvOptions = {
+		// override these defaults from your MELD app using 
+		// setScoreReducerVerovioOptions (below)
+		ignoreLayout:1,
+		adjustPageHeight:1,
+		scale:scale,
+		pageHeight: 1000*100/scale,
+		pageWidth: 700*100/scale
 };
 
 export function setScoreReducerVerovioOptions(options){
 	vrvOptions = options;
 };
 
-export function ScoreReducer(state = {publishedScores: {}, conceptualScores: {}, MEI: {}, SVG: {}, componentTargets: {}, scoreMapping: {}, pageNum: 1, pageCount: 0, triggerNextSession: ""}, action) { 
+export function ScoreReducer(state = {publishedScores: {}, conceptualScores: {}, MEI: {}, SVG: {}, componentTargets: {}, scoreMapping: {}, pageNum: 1, pageCount: 0, triggerNextSession: "", triggerPrevSession: ""}, action) { 
 	let svg;
 	const pageCount = vrvTk.getPageCount();
 	switch(action.type) {
 	case FETCH_SCORE:
-      svg = vrvTk.renderData(action.payload.data, vrvOptions);
+        svg = vrvTk.renderData(action.payload.data, vrvOptions);
 		return update(state, {
 			SVG: { $merge: { [action.payload.config.url]: svg } },
 			MEI: { $merge: { [action.payload.config.url]: action.payload.data } } ,
@@ -204,9 +193,10 @@ export function ScoreReducer(state = {publishedScores: {}, conceptualScores: {},
 		console.log("Page num: ", action.payload.pageNum);
 		console.log("URI: ", action.payload.uri);
 		if(action.payload.pageNum === 0) { 
-			// we've left the last page, set up a transfer to the next session
-			console.log("SCORE_PREV_PAGE attempted on first page -- ignoring!");
-			return state;
+			// we've left the first page, go back in history (to previous session)
+			// TODO do this within react-router
+			console.log("SCORE_PREV_PAGE attempted on first page -- go back to previous session!");
+			return update(state, { triggerPrevSession: { $set: true  } });
 		} else { 
 			vrvTk.loadData(action.payload.data);
 			svg = vrvTk.renderPage(action.payload.pageNum-1, vrvOptions);

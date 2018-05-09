@@ -60,7 +60,7 @@ class Climb extends Component {
 		} else { 
 			this.props.fetchSessionGraph(graphUri);
 		}
-		setTimeout(() => this.doPoll(), 200);
+		setTimeout(() => this.doPoll(), 2000);
 	}
 
 	render() {
@@ -70,7 +70,7 @@ class Climb extends Component {
 				if(this.props.sessionControl.newSessionUri) { 
 					this.props.transitionToSession(
 						this.props.graph.annoGraph["@id"], 
-						this.props.sessionControl.newSessionUri
+						"/Climb?session=" + this.props.sessionControl.newSessionUri
 					)
 					return <div>Loading next session...</div>
 				} else { 

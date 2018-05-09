@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import ReactDOM from 'react-dom'
 import { connect } from 'react-redux';
 import { bindActionCreators} from 'redux';
-import { fetchScore, scoreNextPage, scorePrevPage, HAS_BODY, HAS_TARGET } from '../actions/index';
+import { ensureArray, fetchScore, scoreNextPage, scorePrevPage, HAS_BODY, HAS_TARGET } from '../actions/index';
 import { 
 	MARKUP_EMPHASIS, 
 	handleEmphasis,
@@ -19,7 +19,8 @@ import {
 	handleChoiceMuzicode,
 	handleChallengePassed,
 	handleDisklavierStart,
-	handleMuzicodeTriggered
+	handleMuzicodeTriggered,
+	handleArchivedMuzicodeTrigger
 } from '../actions/meldActions';
 
 
@@ -88,6 +89,7 @@ class Score extends Component {
 			console.log("annotation is: ", annotation)
 			if(typeof annotation === 'undefined') { return }
 			// each annotation...
+			annotation = ensureArray(annotation, "oa:hasTarget");
 			const frags = annotation["oa:hasTarget"].map( (annotationTarget) => { 
 				// each annotation target
 				if(annotationTarget["@id"] in this.props.score.componentTargets) {
@@ -140,6 +142,10 @@ class Score extends Component {
 				const muzicodeTarget = this.props.score.componentTargets[annotation["oa:hasTarget"][0]["@id"]]; //FIXME handle n>1 targets
 				this.props.handleMuzicodeTriggered(ReactDOM.findDOMNode(this), annotation, this.props.uri, fragments["MEI"], muzicodeTarget, this.props.session, this.props.nextSession, this.props.etag);
 			break;
+			case "motivation:archivedMuzicodeTrigger":
+				const archivedMuzicodeTarget = this.props.score.componentTargets[annotation["oa:hasTarget"][0]["@id"]]; //FIXME handle n>1 targets
+				this.props.handleArchivedMuzicodeTrigger(ReactDOM.findDOMNode(this), annotation, this.props.uri, fragments["MEI"], archivedMuzicodeTarget, this.props.session, this.props.nextSession);
+				break;
 			case "motivation:nextPageOrPiece":	
 				console.log("----", this.props);
 				this.props.scoreNextPage(this.props.session, this.props.nextSession, this.props.etag, annotation, this.props.uri, this.props.score.pageNum, this.props.score.MEI[this.props.uri]);
@@ -185,7 +191,7 @@ function mapStateToProps({ score }) {
 }
 
 function mapDispatchToProps(dispatch) { 
-	return bindActionCreators({ fetchScore, handleEmphasis, handleHighlight, handleHighlight2, handleCueAudio, scorePrevPage, scoreNextPage, handleQueueNextSession, handleCreateNextSession, handleTransitionToNextSession, handleIdentifyMuzicode, handleChoiceMuzicode, handleChallengePassed, handleDisklavierStart, handleMuzicodeTriggered}, dispatch);
+	return bindActionCreators({ fetchScore, handleEmphasis, handleHighlight, handleHighlight2, handleCueAudio, scorePrevPage, scoreNextPage, handleQueueNextSession, handleCreateNextSession, handleTransitionToNextSession, handleIdentifyMuzicode, handleChoiceMuzicode, handleChallengePassed, handleDisklavierStart, handleMuzicodeTriggered, handleArchivedMuzicodeTrigger}, dispatch);
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(Score);
