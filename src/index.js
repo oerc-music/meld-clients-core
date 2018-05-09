@@ -15,7 +15,7 @@ import ForbiddenQuestion from './containers/musicology/forbiddenQuestion';
 import Rheingold from './containers/musicology/rheingold';
 import Carousel from './containers/musicology/demo/carousel';
 import ModalTest from './containers/modalTest';
-import reducers from './reducers';
+import { reducers } from './reducers';
 
 const createStoreWithMiddleware = applyMiddleware(thunk, ReduxPromise)(createStore);
 

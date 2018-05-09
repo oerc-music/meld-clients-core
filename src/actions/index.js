@@ -327,7 +327,6 @@ export function fetchTargetExpression(compacted) {
 				}
 				var counter=1;
 				var urlBegins = "http://www.w3.org/1999/02/22-rdf-syntax-ns#_";
-				console.log("harmony check", target[HARMONY]);
 				while(urlBegins+counter in target[HARMONY]){
 					chords.push(target[HARMONY][urlBegins+counter]);
 					counter++;
