@@ -4,7 +4,7 @@ import { Provider } from 'react-redux';
 import { createStore, applyMiddleware } from 'redux';
 import thunk from 'redux-thunk';
 import ReduxPromise from 'redux-promise';
-import { Router, Route, browserHistory } from 'react-router'
+import { BrowserRouter, Route, Switch } from 'react-router-dom';
 
 import App from './containers/app';
 import Jam from './containers/jam';
@@ -22,17 +22,19 @@ const createStoreWithMiddleware = applyMiddleware(thunk, ReduxPromise)(createSto
 
 ReactDOM.render(
 	<Provider store={createStoreWithMiddleware(reducers)}>
-		<Router history={browserHistory}> 
-			<Route path="/" component={App} />
-			<Route path="/jam" component={Jam} />
-			<Route path="/test" component={ModalTest} />
-			<Route path="/Climb" component={Climb} />
-			<Route path="/StartTheClimb" component={StartTheClimb} />
-			<Route path="/StartTheJam" component={StartTheJam} />
-			<Route path="/ClimbArchive" component={ClimbArchive} />
-			<Route path="/Demo/Rheingold" component={Rheingold}/>
-			<Route path="/TimeMachine" component={Carousel}/>
-			<Route path="/ForbiddenQuestion" component={ForbiddenQuestion}/>
-		</Router>
+		<BrowserRouter> 
+			<Switch>
+				<Route exact path="/" component={App} />
+				<Route exact path="/jam" component={Jam} />
+				<Route exact path="/test" component={ModalTest} />
+				<Route exact path="/Climb" component={Climb} />
+				<Route exact path="/StartTheClimb" component={StartTheClimb} />
+				<Route exact path="/StartTheJam" component={StartTheJam} />
+				<Route exact path="/ClimbArchive" component={ClimbArchive} />
+				<Route exact path="/Demo/Rheingold" component={Rheingold}/>
+				<Route exact path="/TimeMachine" component={Carousel}/>
+				<Route exact path="/ForbiddenQuestion" component={ForbiddenQuestion}/>
+			</Switch>
+		</BrowserRouter>
 	</Provider>
 	, document.querySelector('.container'));

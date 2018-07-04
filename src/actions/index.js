@@ -631,7 +631,7 @@ export function scorePrevPage(session, nextSession, etag, annotation, pubScoreUr
 
 export function transitionToSession(thisSession, nextSession) { 	
 	// TODO do this properly using react.router to avoid full reload
-	window.location.assign('/Climb?session=' + nextSession)
+	window.location.assign('?session=' + nextSession)
 	return { 
 		type: ANNOTATION_HANDLED 
 	}
