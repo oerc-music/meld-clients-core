@@ -186,7 +186,7 @@ export function fetchGraph(uri) {
 
 function processComponentAnnotation(annotation, conceptualScore = "") { 
 	if("meld:state" in annotation && annotation["meld:state"]["@id"] === "meld:processed") { 
- 	// skip previously processed annotation
+		// We can skip this processed annotation
 		return {
 			type: ANNOTATION_SKIPPED,
 			payload: annotation
@@ -304,7 +304,7 @@ export function fetchTargetExpression(compacted) {
 			type: FETCH_TARGET_EXPRESSION,
 			payload:compacted 
 		});
-		let target = compacted;
+		let target = compacted;  
 		if(target["@type"].includes(EXPRESSION)) { 
 			// found an expression
 			// Do we have a harmony declaration?
@@ -326,7 +326,6 @@ export function fetchTargetExpression(compacted) {
 				}
 				var counter=1;
 				var urlBegins = "http://www.w3.org/1999/02/22-rdf-syntax-ns#_";
-				console.log("harmony check", target[HARMONY]);
 				while(urlBegins+counter in target[HARMONY]){
 					chords.push(target[HARMONY][urlBegins+counter]);
 					counter++;
@@ -631,7 +630,7 @@ export function scorePrevPage(session, nextSession, etag, annotation, pubScoreUr
 
 export function transitionToSession(thisSession, nextSession) { 	
 	// TODO do this properly using react.router to avoid full reload
-	window.location.assign('/Climb?session=' + nextSession)
+	window.location.assign('?session=' + nextSession)
 	return { 
 		type: ANNOTATION_HANDLED 
 	}
@@ -666,12 +665,7 @@ export function postPrevPageAnnotation(session, etag) {
 }
 
 export function postAnnotation(session, etag, json, retries=MAX_RETRIES) {
-	json = JSON.parse(json)
-	if(!json["oa:annotatedAt"]) { 
-		json["oa:annotatedAt"] = new Date().toISOString();
-	}
-	json = JSON.stringify(json);
-	return( (dispatch) => {
+	return(dispatch) => {
 		if(retries) { 
 			console.log("Posting annotation: ", session, etag, json)
 			axios.post(
@@ -680,23 +674,26 @@ export function postAnnotation(session, etag, json, retries=MAX_RETRIES) {
 				{ headers: {'Content-Type': 'application/ld+json', 'If-None-Match':etag} }
 			).catch(function (error) { 
 				if(error.response.status == 412) {
-					console.log("Mid-air collision while attempting to POST annotation. Retrying.", session, etag, json);
+					console.log("ARF Mid-air collision while attempting to POST annotation. Retrying.", session, etag, json);
 					// GET the session resource to figure out new etag
 					axios.get(session).then( (response) => {
-						// and try again
-						console.log("Dispatching again....");
-						setTimeout(() => {
-							dispatch(postAnnotation(session, response.headers.etag, json, retries-1))
-						}, RETRY_DELAY);
-					}).catch( (err) => { console.log("Error while GETing to determine etag: ", err) });
+						return(dispatch) => {
+							// and try again
+							setTimeout(() => {
+								console.log("ARF trying agian to post annotation after timeout")
+								dispatch(postAnnotation(session, response.headers.etag, json, retries-1))
+							}, RETRY_DELAY);
+						}
+					});
 				} else { 
-					console.log("Error while posting annotation: ", error);
+					console.log("ARF Error while posting annotation: ", error);
 					console.log("Retrying.");
 					setTimeout(() => {
 						dispatch(postAnnotation(session, response.headers.etag, json, retries-1))
 					}, RETRY_DELAY);
 				}	
 			});
+
 			return { 
 				type: ANNOTATION_POSTED
 			}
@@ -706,7 +703,7 @@ export function postAnnotation(session, etag, json, retries=MAX_RETRIES) {
 				type: ANNOTATION_NOT_HANDLED
 			}
 		}
-	})
+	}
 }
 
 export function markAnnotationProcessed(session, etag, annotation, retries=MAX_RETRIES) {
@@ -836,7 +833,7 @@ export function ensureArray(theObj, theKey) {
 	}
 }
 
-export function createSession(sessionsUri, scoreUri, etag="", retries=MAX_RETRIES, performerUri="") { 
+export function createSession(sessionsUri, scoreUri, {session="", etag="", retries=MAX_RETRIES, performerUri="", slug=""} = {}) { 
 	return (dispatch) => { 
 		if(retries) { 
 			console.log("Trying to create session: ", sessionsUri, scoreUri, etag, retries, performerUri);
@@ -850,20 +847,39 @@ export function createSession(sessionsUri, scoreUri, etag="", retries=MAX_RETRIE
 					{ 
 						headers: { 
 							"Content-Type": "application/ld+json",
-							"If-None-Match": getResponse.headers.etag
+							"If-None-Match": getResponse.headers.etag,
+							"Slug": slug
 						} 
 					}
 				).then( (postResponse) => {
+						// 1.Note that we've created the session
+						// (for real-time client-side queueing)
 						dispatch({
 							type: CREATE_SESSION,
 							payload: postResponse
-						})
+						});
+						// 2.If we've been called inside a session context,
+						// post a corresponding queue annotation
+						// (for later static revisits, e.g. in archive)
+						if(session) { 
+							dispatch(
+								postAnnotation(
+									session,
+									etag, 
+									{
+										"oa:hasTarget": {"@id": session},
+										"oa:motivatedBy": {"@id": "motivation:queueNextSession"},
+										"oa:hasBody": {"@id": postResponse.headers.location}
+									}
+								)
+							)
+						}
 					}).catch(function (error) { 
 						if(error.response.status == 412) {
 							console.log("Mid-air collision while attempting to POST annotation. Retrying.");
 							dispatch( () => {
 								setTimeout(() => {
-									dispatch(createSession(sessionsUri, scoreUri, getResponse.headers.etag, retries-1, performerUri))
+									dispatch(createSession(sessionsUri, scoreUri, {etag: getResponse.headers.etag, retries: retries-1, performerUri: performerUri, slug:slug}))
 								}, RETRY_DELAY);
 							})
 						} else { 
@@ -871,7 +887,7 @@ export function createSession(sessionsUri, scoreUri, etag="", retries=MAX_RETRIE
 							console.log("Retrying.");
 							dispatch( () => {
 								setTimeout(() => {
-									dispatch(createSession(sessionsUri, scoreUri, getResponse.headers.etag, retries-1, performerUri))
+									dispatch(createSession(sessionsUri, scoreUri, {etag: getResponse.headers.etag, retries: retries-1, performerUri: performerUri, slug:slug}))
 								}, RETRY_DELAY);
 							})
 						}

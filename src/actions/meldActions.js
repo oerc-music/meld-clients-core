@@ -119,10 +119,9 @@ export function handleDisklavierStart(component, annotation, uri, fragments) {
 }
 
 export function handleMuzicodeTriggered(component, annotation, uri, fragments, muzicodeTarget, session, nextSession, etag) {
-	console.log("Muzicode triggered:", component, annotation, uri, fragments, muzicodeTarget);
+	console.log("Muzicode triggered:", component, annotation, uri, fragments, muzicodeTarget, etag);
 	return (dispatch) => {
 		// dispatch appropriate rendering handler depending on muzicode type
-		let renderer;
 		switch(muzicodeTarget["muzicodeType"]["@id"]) {
 			case "mc:Choice":
 				dispatch(
@@ -133,7 +132,8 @@ export function handleMuzicodeTriggered(component, annotation, uri, fragments, m
 						annotation,
 						createSession(
 							session.substr(0,session.lastIndexOf("/")),
-							muzicodeTarget["cue"]["@id"]
+							muzicodeTarget["cue"]["@id"], 
+							{ session, etag}
 						)
 					)
 				);
@@ -167,10 +167,45 @@ export function handleMuzicodeTriggered(component, annotation, uri, fragments, m
 						annotation,
 						createSession(
 							session.substr(0,session.lastIndexOf("/")),
-							muzicodeTarget["cue"]["@id"]
+							muzicodeTarget["cue"]["@id"],
+							{ session, etag }
 						)
 					)
 				);
+				break;
+			default: 
+				console.log("Muzicode of unknown type: ", muzicodeTarget);
+		}
+
+		return annotationHandled();
+
+	}
+}
+
+export function handleArchivedMuzicodeTrigger(component, annotation, uri, fragments, muzicodeTarget, session, nextSession, etag) {
+	console.log("Archived muzicode trigger:", component, annotation, uri, fragments, muzicodeTarget);
+	return (dispatch) => {
+		// dispatch appropriate rendering handler depending on muzicode type
+		switch(muzicodeTarget["muzicodeType"]["@id"]) {
+			case "mc:Choice":
+				dispatch( handleChoiceMuzicode(component, annotation, uri, fragments) )
+				dispatch({
+					type: QUEUE_NEXT_SESSION,
+					payload: muzicodeTarget["cue"]["@id"]
+				})
+				break;
+			case "mc:Disklavier":
+				dispatch( handleDisklavierStart(component, annotation, uri, fragments) )
+				break;
+			case "mc:Approaching":
+				dispatch( handleIdentifyMuzicode(component, annotation, uri, fragments) )
+				break;
+			case "mc:Challenge": 
+				dispatch( handleChallengePassed(component, annotation, uri, fragments) )
+				dispatch({
+					type: QUEUE_NEXT_SESSION,
+					payload: muzicodeTarget["cue"]["@id"]
+				})
 				break;
 			default: 
 				console.log("Muzicode of unknown type: ", muzicodeTarget);
@@ -188,7 +223,8 @@ export function handleQueueNextSession(session, etag, annotation) {
 			type: QUEUE_NEXT_SESSION,
 			payload: annotation["oa:hasBody"]["@id"]
 		}
-		dispatch(patchAndProcessAnnotation(action, session, etag, annotation));
+		//dispatch(patchAndProcessAnnotation(action, session, etag, annotation));
+		dispatch(action);
 	}
 }
 
@@ -199,7 +235,8 @@ export function handleCreateNextSession(session, etag, annotation) {
 			patchAndProcessAnnotation(
 				createSession(
 					session.substr(0,session.lastIndexOf("/")),
-					annotation["oa:hasBody"]["@id"]
+					annotation["oa:hasBody"]["@id"],
+					{etag: etag}
 				),
 				session,
 				etag,

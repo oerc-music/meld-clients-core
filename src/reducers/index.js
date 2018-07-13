@@ -6,13 +6,19 @@ import AppReducer from './reducer_app';
 import SessionControlReducer from './reducer_sessionControl'
 import ModalUIReducer from './reducer_modalUI'
 
-const rootReducer = combineReducers({
+var reducerSets = {
 	graph: GraphReducer,
 	score: ScoreReducer,
 	tei: TEIReducer,
 	app: AppReducer,
 	sessionControl: SessionControlReducer,
 	modalUI: ModalUIReducer
-});
+};
 
-export default rootReducer;
+export var reducers = combineReducers(reducerSets);
+
+export function addReducerSet(reducerSetName, reducerSet){
+	reducerSets[reducerSetName] = reducerSet;
+	reducers = combineReducers(reducerSets);
+	return reducers;
+}
