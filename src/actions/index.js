@@ -1,4 +1,3 @@
-import {browserHistory} from 'react-router';
 import axios from 'axios';
 import jsonld from 'jsonld'
 import querystring from 'querystring';
