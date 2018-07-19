@@ -80,13 +80,13 @@ class Score extends Component {
 		if(!Array.isArray(annotations)) { 
 			annotations = [annotations]
 		}
-		console.log("annotations:", annotations)
+		// console.log("annotations:", annotations)
 		if(annotations.length && typeof annotations[0] !== "undefined" && "@type" in annotations[0] && annotations[0]["@type"].includes("meldterm:topLevel")) { 
-			console.log("Found old Larry-meld style topLevel annotation, converting...")
+			// console.log("Found old Larry-meld style topLevel annotation, converting...")
 			annotations = annotations[0]["oa:hasBody"]
 		}
 		annotations.map( (annotation) => {
-			console.log("annotation is: ", annotation)
+			// console.log("annotation is: ", annotation)
 			if(typeof annotation === 'undefined') { return }
 			// each annotation...
 			annotation = ensureArray(annotation, "oa:hasTarget");
@@ -119,7 +119,7 @@ class Score extends Component {
 	}
 
 	handleMELDActions(annotation, fragments) { 
-		console.log("HANDLING MELD ACTION: ", annotation, fragments);
+		// console.log("HANDLING MELD ACTION: ", annotation, fragments);
 		if("oa:motivatedBy" in annotation) { 
 			switch(annotation["oa:motivatedBy"]["@id"]) { 
 			case "oa:highlighting":
@@ -147,11 +147,11 @@ class Score extends Component {
 				this.props.handleArchivedMuzicodeTrigger(ReactDOM.findDOMNode(this), annotation, this.props.uri, fragments["MEI"], archivedMuzicodeTarget, this.props.session, this.props.nextSession);
 				break;
 			case "motivation:nextPageOrPiece":	
-				console.log("----", this.props);
+				// console.log("----", this.props);
 				this.props.scoreNextPage(this.props.session, this.props.nextSession, this.props.etag, annotation, this.props.uri, this.props.score.pageNum, this.props.score.MEI[this.props.uri]);
 			break;
 			case "motivation:prevPageOrPiece":	
-				console.log("----", this.props);
+				// console.log("----", this.props);
 				this.props.scorePrevPage(this.props.session, this.props.nextSession, this.props.etag, annotation, this.props.uri, this.props.score.pageNum, this.props.score.MEI[this.props.uri]);
 			break;
 			case "motivation:queueNextSession":

@@ -18,7 +18,7 @@ export function boxesForMeasures(verovioSVG, extraClasses){
                         var staff1 = sysMeasures[measi].getElementsByClassName('staff')[0];
                         var staffLines = Array.prototype.filter.call(staff1.children, (x) => x.tagName==="path");
                         var bbox = staffLines[0].getBBox();
-                        console.log(bbox);
+                        // console.log(bbox);
                         box.setAttributeNS(null, "id", sysMeasures[measi].id+"-box");
                         box.setAttributeNS(null, "class", "barBox "+extraClasses);
                         box.setAttributeNS(null, "x", bbox.x+vu);

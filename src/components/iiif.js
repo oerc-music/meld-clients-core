@@ -6,7 +6,7 @@ import Leaflet from 'leaflet'
 export default class IIIF extends Component {
 	constructor(props) { 
 		super(props);
-		console.log("Hello, got props: ", this.props)
+		// console.log("Hello, got props: ", this.props)
 		const lat = "lat" in this.props ? this.props.lat : 0;
 		const lng = "lng" in this.props ? this.props.lng : 0;
 		const zoom = "zoom" in this.props ? this.props.zoom : 1;
@@ -21,7 +21,7 @@ export default class IIIF extends Component {
 	}
 
 		render() { 
-			console.log("STATE: ", this.state);
+			// console.log("STATE: ", this.state);
 			return(
 				<div className={"LeafletWrapper"}> 
 					<link rel="stylesheet" href="../style/leaflet.css"/>

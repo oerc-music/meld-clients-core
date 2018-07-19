@@ -64,9 +64,9 @@ export default function(state = INIT_STATE, action) {
 		if(typeof payload === "string") { 
 			payload = JSON.parse(payload);
 		}
-		console.log("Hello from FETCH_GRAPH. Action is: ", action);
+		// console.log("Hello from FETCH_GRAPH. Action is: ", action);
 		payload = ensureArray(payload, "@graph");
-		console.log("Looking at ", payload);
+		// console.log("Looking at ", payload);
 		payload = payload["@graph"][0];
 		if("ldp:contains" in payload) {
 			payload = ensureArray(payload, "ldp:contains");
@@ -88,7 +88,7 @@ export default function(state = INIT_STATE, action) {
 				a["oa:hasTarget"].map( (targetResource) => {
 					// lookup target IDs to get types and component annotations
 					if(targetResource["@id"] in byId) { 
-						console.log("Trying to push:", byId[targetResource["@id"]]["annotations"]);
+						// console.log("Trying to push:", byId[targetResource["@id"]]["annotations"]);
 						byId[targetResource["@id"]]["annotations"].push(a);
 					} else { 
 						byId[targetResource["@id"]] = {
@@ -112,14 +112,14 @@ export default function(state = INIT_STATE, action) {
             targetsByType: { $set: byType }
         });
 	case SESSION_GRAPH_ETAG:
-		console.log("GOT SESSION_GRAPH_ETAG ", action.payload.etag)
+		// console.log("GOT SESSION_GRAPH_ETAG ", action.payload.etag)
 		return update(state, {
 			etags: {
 				$set: { [action.payload.uri]: action.payload.etag }
 			}
 		}); 		
 	case QUEUE_NEXT_SESSION:
-		console.log("Setting next session: ", action.payload);
+		// console.log("Setting next session: ", action.payload);
 		return update(state, { 
 			nextSession: { $set: action.payload }
 		});

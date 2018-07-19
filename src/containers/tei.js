@@ -26,7 +26,7 @@ class TEI extends Component {
 	}
 
   scrollToMotif(motifNo){
-		console.log("scrolling");
+		// console.log("scrolling");
 		var targetClass = "annotation__AskingForbidden_"+motifNo+"_1";
 		var textBox = ReactDOM.findDOMNode(this);
 		var targetElements = textBox.getElementsByClassName(targetClass);
