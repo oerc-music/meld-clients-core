@@ -20,7 +20,7 @@ export default function(state = {TEI: {}, componentTargets: {}, fragImages:{}, l
 			// part wasn't on segment line
 			return state;
 		}
-		console.log("In FETCH_MANIFESTATIONS TEI, target is: ", target, " part is: ", part);
+		// console.log("In FETCH_MANIFESTATIONS TEI, target is: ", target, " part is: ", part);
 		let fragments = [];
 		let libretto = [];	
 		// go through each part, finding embodibags
@@ -51,9 +51,6 @@ export default function(state = {TEI: {}, componentTargets: {}, fragImages:{}, l
 					//fragments[fragtype] = embodiment[MEMBER].map( (member) => {
 				} else { console.log("Embodiment without members: ", part, embodiment); }
 			});
-			console.log("Updating TEI state: ");
-			console.log(libretto, fragments);
-			console.log( update(state, {componentTargets: { $merge: { [target["@id"]]: fragments }}, librettoTargets: { $merge: { [target["@id"]]: libretto } }}));
 			return update(state, {componentTargets: { $merge: { [target["@id"]]: fragments } }, librettoTargets: { $merge: { [target["@id"]]: libretto } } });
 		};
 		/*

@@ -16,7 +16,7 @@ export default function(state = { constituents: new Set(), elements: {}, mode: "
 	let newState;
 	switch (action.type) {
 	case UI_CONSTITUENT_CLICKED:
-		console.log("UI constituent clicked: ", action.payload);
+		// console.log("UI constituent clicked: ", action.payload);
 		if (!state.constituents.has(action.payload)) { 
 			newState = update(state, { 
 				constituents: { 
@@ -27,26 +27,26 @@ export default function(state = { constituents: new Set(), elements: {}, mode: "
 		return newState;
 	case SET_MODE:
 		// n.b. also clears out all selected constituents
-		console.log("Setting mode: ", action.payload);
+		// console.log("Setting mode: ", action.payload);
 		return update(state, {
 			 mode: { "$set": action.payload }
 		})
 	case CLEAR_CONSTITUENTS:
-		console.log("Clearing constituents");
+		// console.log("Clearing constituents");
 		return update(state, { 
 			constituents: { "$set": new Set() }
 		})
 	case CLEAR_ELEMENTS:
-		console.log("Clearing elements");
+		// console.log("Clearing elements");
 		return update(state, { 
 				elements: {
 					[action.payload]: { "$set": [] }
 				}
 		})
 	case POP_ELEMENTS:
-		console.log("Popping oldest element selection");
+		// console.log("Popping oldest element selection");
 		const elements = state.elements[action.payload];
-		console.log("State: ", state, " Action: ", action)
+		// console.log("State: ", state, " Action: ", action)
 		return update(state, { 
 			elements: {
 				[action.payload]: {
@@ -55,7 +55,7 @@ export default function(state = { constituents: new Set(), elements: {}, mode: "
 			}
 		}) // n.b. slice is non-mutating, so reducer-safe. 
 	case ELEMENT_CLICKED:
-		console.log("Element clicked:", action);
+		// console.log("Element clicked:", action);
 		newState = update(state, {});
 		if(!(action.payload.elementType in state.elements)) { 
 			// if we don't yet have this element type, start recording it 
@@ -79,7 +79,7 @@ export default function(state = { constituents: new Set(), elements: {}, mode: "
 			})
 		} else {
 			// add this element as the new front of the list 
-			console.log("!!!", action.payload)
+			// console.log("!!!", action.payload)
 			return update(state, { 
 				elements: { 
 					[action.payload.elementType]: {
@@ -89,7 +89,7 @@ export default function(state = { constituents: new Set(), elements: {}, mode: "
 			})
 		}
 	default: 
-		console.log("reducer_modalUI: Unknown action: ", action);
+		// console.log("reducer_modalUI: Unknown action: ", action);
 		return state;
 	};
 };

@@ -3,6 +3,7 @@ import { fetchSessionGraph, scorePrevPage, postPrevPageAnnotation, scoreNextPage
 import { connect } from 'react-redux' ;
 import { bindActionCreators } from 'redux';
 import { withRouter } from 'react-router';
+import { parse } from 'querystring';
 import Score from '../containers/score';
 
 const muzicodesUri = "http://localhost:3000/input"
@@ -15,7 +16,10 @@ class Climb extends Component {
 	
 	componentDidMount() { 
 		document.addEventListener('keydown', this.monitorKeys);
-		if(this.props.location.query.session) { 
+		const qpars = parse(this.props.location.search.slice(1)); 
+		// slice above to remove leading '?'
+		console.log("qpars", qpars);
+		if("session" in qpars) { 
 			// start polling
 			this.doPoll();
 		}
@@ -53,7 +57,8 @@ class Climb extends Component {
 	}
 
 	doPoll() { 
-		const graphUri = this.props.location.query.session;
+		const qpars = parse(this.props.location.search.slice(1));
+	  const graphUri = "session" in qpars ? qpars["session"] : null
 		if('etags' in this.props.graph && 
 		graphUri in this.props.graph.etags) { 
 				this.props.fetchSessionGraph(graphUri, this.props.graph.etags[graphUri]);

@@ -77,7 +77,7 @@ export function handleCueAudio(component, annotation, body, uri, fragments) {
         });
         return annotationHandled(annotation);
     }
-    console.log("Cannot handle cue audio without MEI and audio fragments!", fragments);
+    // console.log("Cannot handle cue audio without MEI and audio fragments!", fragments);
     return annotationNotHandled(annotation);
 }
 
@@ -102,13 +102,13 @@ export function handleIdentifyMuzicode(component, annotation, uri, fragments) {
 }
 
 export function handleChoiceMuzicode(component, annotation, uri, fragments) { 
-	console.log("CHOICE!");
+	// console.log("CHOICE!");
 	assignClass("meld-muzicode-choice", component, annotation, uri, fragments);
 	return annotationHandled();
 }
 
 export function handleChallengePassed(component, annotation, uri, fragments) { 
-	console.log("Challenge passed!");
+	// console.log("Challenge passed!");
 	assignClassToClosestMeasure("meld-muzicode-challenge-passed", component, annotation, uri, fragments);
 	return annotationHandled();
 }
@@ -119,7 +119,7 @@ export function handleDisklavierStart(component, annotation, uri, fragments) {
 }
 
 export function handleMuzicodeTriggered(component, annotation, uri, fragments, muzicodeTarget, session, nextSession, etag) {
-	console.log("Muzicode triggered:", component, annotation, uri, fragments, muzicodeTarget, etag);
+	// console.log("Muzicode triggered:", component, annotation, uri, fragments, muzicodeTarget, etag);
 	return (dispatch) => {
 		// dispatch appropriate rendering handler depending on muzicode type
 		switch(muzicodeTarget["muzicodeType"]["@id"]) {
@@ -174,7 +174,7 @@ export function handleMuzicodeTriggered(component, annotation, uri, fragments, m
 				);
 				break;
 			default: 
-				console.log("Muzicode of unknown type: ", muzicodeTarget);
+				// console.log("Muzicode of unknown type: ", muzicodeTarget);
 		}
 
 		return annotationHandled();
@@ -183,7 +183,7 @@ export function handleMuzicodeTriggered(component, annotation, uri, fragments, m
 }
 
 export function handleArchivedMuzicodeTrigger(component, annotation, uri, fragments, muzicodeTarget, session, nextSession, etag) {
-	console.log("Archived muzicode trigger:", component, annotation, uri, fragments, muzicodeTarget);
+	// console.log("Archived muzicode trigger:", component, annotation, uri, fragments, muzicodeTarget);
 	return (dispatch) => {
 		// dispatch appropriate rendering handler depending on muzicode type
 		switch(muzicodeTarget["muzicodeType"]["@id"]) {
@@ -208,7 +208,7 @@ export function handleArchivedMuzicodeTrigger(component, annotation, uri, fragme
 				})
 				break;
 			default: 
-				console.log("Muzicode of unknown type: ", muzicodeTarget);
+				// console.log("Muzicode of unknown type: ", muzicodeTarget);
 		}
 
 		return annotationHandled();
@@ -217,7 +217,7 @@ export function handleArchivedMuzicodeTrigger(component, annotation, uri, fragme
 }
 
 export function handleQueueNextSession(session, etag, annotation) {
-	console.log("Queueing next session: ", annotation);
+	// console.log("Queueing next session: ", annotation);
 	return (dispatch) => { 
 		const action = {
 			type: QUEUE_NEXT_SESSION,
@@ -229,7 +229,7 @@ export function handleQueueNextSession(session, etag, annotation) {
 }
 
 export function handleCreateNextSession(session, etag, annotation) { 
-	console.log("Handling createNextSession: ", session, etag, annotation);
+	// console.log("Handling createNextSession: ", session, etag, annotation);
 	return (dispatch) => {
 		dispatch(
 			patchAndProcessAnnotation(
@@ -247,7 +247,7 @@ export function handleCreateNextSession(session, etag, annotation) {
 }
 
 export function handleTransitionToNextSession(session, etag, annotation) { 
-	console.log("Transitioning to next session!");
+	// console.log("Transitioning to next session!");
 	return { type: TRANSITION_TO_NEXT_SESSION }
 }
 

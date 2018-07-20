@@ -63,7 +63,7 @@ export function ScoreReducer(state = {publishedScores: {}, conceptualScores: {},
 			return update(state, {MEIfile: { $merge: {[action.payload.config.url]: action.payload.data}}});
 
     case FETCH_MANIFESTATIONS:
-		console.log("IN FETCH_MANIFESTATIONS, payload is: ", action.payload)
+		// console.log("IN FETCH_MANIFESTATIONS, payload is: ", action.payload)
 		const target = action.payload.target;
 		const part = action.payload.part;
 		if(typeof part === "undefined") {
@@ -109,8 +109,8 @@ export function ScoreReducer(state = {publishedScores: {}, conceptualScores: {},
 					}
 				} else { console.log("Embodiment without members: ", part, embodiment); }
 			});
-			console.log("Updating state: ");
-			console.log( update(state, {componentTargets: { $merge: { [target["@id"]]: fragments } } }));
+			// console.log("Updating state: ");
+			// console.log( update(state, {componentTargets: { $merge: { [target["@id"]]: fragments } } }));
 			return update(state, {componentTargets: { $merge: { [target["@id"]]: fragments } } });
 		};
 		console.log("FETCH_MANIFESTATIONS: Unembodied target! ", target);
@@ -172,7 +172,7 @@ export function ScoreReducer(state = {publishedScores: {}, conceptualScores: {},
 		console.log("URI: ", action.payload.uri);
 		if(action.payload.pageNum === pageCount) { 
 			// we've left the last page, set up a transfer to the next session
-			console.log("TRIGGERING")
+			// console.log("TRIGGERING")
 			return update(state, { triggerNextSession: { $set: true  } });
 		} else { 
 			vrvTk.loadData(action.payload.data);
@@ -187,7 +187,7 @@ export function ScoreReducer(state = {publishedScores: {}, conceptualScores: {},
 		}
 	
 	case SCORE_PREV_PAGE:
-		console.log("REDUCER GOT PREV");
+		// console.log("REDUCER GOT PREV");
 		if(!action.payload.data) { 
 			console.log("SCORE_PREV_PAGE attempted on non-loaded MEI data - ignoring!");
 			return state;
@@ -213,7 +213,7 @@ export function ScoreReducer(state = {publishedScores: {}, conceptualScores: {},
 		}
 
 	case TRANSITION_TO_NEXT_SESSION:
-		console.log("forcing transition to next session if queued");
+		// console.log("forcing transition to next session if queued");
 		return update(state, { triggerNextSession: { $set: true  } });
 
 	case SCORE_PAGE_TO_TARGET:
@@ -231,7 +231,7 @@ export function ScoreReducer(state = {publishedScores: {}, conceptualScores: {},
 		});
 
 	case REGISTER_PUBLISHED_PERFORMANCE_SCORE:
-		console.log("Register published performance score: ", action.payload, "on state: ", state);
+		// console.log("Register published performance score: ", action.payload, "on state: ", state);
 		if(action.payload.conceptualScore["@id"] in state.scoreMapping) { 
 			// we already know this conceptual score
 			// do we already know about the published score for this performance medium?
