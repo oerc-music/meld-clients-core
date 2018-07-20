@@ -18,6 +18,7 @@ import {
 const EMBODIMENT = 'frbr:embodiment';
 const MEITYPE = 'meld:MEIEmbodiment';
 const AUDIOTYPE = 'meld:AudioEmbodiment';
+const TEITYPE = 'meld:TEIEmbodiment';
 const MEMBER = 'rdfs:member';
 
 const vrvTk = new verovio.toolkit();
