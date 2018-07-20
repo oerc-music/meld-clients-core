@@ -258,7 +258,7 @@ function processComponentTarget(data, uri, conceptualScore) {
 			}
 			else { 
 				jsonld.compact(framed, context, (err, compacted) => { 
-					if(err) { // console.log("COMPACTING ERROR in processComponentTarget:", err) }
+					if(err) { console.log("COMPACTING ERROR in processComponentTarget:", err) }
 					else { 
 						dispatch( { 
 							type: FETCH_COMPONENT_TARGET,
