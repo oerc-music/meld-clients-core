@@ -22,7 +22,10 @@ export default function(state = {TEI: {}, componentTargets: {}, fragImages:{}, l
 		}
 		// console.log("In FETCH_MANIFESTATIONS TEI, target is: ", target, " part is: ", part);
 		let fragments = [];
-		let libretto = [];	
+			if(state.componentTargets && state.componentTargets[target["@id"]]){
+				fragments=state.componentTargets[target["@id"]]
+			}
+			let libretto = [];	
 		// go through each part, finding embodibags
 		if(EMBODIMENT in part) { 
 			if(!Array.isArray(part[EMBODIMENT])) { 

@@ -70,7 +70,10 @@ export function ScoreReducer(state = {publishedScores: {}, conceptualScores: {},
 			// part wasn't on segment line
 			return state;
 		}
-		let fragments={};
+			let fragments={};
+			if(state.componentTargets && state.componentTargets[target["@id"]]){
+				fragments=state.componentTargets[target["@id"]]
+			}
 		// go through each part, finding embodibags
 		if(EMBODIMENT in part) { 
 			if(!Array.isArray(part[EMBODIMENT])) { 
@@ -231,7 +234,7 @@ export function ScoreReducer(state = {publishedScores: {}, conceptualScores: {},
 		});
 
 	case REGISTER_PUBLISHED_PERFORMANCE_SCORE:
-		// console.log("Register published performance score: ", action.payload, "on state: ", state);
+		console.log("Register published performance score: ", action.payload, "on state: ", state);
 		if(action.payload.conceptualScore["@id"] in state.scoreMapping) { 
 			// we already know this conceptual score
 			// do we already know about the published score for this performance medium?

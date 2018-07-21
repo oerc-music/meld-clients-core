@@ -336,7 +336,7 @@ export function fetchTargetExpression(compacted) {
 			if(CADENCE in target){
 				var cadenceData = target[CADENCE];
 				expressionObj.cadence = {};
-				if(DEGREE in cadenceData) expressionObj.cadence.degree = cadenceData[DEGREE]['@id'];
+				if(DEGREE in cadenceData) expressionObj.cadence.degree = cadenceData[DEGREE]['@value'];
 				if(CHORD_TYPE in cadenceData) expressionObj.cadence.chordType = cadenceData[CHORD_TYPE]['@id'];
 			}
 			// does it have any parts?
@@ -381,7 +381,7 @@ export function fetchWork(target, parts, work, expressionObj) {
 				target: target,
 				parts: parts,
 				works: work,
-				chords: expressionObj
+				info: expressionObj
 			}
 		});
 		axios.get(work).then((data) => { 
