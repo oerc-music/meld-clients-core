@@ -34,7 +34,7 @@ export default class MyImage extends Component {
 	resize(){
 		var containerId = "#holder-"+this.props.uri;
 		var imgId = "#image-"+this.props.uri;
-		this.setCSSProp(containerId, {height: this.props.height+'px'; width: this.props.width+'px'});
+		this.setCSSProp(containerId, {height: this.props.height+'px', width: this.props.width+'px'});
 		this.setCSSProp(imgId, {'max-width': this.props.width+'px'});
 		/*
 		var rules = document.styleSheets[0].cssRules || document.stylesheets[0].rules;
