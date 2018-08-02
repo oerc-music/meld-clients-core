@@ -47,6 +47,7 @@ export const HAS_PERFORMANCE_MEDIUM = 'http://rdaregistry.info/Elements/e/p20215
 export const HAS_PIANO = "http://id.loc.gov/authorities/performanceMediums/2013015550";
 export const CREATE_SESSION = "CREATE_SESSION";
 export const SESSION_NOT_CREATED = "SESSION_NOT_CREATED";
+export const TICK="TICK";
 
 export const muzicodesUri = "http://127.0.0.1:5000/MUZICODES"
 
@@ -900,6 +901,16 @@ export function createSession(sessionsUri, scoreUri, {session="", etag="", retri
 			return { 
 				type: SESSION_NOT_CREATED
 			}
+		}
+	}
+}
+
+export function tickTimedResource(resourceUri, time) { 
+	return { 
+		type: TICK,
+		payload: { 
+			uri: resourceUri,
+			time: time
 		}
 	}
 }
