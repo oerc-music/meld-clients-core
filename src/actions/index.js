@@ -75,7 +75,7 @@ const context = {
 }
 
 export function fetchScore(uri) { 
-	console.log("FETCH_SCORE ACTION on URI: ", uri);
+	// console.log("FETCH_SCORE ACTION on URI: ", uri);
 	const promise = axios.get(uri);
 	return { 
 		type: FETCH_SCORE,
@@ -84,7 +84,7 @@ export function fetchScore(uri) {
 }
 
 export function fetchRibbonContent(uri) {
-	console.log("FETCH_RIBBON_CONTENT ACTION on URI: ", uri);
+	// console.log("FETCH_RIBBON_CONTENT ACTION on URI: ", uri);
 	const promise = axios.get(uri);
 	return {
 		type: FETCH_RIBBON_CONTENT,
@@ -108,7 +108,7 @@ export function fetchTEI(uri) {
 }
 
 export function fetchSessionGraph(uri, etag = "") { 
-	console.log("FETCH_SESSION_GRAPH ACTION ON URI: ", uri, " with etag: ", etag);
+	// console.log("FETCH_SESSION_GRAPH ACTION ON URI: ", uri, " with etag: ", etag);
 	// TODO add etag to header as If-None-Match and enable corresponding support on server
 	// so that it can respond with 304 instead of 200 (i.e. so it can ommit file body)
 	const promise = axios.get(uri, {
@@ -132,7 +132,9 @@ export function fetchSessionGraph(uri, etag = "") {
 				// to retrieve the published score (MEI file)
 				if ("mo:performance_of" in session) { 
 					dispatch(fetchConceptualScore(session["@id"], session["mo:performance_of"]["@id"]));
-				} else { console.log("SESSION IS NOT A PERFORMANCE OF A SCORE: ", session); }
+				} else {
+					console.log("SESSION IS NOT A PERFORMANCE OF A SCORE: ", session);
+				}
 			} 
 			if(response.headers.etag !== etag) { 
 				// we need to grab the graph data, either because this is the first time,
@@ -163,7 +165,7 @@ export function fetchSessionGraph(uri, etag = "") {
 }
 
 export function fetchGraph(uri) {
-	console.log("FETCH_GRAPH ACTION ON URI: ", uri);
+	// console.log("FETCH_GRAPH ACTION ON URI: ", uri);
 	const promise = axios.get(uri);
 
     return (dispatch) => { 
@@ -193,7 +195,7 @@ function processComponentAnnotation(annotation, conceptualScore = "") {
 		}
 	}
 	annotation = ensureArray(annotation, "oa:hasTarget");
-	console.log("Processing component annotation: ", annotation, conceptualScore)
+	// console.log("Processing component annotation: ", annotation, conceptualScore)
 	const targets = annotation["oa:hasTarget"].map( (target) => {
 		return { 
 			"@id": target["@id"],
@@ -218,16 +220,16 @@ function processComponentAnnotation(annotation, conceptualScore = "") {
 
 
 export function fetchComponentTarget(uri, conceptualScore = "") { 
-    console.log("FETCH_COMPONENT_TARGET ACTION ON URI: ", uri);
+    // console.log("FETCH_COMPONENT_TARGET ACTION ON URI: ", uri);
 	const promise = axios.get(uri, {headers: {'Accept': 'application/ld+json'}});
 	return (dispatch) => {
 		promise.then((data) => { 
-			console.log("Attemping to frame data", data);
+			// console.log("Attemping to frame data", data);
 			if(!"content-type" in data.headers || 
 				(data.headers["content-type"] !== "application/json" &&
 				 data.headers["content-type"] !== "application/ld+json")
 				) { 
-				console.log("Converting to JSON...");
+				// console.log("Converting to JSON...");
 				// need to convert triples to json
 				// TODO handle arbitrary RDF format here (currently requires ntriples)
 				jsonld.fromRDF(data.data, (err, doc) => {
@@ -245,11 +247,11 @@ export function fetchComponentTarget(uri, conceptualScore = "") {
 }
 
 function processComponentTarget(data, uri, conceptualScore) {
-    console.log("PROCESS_COMPONENT_TARGET ACTION ON URI: ", uri);
+    // console.log("PROCESS_COMPONENT_TARGET ACTION ON URI: ", uri);
 	return (dispatch) => {
 		jsonld.frame(data, { "@id":uri }, (err, framed) => {
 			if(err) { 
-				console.log("FRAMING ERROR in processComponentTarget:", err) 
+				// console.log("FRAMING ERROR in processComponentTarget:", err) 
 				return { 
 					type: ANNOTATION_NOT_HANDLED
 				}
@@ -265,11 +267,11 @@ function processComponentTarget(data, uri, conceptualScore) {
 								structureTarget: uri
 							}
 						});
-						console.log("COMPACTED: ", compacted);
+						// console.log("COMPACTED: ", compacted);
 						let typecheck = compacted;
 						typecheck = ensureArray(typecheck, "@type");
 						// have we found a segment?
-						console.log("TYPECHECK: ", typecheck)
+						// console.log("TYPECHECK: ", typecheck)
 						if(typecheck["@type"].includes(SEGMENT) || typecheck["@type"].includes(MUZICODE)) { 
 							// TODO jsonldify context
 							// TODO refine muzicode semantics for this
@@ -298,7 +300,7 @@ function processComponentTarget(data, uri, conceptualScore) {
 
 export function fetchTargetExpression(compacted) { 
 	// traverse from the provided Expression, via a Segment, to Manifestation(s)
-	console.log("In fetchTargetExpression: ", compacted);
+	// console.log("In fetchTargetExpression: ", compacted);
 	return(dispatch) => { 
 		dispatch( { 
 			type: FETCH_TARGET_EXPRESSION,
@@ -339,7 +341,7 @@ export function fetchTargetExpression(compacted) {
 			}
 			// does it have any parts?
 			let parts = [];
-			console.log("part check: ", target)
+			// console.log("part check: ", target)
 			if(PART in target) { 
 				// sometimes we may have multiple parts or part sequences; sometimes only one
 				// so ensure we have an array to work with (even if it's length one)
@@ -371,7 +373,7 @@ export function fetchTargetExpression(compacted) {
 
 
 export function fetchWork(target, parts, work, expressionObj) { 
-	console.log("STARTING FETCHWORK WITH ", work, parts, expressionObj);
+	// console.log("STARTING FETCHWORK WITH ", work, parts, expressionObj);
 	return(dispatch) => {
 		dispatch({
 			type: FETCH_WORK,
@@ -407,7 +409,7 @@ export function fetchWork(target, parts, work, expressionObj) {
 											}, (err, framed) => {
 											if(err) { console.log("FRAMING ERROR when fetching parent work", err) }
 											else {
-												console.log("Attached score:", framed);
+												// console.log("Attached score:", framed);
 												const attachedScore = framed["@graph"][0];
 												if(attachedScore && "@type" in attachedScore && attachedScore["@type"] === SCORE) {
 													// FIXME breaks with multiple types
@@ -417,9 +419,9 @@ export function fetchWork(target, parts, work, expressionObj) {
 														// are attached in same file
 														// FIXME enable external pub_scores
 														attachedScore[PUBLISHED_AS].map( (pubScore) => {
-															console.log("FOUND PUB SCORE: ", pubScore);
+															// console.log("FOUND PUB SCORE: ", pubScore);
 															if(HAS_PERFORMANCE_MEDIUM in pubScore) { 
-																console.log("FOUND PERF MEDIUM: ", pubScore[HAS_PERFORMANCE_MEDIUM]);
+																// console.log("FOUND PERF MEDIUM: ", pubScore[HAS_PERFORMANCE_MEDIUM]);
 																dispatch({
 																	type: REGISTER_PUBLISHED_PERFORMANCE_SCORE,
 																	payload: { 
@@ -435,16 +437,16 @@ export function fetchWork(target, parts, work, expressionObj) {
 																	dispatch(fetchRibbonContent(pubScore["@id"]));
 																}
 															} else { 
-																console.log("Published score without performance medium: ", pubScore["@id"]);
+																// console.log("Published score without performance medium: ", pubScore["@id"]);
 															}
 														})
 													} else { 
-														console.log("Unpublished score: ", attachedScore);
+														// console.log("Unpublished score: ", attachedScore);
 													}
 													if(HAS_STRUCTURE in attachedScore) { 
 														dispatch(fetchStructure(target, parts, attachedScore[HAS_STRUCTURE]["@id"]));
 													} else { 
-														console.log("Score ", attachedScore["@id"], " attached to work ", work["@id"], " has no segment line!!");
+														// console.log("Score ", attachedScore["@id"], " attached to work ", work["@id"], " has no segment line!!");
 													}
 												}  else { 
 													// no attached Score, so we have to recurse on the parent work
@@ -453,7 +455,7 @@ export function fetchWork(target, parts, work, expressionObj) {
 											}
 										});
 									} else { 
-										console.log("Found work without segmentLine or partonomy! ", work); 
+										// console.log("Found work without segmentLine or partonomy! ", work); 
 									}
 								}
 							});
@@ -489,7 +491,7 @@ export function fetchStructure(target, parts, segline) {
 									else { 
 										// and hand to reducers to process associated embodibags
 										// (manifestations of the expression)
-										console.log("fetching manifestations", doc, target, part, compacted);
+										// console.log("fetching manifestations", doc, target, part, compacted);
 										dispatch({ 
 											type: FETCH_MANIFESTATIONS,
 											payload: { 
@@ -509,7 +511,7 @@ export function fetchStructure(target, parts, segline) {
 }
 
 export function fetchConceptualScore(session, uri) { 
-	console.log("FETCH_CONCEPTUAL_SCORE ON URI: ", uri);
+	// console.log("FETCH_CONCEPTUAL_SCORE ON URI: ", uri);
 	const promise = axios.get(uri, {headers: {'Accept': 'application/ld+json'}});
 
     return (dispatch) => { 
@@ -569,7 +571,7 @@ export function scoreNextPageStatic(pubScoreUri, pageNum, MEI) {
 export function scoreNextPage(session, nextSession, etag, annotation, pubScoreUri, pageNum, MEI) { 
 	return (dispatch) => {
 		if(MEI) { 
-			console.log("Attempting to action SCORE_NEXT_PAGE");
+			// console.log("Attempting to action SCORE_NEXT_PAGE");
 			const action = {
 				type: SCORE_NEXT_PAGE,
 				payload: { 
@@ -667,7 +669,7 @@ export function postPrevPageAnnotation(session, etag) {
 export function postAnnotation(session, etag, json, retries=MAX_RETRIES) {
 	return(dispatch) => {
 		if(retries) { 
-			console.log("Posting annotation: ", session, etag, json)
+			// console.log("Posting annotation: ", session, etag, json)
 			axios.post(
 				session, 
 				json, 
@@ -708,7 +710,7 @@ export function postAnnotation(session, etag, json, retries=MAX_RETRIES) {
 
 export function markAnnotationProcessed(session, etag, annotation, retries=MAX_RETRIES) {
 	if(retries) { 
-		console.log("PATCHING: ", session, etag, annotation);
+		// console.log("PATCHING: ", session, etag, annotation);
 		const patchJson = JSON.stringify( { 
 			"@id": annotation["@id"],
 			"meld:state": {"@id": "meld:processed"}
@@ -753,7 +755,7 @@ export function markAnnotationProcessed(session, etag, annotation, retries=MAX_R
 
 export function patchAndProcessAnnotation(action, session, etag, annotation, success={type: ANNOTATION_PATCHED}, retries=MAX_RETRIES) {
 	if(retries) { 
-		console.log("PATCHING: ", session, etag, annotation);
+		// console.log("PATCHING: ", session, etag, annotation);
 		const patchJson = JSON.stringify( { 
 			"@id": annotation["@id"],
 			"meld:state": {"@id": "meld:processed"}
@@ -764,9 +766,9 @@ export function patchAndProcessAnnotation(action, session, etag, annotation, suc
 				patchJson,
 				{ headers: {'Content-Type': 'application/ld+json', 'If-None-Match':etag} }
 			).then( function (response) {
-				console.log("Dispatching action: ", action);
+				// console.log("Dispatching action: ", action);
 				dispatch(action);
-				console.log("Dispatching success callback: ", success)
+				// console.log("Dispatching success callback: ", success)
 				dispatch(success);
 			}).catch(function (error) { 
 				if(error.response.status == 412) {
@@ -802,7 +804,7 @@ export function patchAndProcessAnnotation(action, session, etag, annotation, suc
 
 export function updateMuzicodes(muzicodesUri, session, mei="") {
 	// inform the muzicodes service that our session has loaded
-	console.log("Updating muzicodes:", muzicodesUri, session);
+	// console.log("Updating muzicodes:", muzicodesUri, session);
 	const params = querystring.stringify({ 
 		"name": "meld.load",
 		"meldcollection": session,
@@ -836,7 +838,7 @@ export function ensureArray(theObj, theKey) {
 export function createSession(sessionsUri, scoreUri, {session="", etag="", retries=MAX_RETRIES, performerUri="", slug=""} = {}) { 
 	return (dispatch) => { 
 		if(retries) { 
-			console.log("Trying to create session: ", sessionsUri, scoreUri, etag, retries, performerUri);
+			// console.log("Trying to create session: ", sessionsUri, scoreUri, etag, retries, performerUri);
 			axios.get(sessionsUri).then( (getResponse) => { 
 				axios.post(
 					sessionsUri,

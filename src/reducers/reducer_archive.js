@@ -5,7 +5,7 @@ import { ANNOTATION_SKIPPED } from '../actions/meldActions';
 export default function(state = {processedAnnotations: {}}, action) {
 	switch (action.type) {
 	case ANNOTATION_SKIPPED:
-		console.log("Found processed annotation: ", action.payload);
+//		console.log("Found processed annotation: ", action.payload);
 		return update(state, { 
 			processedAnnotations: { 
 				$merge: { 
@@ -14,7 +14,7 @@ export default function(state = {processedAnnotations: {}}, action) {
 			}
 		});
 	default: 
-		console.log("Unknown action: ", action);
+//		console.log("Unknown action: ", action);
 		return state;
 	};
 };

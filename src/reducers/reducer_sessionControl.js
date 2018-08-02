@@ -5,12 +5,12 @@ import { CREATE_SESSION, MUZICODES_UPDATED } from '../actions/index';
 export default function(state = {newSessionUri:"", newSessionScore:"", muzicodesUpdated: false}, action) {
 	switch (action.type) {
 	case MUZICODES_UPDATED:
-		console.log("Muzicodes has been updated.");
+		// console.log("Muzicodes has been updated.");
 		return update(state, {
 			$merge: { "muzicodesUpdated": true}
 		});
 	case CREATE_SESSION:
-		console.log("Created session: ", action.payload);
+		// console.log("Created session: ", action.payload);
 		return update(state, { 
 			$merge: { 
 				"newSessionUri": action.payload.headers.location,
@@ -18,7 +18,7 @@ export default function(state = {newSessionUri:"", newSessionScore:"", muzicodes
 			} 
 		});
 	default: 
-		console.log("Unknown action: ", action);
+		// console.log("Unknown action: ", action);
 		return state;
 	};
 };
