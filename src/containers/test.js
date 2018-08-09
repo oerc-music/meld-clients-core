@@ -1,11 +1,24 @@
 import React, { Component } from 'react';
-import IIIF from "../components/iiif";
+import { traverse } from '../actions/index';
+import { connect } from 'react-redux' ;
+import { bindActionCreators } from 'redux';
 
-export default class Test extends Component {
+class Test extends Component {
 	constructor(props) { 
 		super(props);
 	}
+
+	componentDidMount() { 
+		this.props.traverse("http://meld.linkedmusic.org/annotations/meld-test.json-ld");
+	}
+
 	render() { 
-		return <IIIF url="https://stacks.stanford.edu/image/iiif/hg676jb4964%2F0380_796-44/info.json"/>
+		return <div>Hello MELD</div>
 	}
 }
+
+function mapDispatchToProps(dispatch) { 
+	return bindActionCreators({ traverse }, dispatch);
+}
+
+export default connect(null,mapDispatchToProps)(Test);

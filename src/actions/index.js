@@ -52,6 +52,7 @@ export const TICK="TICK";
 export const muzicodesUri = "http://127.0.0.1:5000/MUZICODES"
 
 export const MAX_RETRIES = 3;
+export const MAX_TRAVERSAL_HOPS = 10;
 export const RETRY_DELAY = 10;
 
 // TODO move context somewhere global -- most framing happens server side
@@ -106,6 +107,76 @@ export function fetchTEI(uri) {
             });
         });
     }
+}
+
+export function traverse(
+	subjectUri,
+	objectPrefixWhitelist=[], objectUriWhitelist=[], 
+	objectPrefixBlacklist=[], objectUriBlacklist=[], 
+	propertyPrefixWhitelist=[], propertyUriWhitelist=[],
+	propertyPrefixBlacklist=[], propertyUriBlacklist=[],
+	goals={}, numHops=MAX_TRAVERSAL_HOPS,
+	useEtag = false, etag="") {
+	// PURPOSE:
+	// *************************************************************************
+	// Traverse through a graph, looking for entities of interest
+	//   (keys of 'goals') and undertaking actions in response
+	//   (values of 'goals'". 
+	// For each subject, traverse along its predicates to its attached objects, 
+	//   then recurse (each object becomes subject in next round).
+	// When recursing, check for instances of object-as-subject in the current 
+	//   file (internal traversal), AND do an HTTP GET to resolve the object URI 
+	//   and recurse there (external traversal).
+	// If useEtag is specified, then worry about etags for external traversals
+	// 	 (and re-request if the file has changed)
+	// 	 n.b. this is only an issue for dynamic MELD deployments
+	// With each hop, decrement numHops. 
+	// Stop when numHops reaches zero, or when there are no more objects
+	//   to traverse to.
+	// If an objectPrefixWhitelist is specified, only traverse to objects with 
+	//  URIs that start with a prefix in the list. 
+	// If an objectUriWhitelist is specified, only traverse to objects with 
+	//  URIs in the list.
+	// If an objectPrefixBlacklist is specified, only traverse to objects with
+	//  URIs that do NOT start with a prefix in the list.
+	// If an objectUriBlacklist is specified, only traverse to objects with 
+	//  URIs that are NOT in the list.
+	// If a propertyPrefixWhitelist is specified, only traverse to objects along
+	//  properties whose URIs start with a prefix in the list. 
+	// If a propertyUriWhitelist is specified, only traverse to objects along
+	//  properties with URIs in the list. 
+	// If a propertyPrefixBlacklist is specified, only traverse to objects along
+	//  properties whose URIs do NOT start with a prefix in the list. 
+	// If a propertyUriWhitelist is specified, only traverse to objects along
+	//  properties with URIs that are NOT in the list. 
+	// *************************************************************************
+	
+	// set up HTTP request
+	const headers = {'Accept': 'application/ld+json'};
+	if(useEtag) { 
+		headers['If-None-Match'] = etag;
+	}
+ 	const promise = axios.get(subjectUri, {
+		headers: headers,
+		validateStatus: function(stat) { 
+			// only complain if code is greater or equal to 400
+			// this is to not treat 304's as errors}
+			return stat < 400;
+		}
+	});
+	return (dispatch) => { 
+		promise.then( (response) => {
+			if(response.status == 304) {
+				return; // file not modified, i.e. etag matched, no updates required
+			}
+			console.log("RESPONSE: ", response)
+			let subject = response.data;
+			if("@graph" in subject) { 
+				subject = subject["@graph"] // json-ld payload
+			}
+			console.log("Traversal hit subject: ", subject)
+		});
+	}
 }
 
 export function fetchSessionGraph(uri, etag = "") { 
