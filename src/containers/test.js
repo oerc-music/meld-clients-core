@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { traverse } from '../actions/index';
+import { traverse, setTraversalObjectives, checkTraversalObjectives } from '../actions/index';
 import { connect } from 'react-redux' ;
 import { bindActionCreators } from 'redux';
 
@@ -8,8 +8,35 @@ class Test extends Component {
 		super(props);
 	}
 
+	componentWillMount() { 
+		this.props.setTraversalObjectives([
+			{
+				"@context": {
+					"oa": "http://www.w3.org/ns/oa#",
+					"meldterm": "http://meld.linkedmusic.org/terms/"
+				},
+				"@id": {},
+				"oa:hasBody": {
+					"@id": "meldterm:highlight",
+				
+				}
+			}
+		]);
+	}
+
 	componentDidMount() { 
-		this.props.traverse("http://meld.linkedmusic.org/annotations/meld-test.json-ld");
+		// start traversal
+		this.props.traverse("http://meld.linkedmusic.org/annotations/Frageverbot1.json-ld");
+	}
+
+	componentDidUpdate(prevProps, prevState) {
+		console.log("Did update!", prevProps, this.props);
+		if("graph" in prevProps) { 
+			// check our traversal objectives if the graph has updated
+			if(prevProps.graph.graph.length !== this.props.graph.graph.length) { 
+				this.props.checkTraversalObjectives(this.props.graph.graph, this.props.graph.objectives);
+			}
+		}
 	}
 
 	render() { 
@@ -17,8 +44,12 @@ class Test extends Component {
 	}
 }
 
-function mapDispatchToProps(dispatch) { 
-	return bindActionCreators({ traverse }, dispatch);
+function mapStateToProps({ graph }) { 
+	return { graph };
 }
 
-export default connect(null,mapDispatchToProps)(Test);
+function mapDispatchToProps(dispatch) { 
+	return bindActionCreators({ traverse, setTraversalObjectives, checkTraversalObjectives }, dispatch);
+}
+
+export default connect(mapStateToProps,mapDispatchToProps)(Test);

@@ -1,25 +1,32 @@
 import update from 'immutability-helper';
+import jsonld from 'jsonld'
 import { 
 	FETCH_GRAPH,
 	FETCH_WORK,
 	FETCH_COMPONENT_TARGET, 
 	SESSION_GRAPH_ETAG,
+	FETCH_GRAPH_DOCUMENT,
+	SET_TRAVERSAL_OBJECTIVES,
+	APPLY_TRAVERSAL_OBJECTIVE,
 	ensureArray
 } from '../actions/index'
 import { QUEUE_NEXT_SESSION } from '../actions/meldActions';
 
 const INIT_STATE = {
-    graph: { 
-        annoGraph: {}, 
-        targetsById: {}, 
-        targetsByType: {}
-    },
+//    graph: {  
+//        annoGraph: {}, 
+//        targetsById: {}, 
+//        targetsByType: {}
+//    },
 	etags: {},
 	nextSession: "",
-	info: {}
+	info: {},
+	graph: [],
+	objectives: [],
+	outcomes: []
 }
 
-export default function(state = INIT_STATE, action) { 
+export default function (state = INIT_STATE, action) { 
 	switch (action.type) { 
 	/*
 	case FETCH_GRAPH:
@@ -123,11 +130,41 @@ export default function(state = INIT_STATE, action) {
 		return update(state, { 
 			nextSession: { $set: action.payload }
 		});
-		case FETCH_WORK:
-			if(action.payload.info){
-				return update(state, { info: {$merge: { [action.payload.target["@id"]]: action.payload.info } }});
-			};
-		default:
-			return state;
+	case FETCH_WORK:
+		if(action.payload.info){
+			return update(state, { info: {$merge: { [action.payload.target["@id"]]: action.payload.info } }});
+		};
+	case SET_TRAVERSAL_OBJECTIVES: 
+		// register the set of objectives provided by the MELD application 
+		// and initialise the outcomes in a corresponding array.
+		// Typically run once on mount.
+		return update(state, { 
+			objectives: { 
+				$set: action.payload
+			},
+			outcomes: { 
+				$set: new Array(action.payload.length)
+			}
+		});
+	case FETCH_GRAPH_DOCUMENT:
+		// new graph fragment has arrived. Add it to our graph and check our objectives.
+		return update(state, {
+			graph: { 
+				$push: action.payload
+			}
+		});
+	case APPLY_TRAVERSAL_OBJECTIVE:
+		// an objective has been applied against the graph. Store the outcome at the 
+		// appropriate index.
+		let updatedOutcomes = state.outcomes;
+		updatedOutcomes[action.payload.ix] = action.payload.framed;
+		return update(state, {
+			outcomes: { 
+				$set: updatedOutcomes
+			}
+		});
+	default:
+		return state;
 	}
 }
+
