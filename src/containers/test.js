@@ -17,8 +17,7 @@ class Test extends Component {
 				},
 				"@id": {},
 				"oa:hasBody": {
-					"@id": "meldterm:highlight",
-				
+					"@id": "meldterm:highlight"
 				}
 			}
 		]);
