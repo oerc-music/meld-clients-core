@@ -18,6 +18,7 @@ import {
 const EMBODIMENT = 'frbr:embodiment';
 const MEITYPE = 'meld:MEIEmbodiment';
 const AUDIOTYPE = 'meld:AudioEmbodiment';
+const TEITYPE = 'meld:TEIEmbodiment';
 const MEMBER = 'rdfs:member';
 
 const vrvTk = new verovio.toolkit();
@@ -91,6 +92,8 @@ export function ScoreReducer(state = {publishedScores: {}, conceptualScores: {},
 						fragtype="MEI";
 					} else if (embodiment["@type"].includes(AUDIOTYPE)) { 
 						fragtype="Audio";
+					} else if (embodiment["@type"].includes(TEITYPE)){
+						fragtype="TEI";
 					} else { console.log("Score Reducer: Embodiment with unknown type", embodiment); }
 					if(!Array.isArray(embodiment[MEMBER])) { 
 						embodiment[MEMBER] = [embodiment[MEMBER]];

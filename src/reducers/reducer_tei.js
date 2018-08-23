@@ -5,8 +5,9 @@ const EMBODIMENT = 'frbr:embodiment';
 const ASSOCIATED = "http://example.com/must-revisit-these/associatedWith";
 const MEMBER = 'rdfs:member';
 const TEITYPE = 'meld:TEIEmbodiment';
+const LIBRETTOTYPE = 'mo:PublishedLibretto';
 
-export default function(state = {TEI: {}, componentTargets: {}, fragImages:{}}, action) {
+export default function(state = {TEI: {}, componentTargets: {}, fragImages:{}, librettoTargets:{}}, action) {
 	switch(action.type) { 
 	case FETCH_TEI:
 		return update(state, { TEI: {$merge: { [action.payload.uri]: action.payload.data } } });
@@ -21,6 +22,7 @@ export default function(state = {TEI: {}, componentTargets: {}, fragImages:{}}, 
 		}
 		// console.log("In FETCH_MANIFESTATIONS TEI, target is: ", target, " part is: ", part);
 		let fragments = [];
+		let libretto = [];	
 		// go through each part, finding embodibags
 		if(EMBODIMENT in part) { 
 			if(!Array.isArray(part[EMBODIMENT])) { 
@@ -37,17 +39,19 @@ export default function(state = {TEI: {}, componentTargets: {}, fragImages:{}}, 
 						if(!Array.isArray(embodiment[MEMBER])) { 
 							embodiment[MEMBER] = [embodiment[MEMBER]];
 						}
-						fragments = fragments.concat(embodiment[MEMBER].map( (member) => {
+						let TEIFrags = 	embodiment[MEMBER].map( (member) => {
 							return member["@id"];
-						}));
-
+						});
+						if(embodiment["@type"].includes(LIBRETTOTYPE)){
+							console.log("----------------------");
+							libretto = libretto.concat(TEIFrags);
+						}
+						fragments = fragments.concat(TEIFrags);
 					} else { console.log("TEI Reducer: Embodiment with unknown type", embodiment); }
 					//fragments[fragtype] = embodiment[MEMBER].map( (member) => {
 				} else { console.log("Embodiment without members: ", part, embodiment); }
 			});
-			// console.log("Updating TEI state: ");
-			// console.log( update(state, {componentTargets: { $merge: { [target["@id"]]: fragments } } }));
-			return update(state, {componentTargets: { $merge: { [target["@id"]]: fragments } } });
+			return update(state, {componentTargets: { $merge: { [target["@id"]]: fragments } }, librettoTargets: { $merge: { [target["@id"]]: libretto } } });
 		};
 		/*
         if(ASSOCIATED in target) { 
