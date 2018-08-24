@@ -1,6 +1,7 @@
 import update from 'immutability-helper';
 import { parse } from 'querystring';
 import { FETCH_GRAPH, PROCESS_ANNOTATION, TICK } from '../actions/index';
+const REGISTER_CLOCK = "REGISTER_CLOCK";
 
 export default function(state = { mediaResources: {} }, action) { 
 	let mediaResourcesToAdd = {};
@@ -19,6 +20,13 @@ export default function(state = { mediaResources: {} }, action) {
 					}
 				});
 			});
+			return update(state, { $merge: { mediaResources: mediaResourcesToAdd } });
+		case REGISTER_CLOCK: 
+			// alternative, more flexible means to accomplish the result of the FETCH_GRAPH 
+			// action above (for use with generalised traversal)
+			if(!(action.payload in state["mediaResources"])) { 
+				mediaResourcesToAdd[action.payload] = {times:{}, currentTime:0};
+			}
 			return update(state, { $merge: { mediaResources: mediaResourcesToAdd } });
 		case PROCESS_ANNOTATION:
 			mediaResourcesToAdd = state["mediaResources"]
