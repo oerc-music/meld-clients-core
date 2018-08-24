@@ -1108,3 +1108,11 @@ export function tickTimedResource(resourceUri, time) {
 		}
 	}
 }
+
+export function registerClock(clockUri) {
+	return {
+		type: "REGISTER_CLOCK", 
+		payload: clockUri
+	}
+}
+
