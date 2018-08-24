@@ -1,5 +1,6 @@
 import update from 'immutability-helper';
 import jsonld from 'jsonld'
+import JSum from 'jsum'
 import { 
 	FETCH_GRAPH,
 	FETCH_WORK,
@@ -23,7 +24,8 @@ const INIT_STATE = {
 	info: {},
 	graph: [],
 	objectives: [],
-	outcomes: []
+	outcomes: [],
+	outcomesHash: ""
 }
 
 export default function (state = INIT_STATE, action) { 
@@ -158,9 +160,13 @@ export default function (state = INIT_STATE, action) {
 		// appropriate index.
 		let updatedOutcomes = state.outcomes;
 		updatedOutcomes[action.payload.ix] = action.payload.framed;
+		let updatedOutcomesHash = JSum.digest(updatedOutcomes, 'md5', 'hex')
 		return update(state, {
 			outcomes: { 
 				$set: updatedOutcomes
+			},
+			outcomesHash: {  
+				$set: updatedOutcomesHash
 			}
 		});
 	default:
