@@ -30,6 +30,10 @@ export default function(state = { mediaResources: {} }, action) {
 			return update(state, { $merge: { mediaResources: mediaResourcesToAdd } });
 		case PROCESS_ANNOTATION:
 			mediaResourcesToAdd = state["mediaResources"]
+			// ensure targets are an array
+			if(!(Array.isArray(action.payload.targets))) { 
+				action.payload.targets = [action.payload.targets]
+			}
 			action.payload.targets.map( (t) => { 
 				// only interested if a) we have a timed media fragment and
 				// b) we know about the media resource that this is a fragment of
