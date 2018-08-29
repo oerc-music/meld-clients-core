@@ -114,14 +114,14 @@ export function fetchTEI(uri) {
 
 export function traverse(
 	docUri,
-	params = { 
-		objectPrefixWhitelist:[], objectUriWhitelist:[], objectTypeWhitelist : [], 
-		objectPrefixBlacklist:[], objectUriBlacklist:[], objectTypeBlacklist : [],
-		propertyPrefixWhitelist:[], propertyUriWhitelist:[],
-		propertyPrefixBlacklist:[], propertyUriBlacklist:[],
-		objectives:{}, numHops:MAX_TRAVERSAL_HOPS,
-		useEtag : false, etag:""
-	}) {
+	{  // use destructuring to simulate named parameters
+		objectPrefixWhitelist=[], objectUriWhitelist=[], objectTypeWhitelist = [], 
+		objectPrefixBlacklist=[], objectUriBlacklist=[], objectTypeBlacklist = [],
+		propertyPrefixWhitelist=[], propertyUriWhitelist=[],
+		propertyPrefixBlacklist=[], propertyUriBlacklist=[],
+		objectives={}, numHops=MAX_TRAVERSAL_HOPS,
+		useEtag = false, etag=""
+	} = {}) {
 	// PURPOSE:
 	// *************************************************************************
 	// Traverse through a graph, looking for entities of interest
@@ -160,10 +160,20 @@ export function traverse(
 	//  properties with URIs that are NOT in the list. 
 	// *************************************************************************
 	
+	// create params object to pass on in recursive calls
+	// n.b. must update here if function signature changes
+	let params = {  
+		objectPrefixWhitelist, objectUriWhitelist, objectTypeWhitelist, 
+		objectPrefixBlacklist, objectUriBlacklist, objectTypeBlacklist,
+		propertyPrefixWhitelist, propertyUriWhitelist,
+		propertyPrefixBlacklist, propertyUriBlacklist,
+		objectives, numHops,
+		useEtag, etag
+	}
 	// set up HTTP request
 	const headers = {'Accept': 'application/ld+json'};
-	if(params["useEtag"]) { 
-		headers['If-None-Match'] = params["etag"];
+	if(useEtag) { 
+		headers['If-None-Match'] = etag;
 	}
 
 	console.log("FETCHING: ", docUri, params);
@@ -229,11 +239,11 @@ export function traverse(
 										console.log("<>", subjectUri, pred, obj["@id"], docUri);
 										// Now recurse (if black/whitelist conditions and hop counter allow)
 										// Remember that we've already visited the current document to avoid loops  
-										if( params["numHops"] !== 0 && !(params["objectUriBlacklist"].includes(obj["@id"])) ) {
+										if( numHops !== 0 && !(objectUriBlacklist.includes(obj["@id"])) ) {
 											dispatch(traverse(obj["@id"], {
 												...params,
-												"objectUriBlacklist": params["objectUriBlacklist"].concat(docUri),
-												"numHops": params["numHops"]-1
+												"objectUriBlacklist": objectUriBlacklist.concat(docUri),
+												"numHops": numHops-1
 											}))
 										}
 									}  else { 
