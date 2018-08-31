@@ -7,6 +7,8 @@ export const MARKUP_HIGHLIGHT = "meldterm:highlight";
 export const MARKUP_HIGHLIGHT2 = "meldterm:highlight2";
 export const CUE_AUDIO = "meldterm:CueAudio";
 export const CUE_AUDIO_HANDLED = "CUE_AUDIO_HANDLED";
+export const CUE_VIDEO = "meldterm:CueVideo";
+export const CUE_VIDEO_HANDLED = "CUE_VIDEO_HANDLED";
 export const CUE_IMAGE = "meldterm:CueImage";
 export const CUE_IMAGE_HANDLED = "CUE_IMAGE_HANDLED";
 export const ANNOTATION_HANDLED = "ANNOTATION_HANDLED";
@@ -80,6 +82,32 @@ export function handleCueAudio(component, annotation, body, uri, fragments) {
     // console.log("Cannot handle cue audio without MEI and audio fragments!", fragments);
     return annotationNotHandled(annotation);
 }
+
+export function handleCueVidio(component, annotation, body, uri, fragments) { 
+    if("MEI" in fragments && "Video" in fragments) { 
+        fragments.MEI.map((f) => { 
+            const fLocalId = f.substr(f.indexOf("#"))
+            const element = component.querySelector(fLocalId);
+            if (element) { 
+                //TODO figure out what to do with multiple audio fragments
+                const videoUri = fragments.video[0].split("#")[0];
+                const videoFrag = fragments.video[0].split("#")[1];
+                const videoFragTime = parseFloat(audioFrag.substr(videoFrag.indexOf("t=")+2))
+                element.onclick = function() { 
+                    TEIScroll(element);
+                    const query = "video[data-uri='" + audioUri + "']";
+                    let myPlayers = document.querySelectorAll(query);
+                    Array.prototype.map.call(myPlayers, function(p) { p.currentTime = audioFragTime });
+                };
+                applyAnnotationId(element, annotation);
+            }
+        });
+        return annotationHandled(annotation);
+    }
+    // console.log("Cannot handle cue audio without MEI and video fragments!", fragments);
+    return annotationNotHandled(annotation);
+}
+
 
 export function handleEmphasis(component, annotation, uri, fragments) {
 	assignClass("meld-emphasis", component, annotation, uri, fragments);

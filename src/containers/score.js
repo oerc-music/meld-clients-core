@@ -12,6 +12,8 @@ import {
 	handleHighlight2,  
 	CUE_AUDIO, 
 	handleCueAudio,
+	CUE_VIDEO, 
+	handleCueVideo,
 	handleQueueNextSession,
 	handleCreateNextSession,
 	handleTransitionToNextSession,
@@ -176,6 +178,8 @@ class Score extends Component {
 					this.props.handleHighlight2(ReactDOM.findDOMNode(this), annotation, this.props.uri, fragments["MEI"]);
 				}  else if(b["@id"] === CUE_AUDIO) { 
 					this.props.handleCueAudio(ReactDOM.findDOMNode(this), annotation, b, this.props.uri, fragments);
+				} else if(b["@id"] === CUE_VIDEO) { 
+					this.props.handleCueVideo(ReactDOM.findDOMNode(this), annotation, b, this.props.uri, fragments);
 				} else {
 					console.log("Score component unable to handle meld action: ", b);
 				}
@@ -191,7 +195,7 @@ function mapStateToProps({ score }) {
 }
 
 function mapDispatchToProps(dispatch) { 
-	return bindActionCreators({ fetchScore, handleEmphasis, handleHighlight, handleHighlight2, handleCueAudio, scorePrevPage, scoreNextPage, handleQueueNextSession, handleCreateNextSession, handleTransitionToNextSession, handleIdentifyMuzicode, handleChoiceMuzicode, handleChallengePassed, handleDisklavierStart, handleMuzicodeTriggered, handleArchivedMuzicodeTrigger}, dispatch);
+	return bindActionCreators({ fetchScore, handleEmphasis, handleHighlight, handleHighlight2, handleCueAudio, handleCueVideo, scorePrevPage, scoreNextPage, handleQueueNextSession, handleCreateNextSession, handleTransitionToNextSession, handleIdentifyMuzicode, handleChoiceMuzicode, handleChallengePassed, handleDisklavierStart, handleMuzicodeTriggered, handleArchivedMuzicodeTrigger}, dispatch);
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(Score);
