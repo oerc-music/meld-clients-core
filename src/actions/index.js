@@ -240,11 +240,16 @@ export function traverse(
 										// Now recurse (if black/whitelist conditions and hop counter allow)
 										// Remember that we've already visited the current document to avoid loops  
 										if( numHops !== 0 && !(objectUriBlacklist.includes(obj["@id"])) ) {
-											dispatch(traverse(obj["@id"], {
-												...params,
-												"objectUriBlacklist": objectUriBlacklist.concat(docUri),
-												"numHops": numHops-1
-											}))
+											const badPrefixMatches = objectPrefixBlacklist.filter((b) => {
+												return obj["@id"].startsWith(b)
+											})
+											if(badPrefixMatches.length === 0) { 
+												dispatch(traverse(obj["@id"], {
+													...params,
+													"objectUriBlacklist": objectUriBlacklist.concat(docUri),
+													"numHops": numHops-1
+												}))
+											}
 										}
 									}  else { 
 										// our *RDF* object is a literal
