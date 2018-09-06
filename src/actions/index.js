@@ -3,12 +3,15 @@ import jsonld from 'jsonld'
 import querystring from 'querystring';
 import { ANNOTATION_PATCHED, ANNOTATION_POSTED, ANNOTATION_HANDLED, ANNOTATION_NOT_HANDLED, ANNOTATION_SKIPPED } from './meldActions';
 
-export const HAS_BODY = "oa:hasBody"
+export const SET_TRAVERSAL_OBJECTIVES = "SET_TRAVERSAL_OBJECTIVES";
+export const APPLY_TRAVERSAL_OBJECTIVE = "APPLY_OBJECTIVE";
+export const HAS_BODY = "oa:hasBody";
 export const FETCH_SCORE = 'FETCH_SCORE';
 export const FETCH_RIBBON_CONTENT = 'FETCH_RIBBON_CONTENT';
 export const FETCH_CONCEPTUAL_SCORE = 'FETCH_CONCEPTUAL_SCORE';
 export const FETCH_TEI = 'FETCH_TEI';
 export const FETCH_GRAPH = 'FETCH_GRAPH';
+export const FETCH_GRAPH_DOCUMENT = 'FETCH_GRAPH_DOCUMENT';
 export const FETCH_WORK = 'FETCH_WORK';
 export const FETCH_TARGET_EXPRESSION = 'FETCH_TARGET_EXPRESSION';
 export const FETCH_COMPONENT_TARGET = 'FETCH_COMPONENT_TARGET';
@@ -52,6 +55,7 @@ export const TICK="TICK";
 export const muzicodesUri = "http://127.0.0.1:5000/MUZICODES"
 
 export const MAX_RETRIES = 3;
+export const MAX_TRAVERSAL_HOPS = 10;
 export const RETRY_DELAY = 10;
 
 // TODO move context somewhere global -- most framing happens server side
@@ -107,6 +111,200 @@ export function fetchTEI(uri) {
         });
     }
 }
+
+export function traverse(
+	docUri,
+	{  // use destructuring to simulate named parameters
+		objectPrefixWhitelist=[], objectUriWhitelist=[], objectTypeWhitelist = [], 
+		objectPrefixBlacklist=[], objectUriBlacklist=[], objectTypeBlacklist = [],
+		propertyPrefixWhitelist=[], propertyUriWhitelist=[],
+		propertyPrefixBlacklist=[], propertyUriBlacklist=[],
+		objectives={}, numHops=MAX_TRAVERSAL_HOPS,
+		useEtag = false, etag=""
+	} = {}) {
+	// PURPOSE:
+	// *************************************************************************
+	// Traverse through a graph, looking for entities of interest
+	//   (keys of 'objectives') and undertaking actions in response
+	//   (values of 'objectives'). 
+	// For each subject, traverse along its predicates to its attached objects, 
+	//   then recurse (each object becomes subject in next round).
+	// When recursing, check for instances of object-as-subject in the current 
+	//   file (traverseInternal), AND do an HTTP GET to resolve the object URI 
+	//   and recurse there (external traversal).
+	// If useEtag is specified, then worry about etags for external traversals
+	// 	 (and re-request if the file has changed)
+	// 	 n.b. this is only an issue for dynamic MELD deployments
+	// With each hop, decrement numHops. 
+	// Stop when numHops reaches zero, or when there are no more objects
+	//   to traverse to.
+	// If an objectPrefixWhitelist is specified, only traverse to objects with 
+	//  URIs that start with a prefix in the list. 
+	// If an objectUriWhitelist is specified, only traverse to objects with 
+	//  URIs in the list.
+	// If an objectTypeWhitelist is specified, only traverse to objects with 
+	//  a type that's in the list. 
+	// If an objectPrefixBlacklist is specified, only traverse to objects with
+	//  URIs that do NOT start with a prefix in the list.
+	// If an objectUriBlacklist is specified, only traverse to objects with 
+	//  URIs that are NOT in the list.
+	// If an objectTypeBlacklist is specified, do NOT traverse to  objects with 
+	//  types in the list.
+	// If a propertyPrefixWhitelist is specified, only traverse to objects along
+	//  properties whose URIs start with a prefix in the list. 
+	// If a propertyUriWhitelist is specified, only traverse to objects along
+	//  properties with URIs in the list. 
+	// If a propertyPrefixBlacklist is specified, only traverse to objects along
+	//  properties whose URIs do NOT start with a prefix in the list. 
+	// If a propertyUriWhitelist is specified, only traverse to objects along
+	//  properties with URIs that are NOT in the list. 
+	// *************************************************************************
+	
+	// create params object to pass on in recursive calls
+	// n.b. must update here if function signature changes
+	let params = {  
+		objectPrefixWhitelist, objectUriWhitelist, objectTypeWhitelist, 
+		objectPrefixBlacklist, objectUriBlacklist, objectTypeBlacklist,
+		propertyPrefixWhitelist, propertyUriWhitelist,
+		propertyPrefixBlacklist, propertyUriBlacklist,
+		objectives, numHops,
+		useEtag, etag
+	}
+	// set up HTTP request
+	const headers = {'Accept': 'application/ld+json'};
+	if(useEtag) { 
+		headers['If-None-Match'] = etag;
+	}
+
+	console.log("FETCHING: ", docUri, params);
+ 	const promise = axios.get(docUri, {
+		headers: headers,
+		validateStatus: function(stat) { 
+			// only complain if code is greater or equal to 400
+			// this is to not treat 304's as errors}
+			return stat < 400;
+		}
+	});
+	return (dispatch) => { 
+		promise.then( (response) => {
+			if(response.status == 304) {
+				return; // file not modified, i.e. etag matched, no updates required
+			}
+			console.log(response.headers["content-type"]);
+			let data = response.data;
+			// appropriately handle content types
+//			if(isRDF(response.headers["content-type"])) {
+//				toNQuads(
+//					
+//			}
+//			switch(response.headers["content-type"]) {
+//				// If we are working with RDF, we need to convert it to JSON-LD.
+//				// Unfortunately jsonld.js only reads nquads.
+//				// Thus, convert non-nquad RDF formats to nquad first
+//				case "text/turtle":
+//				case "application/trig":
+//				case "application/n-triples":
+//				case "text/n3":
+//
+					
+			if(response.headers["content-type"] === "application/ld+json") {
+			// expand the JSON-LD object so that we are working with full URIs, not compacted into prefixes
+				jsonld.expand(response.data, (err, expanded) => {
+					if(err) { console.log("EXPANSION ERROR: ", docUri, err); }
+					// flatten the expanded JSON-LD object so that each described entity has an ID at the top-level of the tree
+					jsonld.flatten(expanded, (err, flattened) => {
+						dispatch({
+							type: FETCH_GRAPH_DOCUMENT,
+							payload: flattened
+						});
+						// convert the flattened array of JSON-LD structures into a lookup table using each entity's URI ("@id")
+						let idLookup = {}
+						Object.entries(flattened).forEach( ([key, value]) => {
+							idLookup[value["@id"]] = value;
+						})
+						Object.entries(idLookup).forEach( ([subjectUri, subjectDescription]) => {
+							// iterating through each entity within the document as the subject,
+							// look at its description (set of predicate-object tuples).
+							Object.entries(subjectDescription).forEach( ([pred,objs]) => {
+								// because JSON-LD, objs could be a single object or an array of objects
+								// therefore, ensure consistency:
+								objs = Array.isArray(objs) ? objs : [objs]
+								objs.map( (obj) => {
+									if(obj === Object(obj)) { 
+										// our *RDF* object is a *JAVASCRIPT* object
+										// but because we've flattened our document, we know that it will contain only an @id
+										// and that all of its other descriptors will be associated with that @id at the top-level
+										// (which we will handle in another iteration)
+										// CHECK FOR OBJECTIVES HERE
+										console.log("<>", subjectUri, pred, obj["@id"], docUri);
+										// Now recurse (if black/whitelist conditions and hop counter allow)
+										// Remember that we've already visited the current document to avoid loops  
+										if( numHops !== 0 && !(objectUriBlacklist.includes(obj["@id"])) ) {
+											const badPrefixMatches = objectPrefixBlacklist.filter((b) => {
+												return obj["@id"].startsWith(b)
+											})
+											if(badPrefixMatches.length === 0) { 
+												dispatch(traverse(obj["@id"], {
+													...params,
+													"objectUriBlacklist": objectUriBlacklist.concat(docUri),
+													"numHops": numHops-1
+												}))
+											}
+										}
+									}  else { 
+										// our *RDF* object is a literal
+										// n.b. exceptions where pred is @type, @id, etc. There, the obj is still a URI, not a literal
+										// Could test for those explicitly here.
+										// CHECK FOR OBJECTIVES HERE
+										console.log("||", subjectUri, pred, obj, docUri)
+
+									}
+								});
+							})
+
+						})
+					});
+					// since we will sometimes obtain arrays, do the following to ensure consistency:
+	//				expanded = Array.isArray(expanded) ? expanded : [ expanded ];
+	//				expanded.map( (subject) => {
+	//					// we've encountered a subject of interest. 
+	//					// traverse through its associated predicates and objects:
+	//					const predicates = Object.keys(subject).filter((p) => { if(!(p in propertyUriBlacklist)) return p });
+	//					predicates.map( (p) =>  {
+	//						console.log(p);
+	//					});
+	//				});
+				})
+			}
+		}).catch( (err) => console.log("Could not retrieve ", docUri, err));
+	}
+}
+
+export function checkTraversalObjectives(graph, objectives) { 
+	// check a given json-ld structure against a set of objectives (json-ld frames)
+	return (dispatch) => { 
+		objectives.map( (obj, ix) => { 
+			jsonld.frame(graph, obj, (err, framed) => { 
+				if(err) { 
+					console.log("FRAMING ERROR: ", objectives[ix], err);
+				} else {
+					dispatch({
+						type:APPLY_TRAVERSAL_OBJECTIVE,
+						payload: {ix, framed}
+					})
+				}
+			})
+		})
+	}
+}
+
+export function setTraversalObjectives(objectives) {
+	return { 
+		type: SET_TRAVERSAL_OBJECTIVES,
+		payload:objectives
+	}
+}
+			
 
 export function fetchSessionGraph(uri, etag = "") { 
 	// console.log("FETCH_SESSION_GRAPH ACTION ON URI: ", uri, " with etag: ", etag);
@@ -836,6 +1034,17 @@ export function ensureArray(theObj, theKey) {
 	}
 }
 
+
+// Function to set up the objectives (objects containing JSON-LD frames)
+// matched against the graph being built during a traversal.
+// Typically called once, on componentWillMount
+export function configureTraversalObjectives(objectives) {
+	return { 
+		type: SET_TRAVERSAL_OBJECTIVES,
+		payload: objectives
+	}
+}
+
 export function createSession(sessionsUri, scoreUri, {session="", etag="", retries=MAX_RETRIES, performerUri="", slug=""} = {}) { 
 	return (dispatch) => { 
 		if(retries) { 
@@ -914,3 +1123,11 @@ export function tickTimedResource(resourceUri, time) {
 		}
 	}
 }
+
+export function registerClock(clockUri) {
+	return {
+		type: "REGISTER_CLOCK", 
+		payload: clockUri
+	}
+}
+
