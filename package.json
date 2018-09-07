@@ -1,6 +1,6 @@
 {
   "name": "meld-clients-core",
-  "version": "0.0.2",
+  "version": "1.0.0",
   "description": "Music Encoding and Linked Data (MELD) clients core library",
   "main": "index.js",
   "repository": "git@github.com:musicog/meld-clients-core.git",
@@ -27,7 +27,6 @@
     "immutability-helper": "^2.1.2",
     "jsonld": "^0.4.11",
 		"leaflet": "^1.2.0",
-    "lodash": "^3.10.1",
     "n3": "^0.10.0",
     "querystring": "^0.2.0",
     "react": "^16.4.1",
