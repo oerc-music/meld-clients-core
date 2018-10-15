@@ -62,6 +62,19 @@ class Score extends Component {
 			} else {
 				svg = '';
 			}			
+			if(this.props.scoreAnnotations && this.props.drawAnnotation && svg) {
+				// We can't edit the output of Verovio while it's a string,
+				// so, if there's anything to be done to it, it should happen
+				// to a parsed version.
+				// Ideally, this would be the version rendered, but in practice, I'm
+				// regenerating the serialisation and then drawing that. Which is pretty silly.
+				var parser = new DOMParser();
+				var svgObject = parser.parseFromString(svg, "image/svg+xml");
+				var svgChild = svgObject.getElementsByClassName('definition-scale')[0];
+				var oSerializer = new XMLSerializer();
+				this.props.drawAnnotation(this.props.scoreAnnotations, svgChild);
+				svg = oSerializer.serializeToString(svgObject);
+			};
 			return (
 				<div id={this.props.uri} className="scorepane">
 					<div className="controls" />
