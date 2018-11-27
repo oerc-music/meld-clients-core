@@ -45,8 +45,12 @@ export function ScoreReducer(state = {publishedScores: {}, conceptualScores: {},
 	let svg;
 	const pageCount = vrvTk.getPageCount();
 	switch(action.type) {
-	case FETCH_SCORE:
-        svg = vrvTk.renderData(action.payload.data, vrvOptions);
+		case FETCH_SCORE:
+			// In the past, we rendered scores pre-emptively, but there's
+			// nothing to say that this score will ever be drawn, and doing
+			// it here puts all the processing up front. For multiple
+			// scores, it's noticably slow.
+        svg = false && vrvTk.renderData(action.payload.data, vrvOptions);
 		return update(state, {
 			SVG: { $merge: { [action.payload.config.url]: svg } },
 			MEI: { $merge: { [action.payload.config.url]: action.payload.data } } ,
