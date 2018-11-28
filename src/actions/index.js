@@ -33,11 +33,11 @@ export const EXPRESSION = 'frbr:Expression';
 export const PART_OF = 'frbr:partOf';
 export const PART = 'frbr:part';
 export const KEY = 'mo:key';
-export const HARMONY = 'http://meld.linkedmusic.org/companion/vocab/harmony';
-export const CADENCE = 'http://meld.linkedmusic.org/companion/vocab/cadentialGoal';
-export const DEGREE = 'http://meld.linkedmusic.org/companion/vocab/hasDegree';
-export const CHORD_TYPE = 'http://meld.linkedmusic.org/companion/vocab/chordType';
-export const HAS_STRUCTURE= 'http://meld.linkedmusic.org/terms/hasStructure';
+export const HARMONY = 'https://meld.linkedmusic.org/companion/vocab/harmony';
+export const CADENCE = 'https://meld.linkedmusic.org/companion/vocab/cadentialGoal';
+export const DEGREE = 'https://meld.linkedmusic.org/companion/vocab/hasDegree';
+export const CHORD_TYPE = 'https://meld.linkedmusic.org/companion/vocab/chordType';
+export const HAS_STRUCTURE= 'https://meld.linkedmusic.org/terms/hasStructure';
 export const SEQ = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#Seq';
 export const SEQPART = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#_';
 export const SCORE = 'http://purl.org/ontology/mo/Score';
@@ -70,8 +70,8 @@ const context = {
 	"dct": "http://purl.org/dc/terms/",
 	"frbr": "http://purl.org/vocab/frbr/core#",
 	"rdfs": "http://www.w3.org/2000/01/rdf-schema#",
-	"meld": "http://meld.linkedmusic.org/terms/",
-	"motivation": "http://meld.linkedmusic.org/motivation/",
+	"meld": "https://meld.linkedmusic.org/terms/",
+	"motivation": "https://meld.linkedmusic.org/motivation/",
 	"so": "http://www.linkedmusic.org/ontologies/segment/",
 	"dct": "http://purl.org/dc/terms/",
 	"climb": "http://meld.linkedmusic.org/climb/terms/",
