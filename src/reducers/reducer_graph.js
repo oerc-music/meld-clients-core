@@ -160,7 +160,7 @@ export default function (state = INIT_STATE, action) {
 		// appropriate index.
 		let updatedOutcomes = state.outcomes;
 		updatedOutcomes[action.payload.ix] = action.payload.framed;
-		let updatedOutcomesHash = JSum.digest(updatedOutcomes, 'md5', 'hex')
+		let updatedOutcomesHash = JSum.digest(updatedOutcomes, 'md5', 'hex');
 		return update(state, {
 			outcomes: { 
 				$set: updatedOutcomes
