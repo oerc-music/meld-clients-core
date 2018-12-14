@@ -25,8 +25,9 @@ import {
 	handleArchivedMuzicodeTrigger
 } from '../actions/meldActions';
 
-
 import InlineSVG from 'svg-inline-react';
+import  verovio from 'verovio-dev';
+
 const defaultVrvOptions = {
 	ignoreLayout:1,
 	adjustPageHeight:1,

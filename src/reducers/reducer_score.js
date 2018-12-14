@@ -1,4 +1,5 @@
 import update from 'immutability-helper';
+import verovio from 'verovio-dev';
 import { 
 	FETCH_SCORE, 
 	FETCH_RIBBON_CONTENT,
