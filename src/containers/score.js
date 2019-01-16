@@ -57,7 +57,7 @@ class Score extends Component {
 		if(Object.keys(this.props.score).length) {
 			if(this.props.score.MEI[this.props.uri]) {
         this.state.vrvTk.loadData(this.props.score.MEI[this.props.uri]);
-        var svg = this.state.vrvTk.renderPage(this.props.pageNum, this.props.options ? this.props.options : defaultVrvOptions);
+        var svg = this.state.vrvTk.renderPage(this.props.score.pageNum, this.props.options ? this.props.options : defaultVrvOptions);
 			} else if (this.props.score.SVG[this.props.uri]) {
 				svg = this.props.score.SVG[this.props.uri];
 			} else {
