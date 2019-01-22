@@ -48,7 +48,6 @@ class Score extends Component {
 
 		this.state = { 
 			score: {},
-			vrvTk: new verovio.toolkit(),
       annotations:{}
 		};
 	}
@@ -56,9 +55,9 @@ class Score extends Component {
 	render() {
 		if(Object.keys(this.props.score).length) {
 			if(this.props.score.MEI[this.props.uri]) {
-        this.state.vrvTk.loadData(this.props.score.MEI[this.props.uri]);
-        this.state.vrvTk.setOptions(this.props.options ? this.props.options : defaultVrvOptions);
-        var svg = this.state.vrvTk.renderToSVG(this.props.score.pageNum) ;
+        this.props.score.vrvTk.loadData(this.props.score.MEI[this.props.uri]);
+        this.props.score.vrvTk.setOptions(this.props.options ? this.props.options : defaultVrvOptions);
+        var svg = this.props.score.vrvTk.renderToSVG(this.props.score.pageNum) ;
 			} else if (this.props.score.SVG[this.props.uri]) {
 				svg = this.props.score.SVG[this.props.uri];
 			} else {

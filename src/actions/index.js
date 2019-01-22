@@ -207,7 +207,7 @@ export function traverse(
 //				case "text/n3":
 //
 					
-			if(response.headers["content-type"] === "application/ld+json") {
+			if(response.headers["content-type"] === "application/ld+json" || response.headers["content-type"].startsWith("application/json")) {
 			// expand the JSON-LD object so that we are working with full URIs, not compacted into prefixes
 				jsonld.expand(response.data, (err, expanded) => {
 					if(err) { console.log("EXPANSION ERROR: ", docUri, err); }

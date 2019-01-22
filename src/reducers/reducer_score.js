@@ -21,8 +21,6 @@ const AUDIOTYPE = 'meld:AudioEmbodiment';
 const TEITYPE = 'meld:TEIEmbodiment';
 const MEMBER = 'rdfs:member';
 
-const vrvTk = new verovio.toolkit();
-
 const scale = 35;
 
 let conceptualScore;
@@ -41,16 +39,16 @@ export function setScoreReducerVerovioOptions(options){
 	vrvOptions = options;
 };
 
-export function ScoreReducer(state = {publishedScores: {}, conceptualScores: {}, MEI: {}, SVG: {}, componentTargets: {}, scoreMapping: {}, pageNum: 1, pageCount: 0, triggerNextSession: "", triggerPrevSession: ""}, action) { 
+export function ScoreReducer(state = {publishedScores: {}, conceptualScores: {}, MEI: {}, SVG: {}, componentTargets: {}, scoreMapping: {}, pageNum: 1, pageCount: 0, triggerNextSession: "", triggerPrevSession: "", vrvTk:  new verovio.toolkit()}, action) { 
 	let svg;
-	const pageCount = vrvTk.getPageCount();
+	const pageCount = state.vrvTk.getPageCount();
 	switch(action.type) {
 		case FETCH_SCORE:
 			// In the past, we rendered scores pre-emptively, but there's
 			// nothing to say that this score will ever be drawn, and doing
 			// it here puts all the processing up front. For multiple
 			// scores, it's noticably slow.
-        svg = false && vrvTk.renderData(action.payload.data, vrvOptions);
+        svg = false && state.vrvTk.renderData(action.payload.data, vrvOptions);
 		return update(state, {
 			SVG: { $merge: { [action.payload.config.url]: svg } },
 			MEI: { $merge: { [action.payload.config.url]: action.payload.data } } ,
@@ -152,20 +150,6 @@ export function ScoreReducer(state = {publishedScores: {}, conceptualScores: {},
 			});
 		} 
 		return newState;
-/*
-	case SCORE_PREV_PAGE:
-		// if we're on page 1, do nothing
-		if(action.payload.pageNum === 1) { 
-			return state;
-		} else { 
-			vrvTk.loadData(action.payload.data);
-			svg = vrvTk.renderPage(action.payload.pageNum-1, vrvOptions);
-		}
-		return update(state, {
-			SVG: { $merge: { [action.payload.uri]: svg } },
-			pageNum: {$set: action.payload.pageNum-1} 
-		});
-	*/	
 	case SCORE_NEXT_PAGE:
 		if(!action.payload.data) { 
 			console.log("SCORE_NEXT_PAGE attempted on non-loaded MEI data - ignoring!");
@@ -179,9 +163,6 @@ export function ScoreReducer(state = {publishedScores: {}, conceptualScores: {},
 			// console.log("TRIGGERING")
 			return update(state, { triggerNextSession: { $set: true  } });
 		} else { 
-			vrvTk.loadData(action.payload.data);
-			svg = vrvTk.renderPage(action.payload.pageNum+1, vrvOptions);
-
 			return update(state, {
 				//SVG: { $merge: { [action.payload.uri]: svg } }, -- DW merge -> set 20170722
 				SVG: { $set: { [action.payload.uri]: svg } },
@@ -205,9 +186,6 @@ export function ScoreReducer(state = {publishedScores: {}, conceptualScores: {},
 			console.log("SCORE_PREV_PAGE attempted on first page -- go back to previous session!");
 			return update(state, { triggerPrevSession: { $set: true  } });
 		} else { 
-			vrvTk.loadData(action.payload.data);
-			svg = vrvTk.renderPage(action.payload.pageNum-1, vrvOptions);
-
 			return update(state, {
 				//SVG: { $merge: { [action.payload.uri]: svg } }, -- DW merge -> set 20170722
 				SVG: { $set: { [action.payload.uri]: svg } },
@@ -226,9 +204,7 @@ export function ScoreReducer(state = {publishedScores: {}, conceptualScores: {},
 			return state;
 		}
 		const frag=action.payload.target.split("#")[1]
-		const pageNum = vrvTk.getPageWithElement(frag)
-		vrvTk.loadData(action.payload.data)
-		svg = vrvTk.renderPage(pageNum)
+		const pageNum = state.vrvTk.getPageWithElement(frag)
 		return update(state, {
 			SVG: { $set: { [action.payload.uri]: svg } },
 			pageNum: {$set: pageNum} 
