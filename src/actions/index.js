@@ -225,9 +225,9 @@ export function traverse(
   }
 }
 
-function traverseJSONLD(dispatch, docUri, params, jsonld){
+function traverseJSONLD(dispatch, docUri, params, data){
         // expand the JSON-LD object so that we are working with full URIs, not compacted into prefixes
-				jsonld.expand(response.data, (err, expanded) => {
+				jsonld.expand(data, (err, expanded) => {
 					if(err) { console.log("EXPANSION ERROR: ", docUri, err); }
 					// flatten the expanded JSON-LD object so that each described entity has an ID at the top-level of the tree
 					jsonld.flatten(expanded, (err, flattened) => {
