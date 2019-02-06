@@ -214,7 +214,13 @@ export function traverse(
            n3parser.parse(response.data, (error, quad, prefixes) => {
              if (quad) { 
                console.log("n3 success: ", quad, prefixes);
-               jsonld.fromRDF(quad, {format: 'application/n-quads'}, traverseJSONLD.bind(null, dispatch, docUri, params));
+               jsonld.fromRDF(quad, {format: 'application/nquads'}, (err, doc) => {
+                 if(err) { 
+                   console.log("error converting from RDF to JSONLD: ", err)
+                 } else { 
+                   this.traverseJSONLD( dispatch, docUri, params, doc);
+                 }
+               })
              } else {
                console.log("n3 error :-( ", error);
              }
@@ -227,6 +233,7 @@ export function traverse(
 
 function traverseJSONLD(dispatch, docUri, params, data){
         // expand the JSON-LD object so that we are working with full URIs, not compacted into prefixes
+        console.log("Ping", data);
 				jsonld.expand(data, (err, expanded) => {
 					if(err) { console.log("EXPANSION ERROR: ", docUri, err); }
 					// flatten the expanded JSON-LD object so that each described entity has an ID at the top-level of the tree
