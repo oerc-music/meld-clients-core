@@ -1,5 +1,6 @@
 import axios from 'axios';
 import jsonld from 'jsonld'
+import N3 from 'n3'
 import querystring from 'querystring';
 import { ANNOTATION_PATCHED, ANNOTATION_POSTED, ANNOTATION_HANDLED, ANNOTATION_NOT_HANDLED, ANNOTATION_SKIPPED } from './meldActions';
 
