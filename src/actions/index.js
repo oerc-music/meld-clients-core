@@ -27,7 +27,6 @@ export const RESET_NEXT_SESSION_TRIGGER= 'RESET_NEXT_SESSION_TRIGGER';
 export const TRANSITION_TO_NEXT_SESSION = 'TRANSITION_TO_NEXT_SESSION';
 export const REGISTER_PUBLISHED_PERFORMANCE_SCORE= 'REGISTER_PUBLISHED_PERFORMANCE_SCORE';
 export const MUZICODES_UPDATED= 'MUZICODES_UPDATED';
-// TODO DW 20170830 -- finish JSONLDifying these
 export const REALIZATION_OF = 'frbr:realizationOf';
 export const EXPRESSION = 'frbr:Expression';
 export const PART_OF = 'frbr:partOf';
@@ -208,7 +207,25 @@ export function traverse(
 //
 					
 			if(response.headers["content-type"] === "application/ld+json" || response.headers["content-type"].startsWith("application/json")) {
-			// expand the JSON-LD object so that we are working with full URIs, not compacted into prefixes
+        this.traverseJSONLD(dispatch, docUri, params, response.data);
+			} else {
+           const n3parser = new N3.Parser({ baseIRI: docUri });
+           n3parser.parse(response.data, (error, quad, prefixes) => {
+             if (quad) { 
+               console.log("n3 success: ", quad, prefixes);
+               jsonld.fromRDF(quad, {format: 'application/n-quads'}, traverseJSONLD.bind(null, dispatch, docUri, params));
+             } else {
+               console.log("n3 error :-( ", error);
+             }
+           });
+
+     }
+    }).catch( (err) => console.log("Could not retrieve ", docUri, err));
+  }
+}
+
+function traverseJSONLD(dispatch, docUri, params, jsonld){
+        // expand the JSON-LD object so that we are working with full URIs, not compacted into prefixes
 				jsonld.expand(response.data, (err, expanded) => {
 					if(err) { console.log("EXPANSION ERROR: ", docUri, err); }
 					// flatten the expanded JSON-LD object so that each described entity has an ID at the top-level of the tree
@@ -274,10 +291,7 @@ export function traverse(
 	//						console.log(p);
 	//					});
 	//				});
-				})
-			}
-		}).catch( (err) => console.log("Could not retrieve ", docUri, err));
-	}
+				});
 }
 
 export function checkTraversalObjectives(graph, objectives) { 
