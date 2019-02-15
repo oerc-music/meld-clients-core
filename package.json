@@ -30,6 +30,7 @@
     "leaflet": "^1.2.0",
     "n3": "^1.0.3",
     "querystring": "^0.2.0",
+    "rdf-translator": "^2.0.0",
     "react": "^16.4.1",
     "react-dom": "^16.4.1",
     "react-leaflet": "^1.7.8",

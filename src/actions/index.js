@@ -192,6 +192,31 @@ export function traverse(
 			}
 			console.log(response.headers["content-type"]);
 			let data = response.data;
+
+      // attempt to decide content type (either explicitly provided or by file suffix)
+      // and proceed with traversal accordingly
+      if(docUri.endsWith(".json") || docUri.endsWith(".jsonld") || docUri.endsWith(".json-ld") ||
+         response.headers["content-type"].startsWith("application/ld+json") || 
+         response.headers["content-type"].startsWith("application/json")) { 
+        // treat as JSON-LD document
+        this.traverseJSONLD(dispatch, docUri, params, response.data);
+      } else if(docUri.endsWith(".ttl") || docUri.endsWith(".n3") || docUri.endsWith(".rdf") ||
+        docUri.endsWith(".nq") || docUri.endsWith(".nt") || 
+        response.headers["content-type"].startsWith("application/rdf+xml") ||
+        response.headers["content-type"].startsWith("application/nquads") || 
+        response.headers["content-type"].startsWith("application/x-turtle") || 
+        response.headers["content-type"].startsWith("text/turtle")) {
+        // treat as RDF document
+        rdfTranslator(docUri, 'detect', 'json-ld').then( (dispatch, data) => {
+          console.log("Translator returned:", data);
+          this.traverseJSONLD(dispatch, docUri, params, JSON.parse(data));
+        }).catch( (dispatch, err) => {
+          console.log("Translator failed:", err);
+        })
+      }
+    
+
+
 			// appropriately handle content types
 //			if(isRDF(response.headers["content-type"])) {
 //				toNQuads(
@@ -206,27 +231,6 @@ export function traverse(
 //				case "application/n-triples":
 //				case "text/n3":
 //
-					
-			if(response.headers["content-type"] === "application/ld+json" || response.headers["content-type"].startsWith("application/json")) {
-        this.traverseJSONLD(dispatch, docUri, params, response.data);
-			} else {
-           const n3parser = new N3.Parser({ baseIRI: docUri });
-           n3parser.parse(response.data, (error, quad, prefixes) => {
-             if (quad) { 
-               console.log("n3 success: ", quad, prefixes);
-               jsonld.fromRDF(quad, {format: 'application/nquads'}, (err, doc) => {
-                 if(err) { 
-                   console.log("error converting from RDF to JSONLD: ", err)
-                 } else { 
-                   this.traverseJSONLD( dispatch, docUri, params, doc);
-                 }
-               })
-             } else {
-               console.log("n3 error :-( ", error);
-             }
-           });
-
-     }
     }).catch( (err) => console.log("Could not retrieve ", docUri, err));
   }
 }
