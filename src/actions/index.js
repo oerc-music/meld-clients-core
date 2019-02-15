@@ -2,6 +2,7 @@ import axios from 'axios';
 import jsonld from 'jsonld'
 import N3 from 'n3'
 import querystring from 'querystring';
+import rdfTranslator from 'rdf-translator';
 import { ANNOTATION_PATCHED, ANNOTATION_POSTED, ANNOTATION_HANDLED, ANNOTATION_NOT_HANDLED, ANNOTATION_SKIPPED } from './meldActions';
 
 export const SET_TRAVERSAL_OBJECTIVES = "SET_TRAVERSAL_OBJECTIVES";
@@ -207,12 +208,14 @@ export function traverse(
         response.headers["content-type"].startsWith("application/x-turtle") || 
         response.headers["content-type"].startsWith("text/turtle")) {
         // treat as RDF document
-        rdfTranslator(docUri, 'detect', 'json-ld').then( (dispatch, data) => {
+        rdfTranslator(response.data, 'detect', 'json-ld').then( (dispatch, data) => {
           console.log("Translator returned:", data);
           this.traverseJSONLD(dispatch, docUri, params, JSON.parse(data));
         }).catch( (dispatch, err) => {
           console.log("Translator failed:", err);
         })
+      } else { 
+        console.log("Don't know how to treat this document: ", docUri, response)
       }
     
 
