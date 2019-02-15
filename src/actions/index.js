@@ -2,7 +2,6 @@ import axios from 'axios';
 import jsonld from 'jsonld'
 import N3 from 'n3'
 import querystring from 'querystring';
-import rdfTranslator from 'rdf-translator';
 import { ANNOTATION_PATCHED, ANNOTATION_POSTED, ANNOTATION_HANDLED, ANNOTATION_NOT_HANDLED, ANNOTATION_SKIPPED } from './meldActions';
 
 export const SET_TRAVERSAL_OBJECTIVES = "SET_TRAVERSAL_OBJECTIVES";
@@ -193,7 +192,6 @@ export function traverse(
 			}
 			console.log(response.headers["content-type"]);
 			let data = response.data;
-
       // attempt to decide content type (either explicitly provided or by file suffix)
       // and proceed with traversal accordingly
       if(docUri.endsWith(".json") || docUri.endsWith(".jsonld") || docUri.endsWith(".json-ld") ||
@@ -208,12 +206,12 @@ export function traverse(
         response.headers["content-type"].startsWith("application/x-turtle") || 
         response.headers["content-type"].startsWith("text/turtle")) {
         // treat as RDF document
-        rdfTranslator(response.data, 'detect', 'json-ld').then( (dispatch, data) => {
-          console.log("Translator returned:", data);
-          this.traverseJSONLD(dispatch, docUri, params, JSON.parse(data));
-        }).catch( (dispatch, err) => {
-          console.log("Translator failed:", err);
-        })
+        // post to rdf translation service to obtain jsonld:
+        axios.post("http://rdf-translator.appspot.com/convert/detect/json-ld/content", 
+          { content: response.data }
+        ).then( (jsonldData) => console.log("Obtained repsonse: ", jsonldData)
+        ).catch( (err) => console.log("Oh dear: ", err));
+
       } else { 
         console.log("Don't know how to treat this document: ", docUri, response)
       }
