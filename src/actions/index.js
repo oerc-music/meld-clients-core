@@ -51,6 +51,8 @@ export const HAS_PIANO = "http://id.loc.gov/authorities/performanceMediums/20130
 export const CREATE_SESSION = "CREATE_SESSION";
 export const SESSION_NOT_CREATED = "SESSION_NOT_CREATED";
 export const TICK="TICK";
+export const TRAVERSAL_PREHOP="TRAVERSAL_PREHOP";
+export const TRAVERSAL_HOP="TRAVERSAL_HOP";
 
 export const muzicodesUri = "http://127.0.0.1:5000/MUZICODES"
 
@@ -198,7 +200,7 @@ export function traverse(
          response.headers["content-type"].startsWith("application/ld+json") || 
          response.headers["content-type"].startsWith("application/json")) { 
         // treat as JSON-LD document
-        this.traverseJSONLD(dispatch, docUri, params, response.data);
+        dispatch(traverseJSONLD(dispatch, docUri, params, response.data));
       } else if(docUri.endsWith(".ttl") || docUri.endsWith(".n3") || docUri.endsWith(".rdf") ||
         docUri.endsWith(".nq") || docUri.endsWith(".nt") || 
         response.headers["content-type"].startsWith("application/rdf+xml") ||
@@ -207,8 +209,14 @@ export function traverse(
         response.headers["content-type"].startsWith("text/turtle")) {
         // treat as RDF document
         // post to rdf translation service to obtain jsonld:
-        axios.post("http://rdf-translator.appspot.com/convert/detect/json-ld/content", 
-          { content: response.data }
+        let content = response.data.replace(/\n/g, " ").replace(/"/g, '\"')
+        console.log("CONTENT", content);
+        axios.post("http://rdf-translator.appspot.com/convert/n3/json-ld/content", 
+          { content },
+          { 
+            //headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+            headers: { 'Content-Type': 'text/plain' }
+          }
         ).then( (jsonldData) => console.log("Obtained repsonse: ", jsonldData)
         ).catch( (err) => console.log("Oh dear: ", err));
 
@@ -233,6 +241,7 @@ export function traverse(
 //				case "text/n3":
 //
     }).catch( (err) => console.log("Could not retrieve ", docUri, err));
+    return { type: TRAVERSAL_PREHOP };
   }
 }
 
@@ -268,18 +277,13 @@ function traverseJSONLD(dispatch, docUri, params, data){
 										// CHECK FOR OBJECTIVES HERE
 										console.log("<>", subjectUri, pred, obj["@id"], docUri);
 										// Now recurse (if black/whitelist conditions and hop counter allow)
-										// Remember that we've already visited the current document to avoid loops  
-										if( numHops !== 0 && !(objectUriBlacklist.includes(obj["@id"])) ) {
-											const badPrefixMatches = objectPrefixBlacklist.filter((b) => {
-												return obj["@id"].startsWith(b)
-											})
-											if(badPrefixMatches.length === 0) { 
+                    if(passesTraversalConstraints(obj,params)) {
 												dispatch(traverse(obj["@id"], {
 													...params,
-													"objectUriBlacklist": objectUriBlacklist.concat(docUri),
-													"numHops": numHops-1
+                          // Remember that we've already visited the current document to avoid loops  
+													"objectUriBlacklist": params["objectUriBlacklist"].concat(docUri),
+													"numHops": params["numHops"]-1
 												}))
-											}
 										}
 									}  else { 
 										// our *RDF* object is a literal
@@ -305,7 +309,49 @@ function traverseJSONLD(dispatch, docUri, params, data){
 	//					});
 	//				});
 				});
+  return { type: TRAVERSAL_HOP }
 }
+
+function passesTraversalConstraints(obj, params) {
+  // filter function that returns TRUE if uri should be traversed to
+  // (with a given set of constraints in the params)
+  //
+  // test: ensure we haven't run out of hops
+  console.log("Checking for traversal constraints: ", obj, params);
+  if(params["numHops"] === 0) { return false; }
+
+  // test: ensure obj is not a literal
+  if(!("@id" in obj)) { return false; }
+
+  // test: object URI doesn't violate constraints
+  if(params["objectUriWhitelist"].length)  {
+    // URI whitelist specified:
+    // only pass if included in URI whitelist AND not in URI blacklist
+    if(!obj["@id"] in params["objectUriWhitelist"] || 
+       obj["@id"] in params["objectUriBlacklist"]) { return false; }
+  } else { 
+    // no URI whitelist
+    // only pass if not in URI blacklist
+    if(obj["@id"] in params["objectUriBlacklist"]) { return false; }
+  }
+
+  // test: object URI doesn't violate PREFIX constraints
+  const prefixBlackListed = params["objectPrefixBlacklist"].filter( (pre) => {
+    return obj["@id"].startsWith(pre);
+  });
+  // only pass if prefix not blacklisted
+  if(prefixBlackListed.length) { return false; }
+  if(params["objectPrefixWhitelist"].length) { 
+    // Prefix whitelist specified:
+    const prefixWhiteListed = params["objectPrefixWhitelist"].filter( (pre) => { 
+      return obj["@id"].startsWith(pre);
+    });
+    // only pass if included in prefix whitelist
+    if(prefixWhiteListed.length === 0) { return false}
+  }
+  return true;
+}
+    
 
 export function checkTraversalObjectives(graph, objectives) { 
 	// check a given json-ld structure against a set of objectives (json-ld frames)
