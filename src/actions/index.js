@@ -245,6 +245,32 @@ export function traverse(
   }
 }
 
+
+//helper function: 
+// skolemize blank nodes to prevent identifier clashes between documents
+// by detecting "_:<blank-node-identifier>"
+// and replacing with document uri appended with  /genid/<blank-node-identifier> 
+// by virtue of traversal mechanism, we only ever visit each document once, 
+// so clashes with the same document should not occur.
+function skolemize(obj,docUri) {
+  if(Array.isArray(obj)) {
+    // if fed an array, recur on each constitutent
+    obj = obj.map( (o) => skolemize(o, docUri) );
+  } else if(obj === Object(obj)) {
+    // if fed an object, iterate over each key
+    Object.keys(obj).map( (k) => {
+      if(k === "@id") {
+      // found an @id, check for blank node and skolemize if necesssary
+          obj["@id"] = obj["@id"].replace("_:", docUri);
+      } else { 
+        // recur on value
+        obj[k] = skolemize(obj[k], docUri);
+      }
+    })
+  }
+  return obj;
+}
+
 function traverseJSONLD(dispatch, docUri, params, data){
         // expand the JSON-LD object so that we are working with full URIs, not compacted into prefixes
         console.log("Ping", data);
@@ -252,13 +278,15 @@ function traverseJSONLD(dispatch, docUri, params, data){
 					if(err) { console.log("EXPANSION ERROR: ", docUri, err); }
 					// flatten the expanded JSON-LD object so that each described entity has an ID at the top-level of the tree
 					jsonld.flatten(expanded, (err, flattened) => {
+            const skolemized = skolemize(flattened, docUri);
+            console.log("flattened at dispatch: ", skolemized);
 						dispatch({
 							type: FETCH_GRAPH_DOCUMENT,
-							payload: flattened
+							payload: skolemized 
 						});
 						// convert the flattened array of JSON-LD structures into a lookup table using each entity's URI ("@id")
 						let idLookup = {}
-						Object.entries(flattened).forEach( ([key, value]) => {
+						Object.entries(skolemized).forEach( ([key, value]) => {
 							idLookup[value["@id"]] = value;
 						})
 						Object.entries(idLookup).forEach( ([subjectUri, subjectDescription]) => {
