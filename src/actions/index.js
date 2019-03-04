@@ -1,6 +1,5 @@
 import axios from 'axios';
 import jsonld from 'jsonld'
-import N3 from 'n3'
 import querystring from 'querystring';
 import { ANNOTATION_PATCHED, ANNOTATION_POSTED, ANNOTATION_HANDLED, ANNOTATION_NOT_HANDLED, ANNOTATION_SKIPPED } from './meldActions';
 
@@ -208,18 +207,7 @@ export function traverse(
         response.headers["content-type"].startsWith("application/x-turtle") || 
         response.headers["content-type"].startsWith("text/turtle")) {
         // treat as RDF document
-        // post to rdf translation service to obtain jsonld:
-        let content = response.data.replace(/\n/g, " ").replace(/"/g, '\"')
-        console.log("CONTENT", content);
-        axios.post("http://rdf-translator.appspot.com/convert/n3/json-ld/content", 
-          { content },
-          { 
-            //headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
-            headers: { 'Content-Type': 'text/plain' }
-          }
-        ).then( (jsonldData) => console.log("Obtained repsonse: ", jsonldData)
-        ).catch( (err) => console.log("Oh dear: ", err));
-
+        // TODO: Translate RDF to JSON-LD, then proceed with traverseJSONLD as above
       } else { 
         console.log("Don't know how to treat this document: ", docUri, response)
       }
@@ -273,7 +261,6 @@ function skolemize(obj,docUri) {
 
 function traverseJSONLD(dispatch, docUri, params, data){
         // expand the JSON-LD object so that we are working with full URIs, not compacted into prefixes
-        console.log("Ping", data);
 				jsonld.expand(data, (err, expanded) => {
 					if(err) { console.log("EXPANSION ERROR: ", docUri, err); }
 					// flatten the expanded JSON-LD object so that each described entity has an ID at the top-level of the tree
@@ -326,16 +313,6 @@ function traverseJSONLD(dispatch, docUri, params, data){
 
 						})
 					});
-					// since we will sometimes obtain arrays, do the following to ensure consistency:
-	//				expanded = Array.isArray(expanded) ? expanded : [ expanded ];
-	//				expanded.map( (subject) => {
-	//					// we've encountered a subject of interest. 
-	//					// traverse through its associated predicates and objects:
-	//					const predicates = Object.keys(subject).filter((p) => { if(!(p in propertyUriBlacklist)) return p });
-	//					predicates.map( (p) =>  {
-	//						console.log(p);
-	//					});
-	//				});
 				});
   return { type: TRAVERSAL_HOP }
 }
@@ -345,7 +322,6 @@ function passesTraversalConstraints(obj, params) {
   // (with a given set of constraints in the params)
   //
   // test: ensure we haven't run out of hops
-  console.log("Checking for traversal constraints: ", obj, params);
   if(params["numHops"] === 0) { return false; }
 
   // test: ensure obj is not a literal
