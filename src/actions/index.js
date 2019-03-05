@@ -249,7 +249,7 @@ function skolemize(obj,docUri) {
     Object.keys(obj).map( (k) => {
       if(k === "@id") {
       // found an @id, check for blank node and skolemize if necesssary
-          obj["@id"] = obj["@id"].replace("_:", docUri);
+          obj["@id"] = obj["@id"].replace("_:", docUri + "/genid/");
       } else { 
         // recur on value
         obj[k] = skolemize(obj[k], docUri);
