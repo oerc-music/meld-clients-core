@@ -2,7 +2,7 @@ MELD Clients Core
 =================
 A React.js library providing common MELD web page elements, graph traversal actions, rendering and interaction handlers, and state reducers. 
 
-For an overview of the MELD (Music Encoding and Linked Data) Framework, plese see: [oerc-music/meld](http://github.com/oerc-music/meld). 
+For an overview of the MELD (Music Encoding and Linked Data) Framework, please see: [oerc-music/meld](http://github.com/oerc-music/meld). 
 
 To include the MELD Clients Core in your MELD app, add the following entry to the dependencies in your application's package.json file:
 
