@@ -18,9 +18,6 @@ export default function (state = INIT_STATE, action) {
           $merge:  {
             [payload.docUri]: payload.params
           }
-        }, 
-        running: { 
-          $set: state.running + 1
         }
       });
     case RUN_TRAVERSAL:
@@ -28,6 +25,9 @@ export default function (state = INIT_STATE, action) {
         return update(state, { 
           pool: { 
             $unset: [payload.docUri]
+          },
+          running: { 
+            $set: state.running + 1
           }
         })
       } else { 
