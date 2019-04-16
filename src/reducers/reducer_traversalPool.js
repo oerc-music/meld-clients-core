@@ -34,7 +34,8 @@ export default function (state = INIT_STATE, action) {
         console.log("WARNING: Traversal on document not included in traversal pool!", payload.docUri)
       }
       break;
-    case COMPLETE_TRAVERSAL: 
+    case FETCH_GRAPH_DOCUMENT:
+      // new graph fragment has arrived, i.e. a traversal hop has completed
       return update(state, { 
         running: { 
           $set: state.running - 1
