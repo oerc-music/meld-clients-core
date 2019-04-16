@@ -113,7 +113,7 @@ export function fetchTEI(uri) {
     }
 }
 
-export function traverse(
+export function queueTraversal(
 	docUri,
 	{  // use destructuring to simulate named parameters
 		objectPrefixWhitelist=[], objectUriWhitelist=[], objectTypeWhitelist = [], 
@@ -170,7 +170,15 @@ export function traverse(
 		propertyPrefixBlacklist, propertyUriBlacklist,
 		objectives, numHops,
 		useEtag, etag
-	}
+	};
+
+  return(
+    type: QUEUE_TRAVERSAL,
+    payload: { docUri, params}
+  );
+}
+
+export function traverse(docUri, params) {
 	// set up HTTP request
 	const headers = {'Accept': 'application/ld+json'};
 	if(useEtag) { 
