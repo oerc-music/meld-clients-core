@@ -113,7 +113,7 @@ export function fetchTEI(uri) {
     }
 }
 
-export function queueTraversal(
+export function registerTraversal(
 	docUri,
 	{  // use destructuring to simulate named parameters
 		objectPrefixWhitelist=[], objectUriWhitelist=[], objectTypeWhitelist = [], 
@@ -173,7 +173,7 @@ export function queueTraversal(
 	};
 
   return(
-    type: QUEUE_TRAVERSAL,
+    type: REGISTER_TRAVERSAL,
     payload: { docUri, params}
   );
 }
@@ -219,9 +219,6 @@ export function traverse(docUri, params) {
       } else { 
         console.log("Don't know how to treat this document: ", docUri, response)
       }
-    
-
-
 			// appropriately handle content types
 //			if(isRDF(response.headers["content-type"])) {
 //				toNQuads(
@@ -301,7 +298,7 @@ function traverseJSONLD(dispatch, docUri, params, data){
 										console.log("<>", subjectUri, pred, obj["@id"], docUri);
 										// Now recurse (if black/whitelist conditions and hop counter allow)
                     if(passesTraversalConstraints(obj,params)) {
-												dispatch(traverse(obj["@id"], {
+												dispatch(registerTraversal(obj["@id"], {
 													...params,
                           // Remember that we've already visited the current document to avoid loops  
 													"objectUriBlacklist": params["objectUriBlacklist"].concat(docUri),
