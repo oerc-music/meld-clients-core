@@ -52,6 +52,10 @@ export const SESSION_NOT_CREATED = "SESSION_NOT_CREATED";
 export const TICK="TICK";
 export const TRAVERSAL_PREHOP="TRAVERSAL_PREHOP";
 export const TRAVERSAL_HOP="TRAVERSAL_HOP";
+export const TRAVERSAL_FAILED="TRAVERSAL_FAILED";
+export const TRAVERSAL_UNNECCESSARY = "TRAVERSAL_UNNECCESSARY";
+export const RUN_TRAVERSAL="RUN_TRAVERSAL";
+export const REGISTER_TRAVERSAL="REGISTER_TRAVERSAL";
 
 export const muzicodesUri = "http://127.0.0.1:5000/MUZICODES"
 
@@ -195,8 +199,13 @@ export function traverse(docUri, params) {
 		}
 	});
 	return (dispatch) => { 
+		dispatch({
+			type: RUN_TRAVERSAL,
+			payload: {docUri}
+		});
 		promise.then( (response) => {
 			if(response.status == 304) {
+				dispatch({type: TRAVERSAL_UNNECCESSARY});				
 				return; // file not modified, i.e. etag matched, no updates required
 			}
 			console.log(response.headers["content-type"]);
@@ -214,9 +223,11 @@ export function traverse(docUri, params) {
         response.headers["content-type"].startsWith("application/nquads") || 
         response.headers["content-type"].startsWith("application/x-turtle") || 
         response.headers["content-type"].startsWith("text/turtle")) {
+				dispatch({type: TRAVERSAL_FAILED});
         // treat as RDF document
         // TODO: Translate RDF to JSON-LD, then proceed with traverseJSONLD as above
-      } else { 
+      } else {
+				dispatch({type: TRAVERSAL_FAILED});
         console.log("Don't know how to treat this document: ", docUri, response)
       }
 			// appropriately handle content types
@@ -233,7 +244,10 @@ export function traverse(docUri, params) {
 //				case "application/n-triples":
 //				case "text/n3":
 //
-    }).catch( (err) => console.log("Could not retrieve ", docUri, err));
+    }).catch( (err) => {
+			dispatch({type: TRAVERSAL_FAILED});
+			console.log("Could not retrieve ", docUri, err);
+		});
     return { type: TRAVERSAL_PREHOP };
   }
 }
