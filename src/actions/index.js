@@ -290,7 +290,7 @@ function traverseJSONLD(dispatch, docUri, params, data){
 										// and that all of its other descriptors will be associated with that @id at the top-level
 										// (which we will handle in another iteration)
 										// CHECK FOR OBJECTIVES HERE
-										console.log("<>", subjectUri, pred, obj["@id"], docUri);
+										//console.log("<>", subjectUri, pred, obj["@id"], docUri);
 										// Now recurse (if black/whitelist conditions and hop counter allow)
                     if(passesTraversalConstraints(obj,params)) {
 												dispatch(traverse(obj["@id"], {
@@ -305,7 +305,7 @@ function traverseJSONLD(dispatch, docUri, params, data){
 										// n.b. exceptions where pred is @type, @id, etc. There, the obj is still a URI, not a literal
 										// Could test for those explicitly here.
 										// CHECK FOR OBJECTIVES HERE
-										console.log("||", subjectUri, pred, obj, docUri)
+										//console.log("||", subjectUri, pred, obj, docUri)
 
 									}
 								});
