@@ -184,7 +184,6 @@ export function registerTraversal(
 
 export function traverse(docUri, params) {
 	// set up HTTP request
-  console.log("traverse called: ", docUri, params);
 	const headers = {'Accept': 'application/ld+json'};
 	if(params["useEtag"]) { 
 		headers['If-None-Match'] = params["etag"];
@@ -286,7 +285,6 @@ function traverseJSONLD(dispatch, docUri, params, data){
 					// flatten the expanded JSON-LD object so that each described entity has an ID at the top-level of the tree
 					jsonld.flatten(expanded, (err, flattened) => {
             const skolemized = skolemize(flattened, docUri);
-            console.log("flattened at dispatch: ", skolemized);
 						dispatch({
 							type: FETCH_GRAPH_DOCUMENT,
 							payload: skolemized 
@@ -310,7 +308,7 @@ function traverseJSONLD(dispatch, docUri, params, data){
 										// and that all of its other descriptors will be associated with that @id at the top-level
 										// (which we will handle in another iteration)
 										// CHECK FOR OBJECTIVES HERE
-										console.log("<>", subjectUri, pred, obj["@id"], docUri);
+										//console.log("<>", subjectUri, pred, obj["@id"], docUri);
 										// Now recurse (if black/whitelist conditions and hop counter allow)
                     if(passesTraversalConstraints(obj,params)) {
 												dispatch(registerTraversal(obj["@id"], {
@@ -325,7 +323,7 @@ function traverseJSONLD(dispatch, docUri, params, data){
 										// n.b. exceptions where pred is @type, @id, etc. There, the obj is still a URI, not a literal
 										// Could test for those explicitly here.
 										// CHECK FOR OBJECTIVES HERE
-										console.log("||", subjectUri, pred, obj, docUri)
+									//	console.log("||", subjectUri, pred, obj, docUri)
 
 									}
 								});
