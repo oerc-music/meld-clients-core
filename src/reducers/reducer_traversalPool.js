@@ -8,8 +8,8 @@ const TRAVERSAL_UNNECCESSARY = "TRAVERSAL_UNNECCESSARY";
 const FETCH_GRAPH_DOCUMENT = "FETCH_GRAPH_DOCUMENT";
 
 const INIT_STATE = { 
-  running = 0,
-  pool = {} 
+  running: 0,
+  pool: {} 
 }
  
 export default function (state = INIT_STATE, action) { 

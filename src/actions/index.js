@@ -176,17 +176,18 @@ export function registerTraversal(
 		useEtag, etag
 	};
 
-  return(
+  return( {
     type: REGISTER_TRAVERSAL,
     payload: { docUri, params}
-  );
+  });
 }
 
 export function traverse(docUri, params) {
 	// set up HTTP request
+  console.log("traverse called: ", docUri, params);
 	const headers = {'Accept': 'application/ld+json'};
-	if(useEtag) { 
-		headers['If-None-Match'] = etag;
+	if(params["useEtag"]) { 
+		headers['If-None-Match'] = params["etag"];
 	}
 
 	console.log("FETCHING: ", docUri, params);
