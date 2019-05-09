@@ -30,43 +30,7 @@ const INIT_STATE = {
 
 export default function (state = INIT_STATE, action) { 
 	switch (action.type) { 
-	/*
 	case FETCH_GRAPH:
-        let byId = {};
-        let byType = {};
-		let payload = action.payload;
-		if(typeof payload === "string") { 
-			payload = JSON.parse(payload);
-		}
-		if(CONTAINS in payload["@graph"]) { 
-			payload["@graph"]["ldp:contains"].map( (a) => {
-				a["oa:hasTarget"].map( (targetResource) => { 
-					// lookup target IDs to get types and component annotations
-					if(targetResource["@id"] in byId) { 
-						byId[targetResource["@id"]]["annotations"].push(a["oa:hasBody"]);
-					} else { 
-						byId[targetResource["@id"]] = {
-							"type": targetResource["@type"],
-							"annotations": a["oa:hasBody"]
-						}
-					}
-					// lookup target type to get target ID
-					if(targetResource["@type"] in byType) { 
-						byType[targetResource["@type"]].push({ [targetResource["@id"]]: true });
-					} else { 
-						byType[targetResource["@type"]] = [{ [targetResource["@id"]]: true }];
-					}
-				});
-			});
-		} else { console.log("Graph contains no annotations: ", payload)};
-		return update(state, {
-            annoGraph: { $set: payload },
-            targetsById: { $set: byId },
-            targetsByType: { $set: byType }
-        });
-	*/
-	case FETCH_GRAPH:
-		//FIXME homogenise with old FETCH_GRAPH (above). Mostly involves broken json-ld expansion
 		let byId = {}
 		let byType = {}
 		let payload = action.payload;
@@ -119,9 +83,8 @@ export default function (state = INIT_STATE, action) {
             annoGraph: { $set: payload },
             targetsById: { $set: byId },
             targetsByType: { $set: byType }
-        });
+    });
 	case SESSION_GRAPH_ETAG:
-		// console.log("GOT SESSION_GRAPH_ETAG ", action.payload.etag)
 		return update(state, {
 			etags: {
 				$set: { [action.payload.uri]: action.payload.etag }
@@ -149,7 +112,7 @@ export default function (state = INIT_STATE, action) {
 			}
 		});
 	case FETCH_GRAPH_DOCUMENT:
-		// new graph fragment has arrived. Add it to our graph and check our objectives.
+		// new graph fragment has arrived. Add it to our graph.
 		return update(state, {
 			graph: { 
 				$push: action.payload
