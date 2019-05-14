@@ -52,6 +52,10 @@ export const SESSION_NOT_CREATED = "SESSION_NOT_CREATED";
 export const TICK="TICK";
 export const TRAVERSAL_PREHOP="TRAVERSAL_PREHOP";
 export const TRAVERSAL_HOP="TRAVERSAL_HOP";
+export const TRAVERSAL_FAILED="TRAVERSAL_FAILED";
+export const TRAVERSAL_UNNECCESSARY = "TRAVERSAL_UNNECCESSARY";
+export const RUN_TRAVERSAL="RUN_TRAVERSAL";
+export const REGISTER_TRAVERSAL="REGISTER_TRAVERSAL";
 
 export const muzicodesUri = "http://127.0.0.1:5000/MUZICODES"
 
@@ -113,7 +117,7 @@ export function fetchTEI(uri) {
     }
 }
 
-export function traverse(
+export function registerTraversal(
 	docUri,
 	{  // use destructuring to simulate named parameters
 		objectPrefixWhitelist=[], objectUriWhitelist=[], objectTypeWhitelist = [], 
@@ -170,11 +174,19 @@ export function traverse(
 		propertyPrefixBlacklist, propertyUriBlacklist,
 		objectives, numHops,
 		useEtag, etag
-	}
+	};
+
+  return( {
+    type: REGISTER_TRAVERSAL,
+    payload: { docUri, params}
+  });
+}
+
+export function traverse(docUri, params) {
 	// set up HTTP request
 	const headers = {'Accept': 'application/ld+json'};
-	if(useEtag) { 
-		headers['If-None-Match'] = etag;
+	if(params["useEtag"]) { 
+		headers['If-None-Match'] = params["etag"];
 	}
 
 	console.log("FETCHING: ", docUri, params);
@@ -187,8 +199,13 @@ export function traverse(
 		}
 	});
 	return (dispatch) => { 
+		dispatch({
+			type: RUN_TRAVERSAL,
+			payload: {docUri}
+		});
 		promise.then( (response) => {
 			if(response.status == 304) {
+				dispatch({type: TRAVERSAL_UNNECCESSARY});				
 				return; // file not modified, i.e. etag matched, no updates required
 			}
 			console.log(response.headers["content-type"]);
@@ -208,12 +225,10 @@ export function traverse(
         response.headers["content-type"].startsWith("text/turtle")) {
         // treat as RDF document
         // TODO: Translate RDF to JSON-LD, then proceed with traverseJSONLD as above
-      } else { 
+      } else {
+				dispatch({type: TRAVERSAL_FAILED});
         console.log("Don't know how to treat this document: ", docUri, response)
       }
-    
-
-
 			// appropriately handle content types
 //			if(isRDF(response.headers["content-type"])) {
 //				toNQuads(
@@ -228,7 +243,10 @@ export function traverse(
 //				case "application/n-triples":
 //				case "text/n3":
 //
-    }).catch( (err) => console.log("Could not retrieve ", docUri, err));
+    }).catch( (err) => {
+			dispatch({type: TRAVERSAL_FAILED});
+			console.log("Could not retrieve ", docUri, err);
+		});
     return { type: TRAVERSAL_PREHOP };
   }
 }
@@ -266,7 +284,6 @@ function traverseJSONLD(dispatch, docUri, params, data){
 					// flatten the expanded JSON-LD object so that each described entity has an ID at the top-level of the tree
 					jsonld.flatten(expanded, (err, flattened) => {
             const skolemized = skolemize(flattened, docUri);
-            console.log("flattened at dispatch: ", skolemized);
 						dispatch({
 							type: FETCH_GRAPH_DOCUMENT,
 							payload: skolemized 
@@ -293,7 +310,7 @@ function traverseJSONLD(dispatch, docUri, params, data){
 										//console.log("<>", subjectUri, pred, obj["@id"], docUri);
 										// Now recurse (if black/whitelist conditions and hop counter allow)
                     if(passesTraversalConstraints(obj,params)) {
-												dispatch(traverse(obj["@id"], {
+												dispatch(registerTraversal(obj["@id"], {
 													...params,
                           // Remember that we've already visited the current document to avoid loops  
 													"objectUriBlacklist": params["objectUriBlacklist"].concat(docUri),
@@ -305,7 +322,7 @@ function traverseJSONLD(dispatch, docUri, params, data){
 										// n.b. exceptions where pred is @type, @id, etc. There, the obj is still a URI, not a literal
 										// Could test for those explicitly here.
 										// CHECK FOR OBJECTIVES HERE
-										//console.log("||", subjectUri, pred, obj, docUri)
+									//	console.log("||", subjectUri, pred, obj, docUri)
 
 									}
 								});
