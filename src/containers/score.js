@@ -57,6 +57,7 @@ class Score extends Component {
 			if(this.props.score.MEI[this.props.uri]) {
         this.props.score.vrvTk.loadData(this.props.score.MEI[this.props.uri]);
         this.props.score.vrvTk.setOptions(this.props.options ? this.props.options : defaultVrvOptions);
+        this.props.score.vrvTk.redoLayout();
         var svg = this.props.score.vrvTk.renderToSVG(this.props.score.pageNum) ;
 			} else if (this.props.score.SVG[this.props.uri]) {
 				svg = this.props.score.SVG[this.props.uri];
