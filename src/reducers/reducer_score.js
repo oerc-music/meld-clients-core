@@ -203,8 +203,12 @@ export function ScoreReducer(state = {publishedScores: {}, conceptualScores: {},
 			console.log("SCORE_PAGE_TO_TARGET attempted on non-loaded MEI data - ignoring!");
 			return state;
 		}
-		const frag=action.payload.target.split("#")[1]
-		const pageNum = state.vrvTk.getPageWithElement(frag)
+		const frag=action.payload.target.split("#")[1];
+		const pageNum = state.vrvTk.getPageWithElement(frag);
+    if(pageNum === 0) { 
+      console.log("SCORE_PAGE_TO_TARGET attempted on a target that doesn't exist in the MEI - ignoring!", frag);
+      return state;
+    }
 		return update(state, {
 			SVG: { $set: { [action.payload.uri]: svg } },
 			pageNum: {$set: pageNum} 
