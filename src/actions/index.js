@@ -125,7 +125,7 @@ export function registerTraversal(
 		propertyPrefixWhitelist=[], propertyUriWhitelist=[],
 		propertyPrefixBlacklist=[], propertyUriBlacklist=[],
 		objectives={}, numHops=MAX_TRAVERSAL_HOPS,
-		useEtag = false, etag=""
+		useEtag = false, etag="", injectContext=""
 	} = {}) {
 	// PURPOSE:
 	// *************************************************************************
@@ -173,7 +173,7 @@ export function registerTraversal(
 		propertyPrefixWhitelist, propertyUriWhitelist,
 		propertyPrefixBlacklist, propertyUriBlacklist,
 		objectives, numHops,
-		useEtag, etag
+		useEtag, etag, injectContext
 	};
 
   return( {
@@ -216,7 +216,14 @@ export function traverse(docUri, params) {
          response.headers["content-type"].startsWith("application/ld+json") || 
          response.headers["content-type"].startsWith("application/json")) { 
         // treat as JSON-LD document
-        dispatch(traverseJSONLD(dispatch, docUri, params, response.data));
+        // if we need to inject an external context, we do so here
+        if(params["injectContext"]) {
+          // (hand-off to traverseJSONLD is then handled at the end of injectJSONLDContext)
+          dispatch(injectJSONLDContext(dispatch, docUri, params, response.data));
+        } else { 
+          // otherwise, call travereJSONLD directly
+          dispatch(traverseJSONLD(dispatch, docUri, params, response.data));
+        }
       } else if(docUri.endsWith(".ttl") || docUri.endsWith(".n3") || docUri.endsWith(".rdf") ||
         docUri.endsWith(".nq") || docUri.endsWith(".nt") || 
         response.headers["content-type"].startsWith("application/rdf+xml") ||
@@ -277,10 +284,19 @@ function skolemize(obj,docUri) {
   return obj;
 }
 
+function injectJSONLDContext(dispatch, docUri, params, data) { 
+  // inject JSON LD context, then proceed to traverseJSONLD:
+  jsonld.compact(data, params["injectContext"], (err, compacted) => { 
+    if(err) { console.error("CANNOT INJECT CONTEXT: ", docUri, err) }
+    dispatch(traverseJSONLD(dispatch, docUri, params, compacted));
+  }
+}
+
+
 function traverseJSONLD(dispatch, docUri, params, data){
         // expand the JSON-LD object so that we are working with full URIs, not compacted into prefixes
 				jsonld.expand(data, (err, expanded) => {
-					if(err) { console.log("EXPANSION ERROR: ", docUri, err); }
+					if(err) { console.error("EXPANSION ERROR: ", docUri, err); }
 					// flatten the expanded JSON-LD object so that each described entity has an ID at the top-level of the tree
 					jsonld.flatten(expanded, (err, flattened) => {
             const skolemized = skolemize(flattened, docUri);
@@ -380,7 +396,7 @@ export function checkTraversalObjectives(graph, objectives) {
 		objectives.map( (obj, ix) => { 
 			jsonld.frame(graph, obj, (err, framed) => { 
 				if(err) { 
-					console.log("FRAMING ERROR: ", objectives[ix], err);
+					console.error("FRAMING ERROR: ", objectives[ix], err);
 				} else {
 					dispatch({
 						type:APPLY_TRAVERSAL_OBJECTIVE,
@@ -526,7 +542,7 @@ export function fetchComponentTarget(uri, conceptualScore = "") {
 				// need to convert triples to json
 				// TODO handle arbitrary RDF format here (currently requires ntriples)
 				jsonld.fromRDF(data.data, (err, doc) => {
-					if(err) { console.log("ERROR CONVERTING NQUADS TO JSON-LD: ", err); }
+					if(err) { console.error("ERROR CONVERTING NQUADS TO JSON-LD: ", err); }
 					else { 
 						dispatch(processComponentTarget(doc, uri, conceptualScore));
 					}
@@ -551,7 +567,7 @@ function processComponentTarget(data, uri, conceptualScore) {
 			}
 			else { 
 				jsonld.compact(framed, context, (err, compacted) => { 
-					if(err) { console.log("COMPACTING ERROR in processComponentTarget:", err) }
+					if(err) { console.error("COMPACTING ERROR in processComponentTarget:", err) }
 					else { 
 						dispatch( { 
 							type: FETCH_COMPONENT_TARGET,
@@ -679,13 +695,13 @@ export function fetchWork(target, parts, work, expressionObj) {
 		});
 		axios.get(work).then((data) => { 
 			jsonld.fromRDF(data.data, (err, doc) => {
-				if(err) { console.log("ERROR TRANSLATING NQUADS TO JSONLD: ", err, data.data) }
+				if(err) { console.error("ERROR TRANSLATING NQUADS TO JSONLD: ", err, data.data) }
 				else { 
 					jsonld.frame(doc, { "@id":work}, (err, framed) => {
-						if(err) { console.log("FRAMING ERROR in fetchWork:", err) }
+						if(err) { console.error("FRAMING ERROR in fetchWork:", err) }
 						else { 
 							jsonld.compact(framed, context, (err, compacted) => { 
-								if(err) { console.log("COMPACTING ERROR in fetchWork:", err) }
+								if(err) { console.error("COMPACTING ERROR in fetchWork:", err) }
 								else { 
 									work=compacted;
 									// Check if there is a segment line, in which case fetch manifestations
@@ -700,7 +716,7 @@ export function fetchWork(target, parts, work, expressionObj) {
 										jsonld.frame({"@context": context, "@graph": doc}, { 
 											"http://purl.org/vocab/frbr/core#realizationOf": work[PART_OF]["@id"] 
 											}, (err, framed) => {
-											if(err) { console.log("FRAMING ERROR when fetching parent work", err) }
+											if(err) { console.error("FRAMING ERROR when fetching parent work", err) }
 											else {
 												// console.log("Attached score:", framed);
 												const attachedScore = framed["@graph"][0];
@@ -772,15 +788,15 @@ export function fetchStructure(target, parts, segline) {
 		});
 		axios.get(segline).then((data) => { 
 			jsonld.fromRDF(data.data, (err, doc) => {
-				if(err) { console.log("ERROR TRANSLATING NQUADS TO JSONLD: ", err, data.data) }
+				if(err) { console.error("ERROR TRANSLATING NQUADS TO JSONLD: ", err, data.data) }
 				else { 
 					// frame the doc in terms of each part of the expression targetted by the annotation
 					parts.map((part) => {
 						jsonld.frame(doc, { "@id": part}, (err, framed) => {
-							if(err) { console.log("FRAMING ERROR in fetchStructure: ", err) }
+							if(err) { console.error("FRAMING ERROR in fetchStructure: ", err) }
 							else { 
 								jsonld.compact(framed, context, (err, compacted) => { 
-									if(err) { console.log("COMPACTING ERROR in fetchStructure:", err) }
+									if(err) { console.error("COMPACTING ERROR in fetchStructure:", err) }
 									else { 
 										// and hand to reducers to process associated embodibags
 										// (manifestations of the expression)
