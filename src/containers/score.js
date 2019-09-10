@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React from 'react';
 import ReactDOM from 'react-dom'
 import { connect } from 'react-redux';
 import { bindActionCreators} from 'redux';
@@ -26,7 +26,6 @@ import {
 } from '../actions/meldActions';
 
 
-import InlineSVG from 'svg-inline-react';
 const defaultVrvOptions = {
 	ignoreLayout:1,
 	adjustPageHeight:1,
@@ -42,8 +41,8 @@ const defaultVrvOptions = {
 };
 
 
-class Score extends Component { 
-	constructor(props) { 
+class Score extends React.Component {
+	constructor(props) {
 		super(props);
 
 		this.state = { 
@@ -81,7 +80,7 @@ class Score extends Component {
 				<div id={this.props.uri} className="scorepane">
 					<div className="controls" />
 					<div className="annotations" />
-					<InlineSVG className="score" src={ svg } />
+					<div dangerouslySetInnerHTML={{__html: svg}} />
 				</div>
 			);
 		}
