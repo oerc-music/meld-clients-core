@@ -12,7 +12,8 @@ import {
 	SCORE_PAGE_TO_TARGET,
 	SCORE_NEXT_PAGE,
 	RESET_NEXT_SESSION_TRIGGER,
-	TRANSITION_TO_NEXT_SESSION
+	TRANSITION_TO_NEXT_SESSION,
+  UPDATE_LATEST_RENDERED_PAGENUM
 } from '../actions/index'
 
 const EMBODIMENT = 'frbr:embodiment';
@@ -39,7 +40,7 @@ export function setScoreReducerVerovioOptions(options){
 	vrvOptions = options;
 };
 
-export function ScoreReducer(state = {publishedScores: {}, conceptualScores: {}, MEI: {}, SVG: {}, componentTargets: {}, scoreMapping: {}, pageNum: 1, pageCount: 0, triggerNextSession: "", triggerPrevSession: "", vrvTk:  new verovio.toolkit()}, action) { 
+export function ScoreReducer(state = {publishedScores: {}, conceptualScores: {}, MEI: {}, SVG: {}, componentTargets: {}, scoreMapping: {}, pageNum: 1, latestRenderedPageNum: 0, pageCount: 0, triggerNextSession: "", triggerPrevSession: "", vrvTk:  new verovio.toolkit()}, action) { 
 	let svg;
 	const pageCount = state.vrvTk.getPageCount();
 	switch(action.type) {
@@ -247,6 +248,11 @@ export function ScoreReducer(state = {publishedScores: {}, conceptualScores: {},
 				}
 			})
 		}
+
+  case UPDATE_LATEST_RENDERED_PAGENUM:
+      return update(state, {
+        $set: {latestRenderedPageNum: action.payload.pageNum}
+      });
 	
 	default: 
 		return state;

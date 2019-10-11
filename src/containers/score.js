@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import ReactDOM from 'react-dom'
 import { connect } from 'react-redux';
 import { bindActionCreators} from 'redux';
-import { ensureArray, fetchScore, scoreNextPage, scorePrevPage, HAS_BODY, HAS_TARGET } from '../actions/index';
+import { ensureArray, fetchScore, updateLatestRenderedPageNum, scoreNextPage, scorePrevPage, HAS_BODY, HAS_TARGET } from '../actions/index';
 import { 
 	MARKUP_EMPHASIS, 
 	handleEmphasis,
@@ -92,7 +92,7 @@ class Score extends Component {
 		this.props.fetchScore(this.props.uri);
 	}
 
-	componentDidUpdate() {
+	componentDidUpdate(prevProps, prevState) {
 		let annotations = this.props.annotations;
 		if(!Array.isArray(annotations)) { 
 			annotations = [annotations]
@@ -132,6 +132,11 @@ class Score extends Component {
 				} 
 			});
 		});
+
+    if(prevProps.score.pageNum !== this.props.score.pageNum) { 
+      // signal that Verovio has rendered a new page
+      this.props.updateLatestRenderedPageNum(this.props.score.pageNum);
+    }
 			
 	}
 
