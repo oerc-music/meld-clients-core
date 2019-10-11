@@ -133,7 +133,9 @@ class Score extends Component {
 			});
 		});
 
-    if(prevProps.score.pageNum !== this.props.score.pageNum) { 
+    if(prevProps.score.pageNum !== this.props.score.pageNum || // on page flip... 
+       prevProps.score.pageCount < this.props.score.pageCount // ...or first load   
+    ){ 
       // signal that Verovio has rendered a new page
       this.props.updateLatestRenderedPageNum(this.props.score.pageNum);
     }

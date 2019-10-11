@@ -251,7 +251,7 @@ export function ScoreReducer(state = {publishedScores: {}, conceptualScores: {},
 
   case UPDATE_LATEST_RENDERED_PAGENUM:
       return update(state, {
-        $set: {latestRenderedPageNum: action.payload.pageNum}
+        latestRenderedPageNum: {$set: action.payload}
       });
 	
 	default: 
