@@ -6,6 +6,7 @@ import AppReducer from './reducer_app';
 import SessionControlReducer from './reducer_sessionControl'
 import ModalUIReducer from './reducer_modalUI'
 import TimeSyncReducer from './reducer_timesync'
+import TraversalPoolReducer from './reducer_traversalPool'
 
 var reducerSets = {
 	graph: GraphReducer,
@@ -13,8 +14,9 @@ var reducerSets = {
 	tei: TEIReducer,
 	app: AppReducer,
 	sessionControl: SessionControlReducer,
-	modalUI: ModalUIReducer,
-	timesync: TimeSyncReducer
+	traversalPool: TraversalPoolReducer,
+	timesync: TimeSyncReducer,
+	modalUI: ModalUIReducer
 };
 
 export var reducers = combineReducers(reducerSets);
