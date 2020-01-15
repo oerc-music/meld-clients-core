@@ -2,10 +2,11 @@ import axios from 'axios';
 import jsonld from 'jsonld'
 import querystring from 'querystring';
 import { ANNOTATION_PATCHED, ANNOTATION_POSTED, ANNOTATION_HANDLED, ANNOTATION_NOT_HANDLED, ANNOTATION_SKIPPED } from './meldActions';
+import {prefix} from '../library/prefixes.js'; 
 
 export const SET_TRAVERSAL_OBJECTIVES = "SET_TRAVERSAL_OBJECTIVES";
 export const APPLY_TRAVERSAL_OBJECTIVE = "APPLY_OBJECTIVE";
-export const HAS_BODY = "oa:hasBody";
+export const HAS_BODY = prefix.oa+"hasBody";
 export const FETCH_SCORE = 'FETCH_SCORE';
 export const FETCH_RIBBON_CONTENT = 'FETCH_RIBBON_CONTENT';
 export const FETCH_CONCEPTUAL_SCORE = 'FETCH_CONCEPTUAL_SCORE';
@@ -28,29 +29,36 @@ export const TRANSITION_TO_NEXT_SESSION = 'TRANSITION_TO_NEXT_SESSION';
 export const REGISTER_PUBLISHED_PERFORMANCE_SCORE= 'REGISTER_PUBLISHED_PERFORMANCE_SCORE';
 export const MUZICODES_UPDATED= 'MUZICODES_UPDATED';
 // TODO DW 20170830 -- finish JSONLDifying these
-export const REALIZATION_OF = 'frbr:realizationOf';
-export const EXPRESSION = 'frbr:Expression';
-export const PART_OF = 'frbr:partOf';
-export const PART = 'frbr:part';
-export const KEY = 'mo:key';
-export const HARMONY = 'http://meld.linkedmusic.org/companion/vocab/harmony';
-export const CADENCE = 'http://meld.linkedmusic.org/companion/vocab/cadentialGoal';
-export const DEGREE = 'http://meld.linkedmusic.org/companion/vocab/hasDegree';
-export const CHORD_TYPE = 'http://meld.linkedmusic.org/companion/vocab/chordType';
-export const HAS_STRUCTURE= 'http://meld.linkedmusic.org/terms/hasStructure';
+export const REALIZATION_OF = prefix.frbr+'realizationOf';
+export const EXPRESSION = prefix.frbr+'Expression';
+export const PART_OF = prefix.frbr+'partOf';
+export const PART = prefix.frbr+'part';
+export const KEY = prefix.mo+'key';
+export const HARMONY = 'https://meld.linkedmusic.org/companion/vocab/harmony';
+export const CADENCE = 'https://meld.linkedmusic.org/companion/vocab/cadentialGoal';
+export const DEGREE = 'https://meld.linkedmusic.org/companion/vocab/hasDegree';
+export const CHORD_TYPE = 'https://meld.linkedmusic.org/companion/vocab/chordType';
+export const HAS_STRUCTURE= 'https://meld.linkedmusic.org/terms/hasStructure';
 export const SEQ = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#Seq';
 export const SEQPART = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#_';
 export const SCORE = 'http://purl.org/ontology/mo/Score';
 export const CONTAINS = 'http://www.w3.org/ns/ldp#contains';
 export const MOTIVATED_BY= 'http://www.w3.org/ns/oa#motivatedBy';
-export const SEGMENT = 'so:Segment';
-export const MUZICODE= 'meld:Muzicode';
+export const SEGMENT = prefix.so+'Segment';
+export const MUZICODE= prefix.meld+'Muzicode';
 export const PUBLISHED_AS = 'http://purl.org/ontology/mo/published_as';
 export const HAS_PERFORMANCE_MEDIUM = 'http://rdaregistry.info/Elements/e/p20215';
 export const HAS_PIANO = "http://id.loc.gov/authorities/performanceMediums/2013015550";
 export const CREATE_SESSION = "CREATE_SESSION";
 export const SESSION_NOT_CREATED = "SESSION_NOT_CREATED";
 export const TICK="TICK";
+export const TRAVERSAL_PREHOP="TRAVERSAL_PREHOP";
+export const TRAVERSAL_HOP="TRAVERSAL_HOP";
+export const TRAVERSAL_FAILED="TRAVERSAL_FAILED";
+export const TRAVERSAL_UNNECCESSARY = "TRAVERSAL_UNNECCESSARY";
+export const TRAVERSAL_HAPPENED = "TRAVERSAL_HAPPENED";
+export const RUN_TRAVERSAL="RUN_TRAVERSAL";
+export const REGISTER_TRAVERSAL="REGISTER_TRAVERSAL";
 
 export const muzicodesUri = "http://127.0.0.1:5000/MUZICODES"
 
@@ -70,8 +78,8 @@ const context = {
 	"dct": "http://purl.org/dc/terms/",
 	"frbr": "http://purl.org/vocab/frbr/core#",
 	"rdfs": "http://www.w3.org/2000/01/rdf-schema#",
-	"meld": "http://meld.linkedmusic.org/terms/",
-	"motivation": "http://meld.linkedmusic.org/motivation/",
+	"meld": "https://meld.linkedmusic.org/terms/",
+	"motivation": "https://meld.linkedmusic.org/motivation/",
 	"so": "http://www.linkedmusic.org/ontologies/segment/",
 	"dct": "http://purl.org/dc/terms/",
 	"climb": "http://meld.linkedmusic.org/climb/terms/",
@@ -329,8 +337,8 @@ export function fetchSessionGraph(uri, etag = "") {
 			if(!etag) { 
 				// first time through: follow your nose along the conceptual score
 				// to retrieve the published score (MEI file)
-				if ("mo:performance_of" in session) { 
-					dispatch(fetchConceptualScore(session["@id"], session["mo:performance_of"]["@id"]));
+				if (prefix.mo+"performance_of" in session) { 
+					dispatch(fetchConceptualScore(session["@id"], session[prefix.mo+"performance_of"]["@id"]));
 				} else {
 					console.log("SESSION IS NOT A PERFORMANCE OF A SCORE: ", session);
 				}
@@ -350,12 +358,12 @@ export function fetchSessionGraph(uri, etag = "") {
 						etag: response.headers.etag
 					}
 				});
-				if("ldp:contains" in framed["@graph"][0]) { 
+				if(prefix.ldp+"contains" in framed["@graph"][0]) { 
 					// there are one or more annotations to process
-					framed["@graph"][0] = ensureArray(framed["@graph"][0], "ldp:contains");
+					framed["@graph"][0] = ensureArray(framed["@graph"][0], prefix.ldp+"contains");
 					// process each annotation
-					framed["@graph"][0]["ldp:contains"].map( (annotation) => { 
-						dispatch(processComponentAnnotation(annotation, session["mo:performance_of"]["@id"])); 
+					framed["@graph"][0][prefix.ldp+"contains"].map( (annotation) => { 
+						dispatch(processComponentAnnotation(annotation, session[prefix.mo+"performance_of"]["@id"])); 
 					});
 				}
 			}
@@ -375,8 +383,8 @@ export function fetchGraph(uri) {
                 payload: data
             });
             // walk through component annotations
-            data["@graph"][0]["ldp:contains"].map( (topLevel) => { 
-                topLevel["oa:hasBody"].map( (annotation) => { 
+          data["@graph"][0][prefix.ldp+"contains"].map( (topLevel) => { 
+              topLevel[prefix.oa+"hasBody"].map( (annotation) => { 
                     dispatch(processComponentAnnotation(annotation)); 
                 });
 
@@ -386,16 +394,16 @@ export function fetchGraph(uri) {
 }
 
 function processComponentAnnotation(annotation, conceptualScore = "") { 
-	if("meld:state" in annotation && annotation["meld:state"]["@id"] === "meld:processed") { 
+	if(prefix.meld+"state" in annotation && annotation[prefix.meld+"state"]["@id"] === prefix.meld+"processed") { 
 		// We can skip this processed annotation
 		return {
 			type: ANNOTATION_SKIPPED,
 			payload: annotation
 		}
 	}
-	annotation = ensureArray(annotation, "oa:hasTarget");
+	annotation = ensureArray(annotation, prefix.oa+"hasTarget");
 	// console.log("Processing component annotation: ", annotation, conceptualScore)
-	const targets = annotation["oa:hasTarget"].map( (target) => {
+	const targets = annotation[prefix.oa+"hasTarget"].map( (target) => {
 		return { 
 			"@id": target["@id"],
 			// DW TODO 20170830 may need to validate whether @type exists
@@ -410,7 +418,7 @@ function processComponentAnnotation(annotation, conceptualScore = "") {
 			type: PROCESS_ANNOTATION,
 			payload: { 
 				id: annotation["@id"],
-				bodies: annotation["oa:hasBody"],
+				bodies: annotation[prefix.oa+"hasBody"],
 				targets: targets
 			}
 		});
@@ -717,13 +725,13 @@ export function fetchConceptualScore(session, uri) {
 			promise.then( (response) => { 
 				const framed = response.data;
 				const conceptualScore = framed["@graph"][0];
-				if("mo:published_as" in conceptualScore) { 
+				if(prefix.mo+"published_as" in conceptualScore) { 
 					// dispatch the conceptual score (containing the mei URI) so that we can initialise a <Score> component
 					dispatch( { 
 						type: FETCH_CONCEPTUAL_SCORE,
 						payload: conceptualScore 
 					});
-					dispatch(fetchScore(conceptualScore["mo:published_as"]["@id"]));
+					dispatch(fetchScore(conceptualScore[prefix.mo+"published_as"]["@id"]));
 				} else { console.log("Unpublished conceptual score: ", conceptualScore) }
 				/*if("climb:next" in conceptualScore) { 
 				    //TODO REVISIT FOR JAM -- NO LONGER RELEVANT FOR CLIMB, AS MUZICODES NEEDS TO MAKE A DECISION
@@ -845,22 +853,22 @@ export function resetNextSessionTrigger() {
 
 export function postNextPageAnnotation(session, etag) { 
 	return (dispatch) => {
+		var obj = {};
+		obj[prefix.oa+"hasTarget"] = { "@id": session };
+		obj[prefix.oa+"motivatedBy"] = { "@id": "motivation:nextPageOrPiece" };
 		dispatch(
-			postAnnotation(session, etag, JSON.stringify({
-				"oa:hasTarget": { "@id": session },
-				"oa:motivatedBy": { "@id": "motivation:nextPageOrPiece" }
-			}))
+			postAnnotation(session, etag, JSON.stringify(obj))
 		)
 	}
 }
 
 export function postPrevPageAnnotation(session, etag) { 
 	return (dispatch) => {
+		var obj = {};
+		obj[prefix.oa+"hasTarget"] = { "@id": session };
+		obj[prefix.oa+"motivatedBy"] = { "@id": "motivation:prevPageOrPiece" };
 		dispatch(
-			postAnnotation(session, etag, JSON.stringify({
-				"oa:hasTarget": { "@id": session },
-				"oa:motivatedBy": { "@id": "motivation:prevPageOrPiece" }
-			}))
+			postAnnotation(session, etag, JSON.stringify(obj))
 		)
 	}
 }
@@ -1016,6 +1024,17 @@ export function updateMuzicodes(muzicodesUri, session, mei="") {
 	})
 }
 
+function typeCheck(mytype, js){
+	if(js['@type']){
+		if(typeof(js['@type'])==='string'){
+			return js['@type']===mytype;
+		} else {
+			return js['@type'].indexOf(mytype)>-1;
+		}
+	}
+	return false;
+}
+
 // helper function to ensure that a given key of a JSON obj
 // is an array, rather than a single value
 // this is so that we can use the same approach for one and for
@@ -1053,8 +1072,8 @@ export function createSession(sessionsUri, scoreUri, {session="", etag="", retri
 				axios.post(
 					sessionsUri,
 					JSON.stringify({
-						"@type": ["mo:Performance", "ldp:BasicContainer"],
-						"mo:performance_of": { "@id": scoreUri }
+						"@type": [prefix.mo+"Performance", prefix.ldp+"BasicContainer"],
+						"http://purl.org/ontology/mo/performance_of": { "@id": scoreUri }
 					}),
 					{ 
 						headers: { 
@@ -1074,16 +1093,12 @@ export function createSession(sessionsUri, scoreUri, {session="", etag="", retri
 						// post a corresponding queue annotation
 						// (for later static revisits, e.g. in archive)
 						if(session) { 
+							var sessionObj = {};
+							sessionObj[prefix.oa+"hasTarget"] = {"@id": session};
+							sessionObj[prefix.oa+"motivatedBy"] = {"@id": "motivation:queueNextSession"};
+							sessionObj[prefix.oa+"hasBody"] = {"@id": postResponse.headers.location};
 							dispatch(
-								postAnnotation(
-									session,
-									etag, 
-									{
-										"oa:hasTarget": {"@id": session},
-										"oa:motivatedBy": {"@id": "motivation:queueNextSession"},
-										"oa:hasBody": {"@id": postResponse.headers.location}
-									}
-								)
+								postAnnotation(session, etag, sessionObj)
 							)
 						}
 					}).catch(function (error) { 

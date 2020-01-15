@@ -1,15 +1,20 @@
 import update from 'immutability-helper';
+import {prefix} from '../library/prefixes.js';
 import { FETCH_TEI, FETCH_MANIFESTATIONS} from '../actions/index'
 
-const EMBODIMENT = 'frbr:embodiment';
+const EMBODIMENT = prefix.frbr+'embodiment';
+const MEITYPE = prefix.meld+'MEIEmbodiment';
+const AUDIOTYPE = prefix.meld+'AudioEmbodiment';
+const TEITYPE = prefix.meld+'TEIEmbodiment';
+const MEMBER = prefix.rdfs+'member';
 const ASSOCIATED = "http://example.com/must-revisit-these/associatedWith";
-const MEMBER = 'rdfs:member';
-const TEITYPE = 'meld:TEIEmbodiment';
-const LIBRETTOTYPE = 'mo:PublishedLibretto';
+const LIBRETTOTYPE = prefix.mo+'PublishedLibretto';
+const LANGUAGE = 'http://schema.org/inLanguage';
 
 export default function(state = {TEI: {}, componentTargets: {}, fragImages:{}, librettoTargets:{}}, action) {
 	switch(action.type) { 
-	case FETCH_TEI:
+		case FETCH_TEI:
+//			console.log(action.payload.data);
 		return update(state, { TEI: {$merge: { [action.payload.uri]: action.payload.data } } });
 
 	case FETCH_MANIFESTATIONS:

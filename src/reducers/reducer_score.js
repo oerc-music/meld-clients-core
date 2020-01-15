@@ -1,4 +1,5 @@
 import update from 'immutability-helper';
+import {prefix} from '../library/prefixes.js';
 import { 
 	FETCH_SCORE, 
 	FETCH_RIBBON_CONTENT,
@@ -15,11 +16,11 @@ import {
 	TRANSITION_TO_NEXT_SESSION
 } from '../actions/index'
 
-const EMBODIMENT = 'frbr:embodiment';
-const MEITYPE = 'meld:MEIEmbodiment';
-const AUDIOTYPE = 'meld:AudioEmbodiment';
-const TEITYPE = 'meld:TEIEmbodiment';
-const MEMBER = 'rdfs:member';
+const EMBODIMENT = prefix.frbr+'embodiment';
+const MEITYPE = prefix.meld+'MEIEmbodiment';
+const AUDIOTYPE = prefix.meld+'AudioEmbodiment';
+const TEITYPE = prefix.meld+'TEIEmbodiment';
+const MEMBER = prefix.rdfs+'member';
 
 const vrvTk = new verovio.toolkit();
 
@@ -123,7 +124,7 @@ export function ScoreReducer(state = {publishedScores: {}, conceptualScores: {},
 		return update(state, {
 			publishedScores: { 
 				$set: {
-					[cS["mo:published_as"]["@id"]]: cS["@id"]
+					[cS[prefix.mo+"published_as"]["@id"]]: cS["@id"]
 				 } 
 			}
 		});

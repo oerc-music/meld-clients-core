@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { fetchTEI } from '../actions/index';
+import {prefix} from '../library/prefixes.js'; 
 import { 
 	MARKUP_EMPHASIS, 
 	handleEmphasis,
