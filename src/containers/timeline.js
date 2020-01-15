@@ -21,9 +21,9 @@ class MEITimeline extends Component {
                                            ['scene', 4, 283],
                                            ['scene', 5, 478]],
                               [['F3', 18], ['F4', 31], ['F5', 288], ['F6', 767], ['F7', 1875], ['F8', 1949], ['F9', 2098]]],
-                            ['act', 'II', [['scene', 1, 174],
-                                           ['scene', 2, 553],
-                                           ['scene', 3, 845]],
+                            ['act', 'III', [['scene', 1, 174],
+																						['scene', 2, 553],
+																						['scene', 3, 845]],
                               [['F10', 494], ['F11', 621], ['F12', 737], ['F13',824], ['F14', 832], ['F15', 836], ['F16',1062]]]]
     };
   }
@@ -72,8 +72,10 @@ class MEITimeline extends Component {
           if(act[3] && act[3].length){
             for(var m=0; m<act[3].length; m++){
               var motif = act[3][m];
+							console.log(motif);
               var current = this.props.motif && this.props.motif==motif[0];
               var currentClass = current ? " active" : "";
+							if(motif[2]) currentClass += " " +motif[2];
               var fun = this.motifChangeClickHandler.bind(this);
               motifLines.push(<line className={"annotation annotation__AskingForbidden_"+motif[0]+"_1"+currentClass}
                                     onClick={ fun }
