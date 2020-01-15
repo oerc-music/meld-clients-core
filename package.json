@@ -3,7 +3,8 @@
   "version": "0.0.2",
   "description": "Music Encoding and Linked Data (MELD) clients core library",
   "main": "index.js",
-  "repository": "git@github.com:musicog/meld-clients-core.git",
+  "repository": "git@github.com:oerc-music/meld-clients-core.git",
+  "homepage": "https://github.com/oerc-music/meld-clients-core#readme",
   "scripts": {
     "start": "node ./node_modules/webpack-dev-server/bin/webpack-dev-server.js"
   },
