@@ -1,85 +1,66 @@
-/* div.TEIContainer.other { */
+/* div.TEIContainer { */
 /*   display: none; */
 /* } */
-
-div.TEIContainer.commentary tei-titlestmt {
-  /*display: none;*/
+/*
+@keyframes pulse_animation {
+	0% { transform: scale(1,1); }
+	15% { transform: scale(1.01,1); }
+	20% { transform: scale(1.02,1); }
+	25% { transform: scale(1.01,1); }
+	30% { transform: scale(1.01,1); }
+	35% { transform: scale(1.02,1); }
+	40% { transform: scale(1.01,1); }
+	50% { transform: scale(1,1); }
+	65% { transform: scale(1.01,1); }
+	60% { transform: scale(1.02,1); }
+	65% { transform: scale(1.01,1); }
+	70% { transform: scale(1.01,1); }
+	75% { transform: scale(1.02,1); }
+	80% { transform: scale(1.01,1); }
+	100% { transform: scale(1,1); }
 }
-
-div.TEIContainer.commentary * {
-  font-family: georgia times serif;
-  animation-duration: 0.5s;
-  animation-name: appear;
-}
-@keyframes appear{
-  from {
-    color: white;
-  }
-  10% {
-    color: white;
-  }
-  20% {
-    color: #EEE;
-  }
-  30% {
-    color: #DDD;
-  }
-  40% {
-    color: #BBB;
-  }
-  50% {
-    color: #999;
-  }
-  60% {
-    color: #777;
-  }
-  70% {
-    color: #666;
-  }
-  80% {
-    color: #444;
-  }
-  90% {
-    color: #222;
-  }
-  to {
-    color: black;
-  }
-}
-div.carouselWrapper {
-  top: 300px;
-  left: 380px;
+*/
+@keyframes pulse_animation {
+	0% { transform: rotate(0deg); }
+	20% { transform: rotate(2deg); }
+	30% { transform: rotate(4deg); }
+	40% { transform: rotate(8deg); }
+	50% { transform: rotate(2deg); }
+	60% { transform: rotate(-2deg); }
+	70% { transform: rotate(-8deg); }
+	80% { transform: rotate(-2ddeg); }
+	100% { transform: rotate(0deg); }
 }
 
 div.TEIContainer {
-  position:absolute;
-  top: 10px;
-  left: 300px;
-  height: 300px;
-  overflow-y: scroll;
-  width: 800px;
-  font-size: 110%;
+  left: 630px;
+  top: 15px;
+  width: 370px;
+  font-size: 91%;
+}
+div.TEIContainer.commentary {
+  display: block;
+}
+svg.orchestralRibbon {
+  position: absolute;
+  left: 640px;
+  bottom: 15px;
 }
 
 div.scorepane {
-  display: none;
-  width: 1px;
-  max-width: 0px;
-  height: 1px;
-  margin: 0px;
-  padding: 0px;
-  position: fixed;
-  top: 0px;
+  width: 620px;
 }
-
-html {
-  max-height: 1024px;
+div.inspectLibretto div div.TEIContainer.other {
+	display: block;
+	left: 0;
+	top: 0;
+	width: 100%;
 }
-
-svg.timeline-overview {
-  position: absolute;
-  bottom: 15px;
+div.inspectLibretto .leftColumn {
+	width: 46%;
+	left: 2%;
 }
-line.annotation {
-  cursor: pointer;
+div.inspectLibretto .rightColumn {
+	width: 46%;
+	left: 52%;
 }
