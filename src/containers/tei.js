@@ -18,7 +18,7 @@ import {
 class TEI extends Component { 
 	constructor(props) { 
 		super(props);
-
+		this.containerDiv = null;
 		this.state = { 
 			tei: {},
             annotations:{},
@@ -36,6 +36,19 @@ class TEI extends Component {
 			 textBox.scrollTop = targetElements[0].offsetTop - textBox.offsetTop + (textBox.clientHeight / 2);
 		}
 	}
+	scrollToURI(){
+		if(this.props.scrollToURI && this.containerDiv){
+			var fragment = this.props.scrollToURI.substring(this.props.scrollToURI.indexOf('#')+1);
+//			console.log(fragment);
+//			var textBox = ReactDOM.findDOMNode(this);
+//			if(!textBox) return;
+			var el = this.containerDiv.getElementByID(fragment);
+			if(el){
+//				el.scrollIntoView;
+				textBox.scrollTop = el.offsetTop - textBox.offsetTop + (textBox.clientHeight / 2);
+			}
+		}
+	}
 	render() { 
 		if(Object.keys(this.props.tei.TEI).length && this.props.uri in this.props.tei.TEI) { 
 			// HACK //
@@ -43,38 +56,74 @@ class TEI extends Component {
 				if(this.props.onMotifChange && (!this.props.motif || !this.props.uri.endsWith(this.props.motif))){
 					return <div/>;
 				}
-				return <div dangerouslySetInnerHTML={ this.returnHTMLizedTEI() } className="TEIContainer commentary" id={this.props.uri.substr(this.props.uri.indexOf("commentaries/")+13)} />;
-			} else { 
-				return <div dangerouslySetInnerHTML={ this.returnHTMLizedTEI() } className="TEIContainer other" />;
+				return ( <div dangerouslySetInnerHTML={ this.returnHTMLizedTEI() } ref={this.containerDiv} className="TEIContainer commentary"
+								 id={this.props.uri.substr(this.props.uri.indexOf("commentaries/")+13)}/> );
+			} else {
+				return ( <div dangerouslySetInnerHTML={ this.returnHTMLizedTEI() } ref={this.containerDiv} className="TEIContainer other"
+								 onScroll={this.props.scrollFun} />);
 			}
 			// END HACK //
+		} else if(this.props.tei.TEI && this.props.uri) {
+//			console.log(this.props.uri, this.props.tei.TEI);
 		}
 		return <div> Loading TEI... </div>;
 	}
 
 	componentDidMount() {
+//		console.log(this.props.uri);
 		this.props.fetchTEI(this.props.uri);
+		if(this.props.scrollToURI){
+			this.scrollToURI();
+		}/*
+		if(this.props.handleTEIRef){
+			var refs = document.getElementsByTagName('TEI-REF');
+			// FIXME: this is for *all* refs rather than ones in the local container
+			console.log(refs.length);
+			if(refs.length){
+				for(var i=0; i<refs.length; i++){
+					var target = refs[i].getAttributeNS(null, 'target');
+					console.log(target);
+					refs[i].onclick = this.props.handleTEIRef.bind(target.split(' '));
+				}
+			}
+		}*/
 	}
 
 	returnHTMLizedTEI() {
-		return {__html: this.props.tei.TEI[this.props.uri].innerHTML};
+		var TEIhtml = this.props.tei.TEI[this.props.uri].innerHTML
+		if(this.props.title) {
+//			console.log("yay", TEIhtml, TEIhtml.search(/<tei-title data-teiname="title">.*tei-title>/gi)); //"title">[!<]*<\/tei-title>/));
+			TEIhtml = TEIhtml.replace(/<tei-title data-teiname="title">.*tei-title>/gi, '<tei-title data-teiname="title">'+this.props.title+'</tei-title>');
+		}
+		return {__html: TEIhtml};
 	}
 
 	componentDidUpdate() {
+		if(!Object.keys(this.props.tei.TEI).length || !(this.props.uri in this.props.tei.TEI)) return;
 		if(this.props.motif && this.props.uri.indexOf("commentaries")===-1){
 			this.scrollToMotif(this.props.motif);
-
+		} else if(this.props.scrollToURI){
+			this.scrollToURI();
 		}
+		//		console.log(1);
+		/*
 		var mc = this.props.onMotifChange;
 		ReactDOM.findDOMNode(this).onclick = function(e){
 			var target = e.target;
 			if(target && target.className.match(/F[0-9]+/).length){
 				mc(target.className.match(/F[0-9]+/)[0]);
 			}
-		}
+		}*/
+		//console.log(2);
+
+		if(!this.props.annotations || !this.props.showAnnotations) return false;
+		console.log(this.props.annotations);
 		this.props.annotations.map( (annotation) => {
 			// each annotation...
-			const frags = annotation["oa:hasTarget"].map( (annotationTarget) => {
+			//			console.log(annotation, '<<<<<');
+			console.log(annotation[prefix.oa+"hasTarget"]);
+			var hasTarget = prefix.oa+"hasTarget";
+			const frags = annotation[hasTarget].map( (annotationTarget) => {
 				// each annotation target
 				if(annotationTarget["@id"] in this.props.tei.componentTargets) {
 					// if this is my target, grab any of MY fragment IDs
@@ -95,6 +144,7 @@ class TEI extends Component {
 		if("oa:hasBody" in annotation) { 
 			annotation["oa:hasBody"].map( (b) => {
 				// TODO convert to switch statement
+//				console.log(3);
 				if(b["@id"] === MARKUP_EMPHASIS) { 
 					this.props.handleEmphasis(ReactDOM.findDOMNode(this), annotation, this.props.uri, fragments);
 				} else if(b["@id"] === MARKUP_HIGHLIGHT) { 
@@ -107,6 +157,7 @@ class TEI extends Component {
 				else {
 					console.log("TEI component unable to handle meld action: ", b);
 				}
+//				console.log(4);
 			});
 		}
 		else { console.log("Skipping annotation without body: ", annotation) }

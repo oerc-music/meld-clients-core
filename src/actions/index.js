@@ -88,7 +88,6 @@ const context = {
 }
 
 export function fetchScore(uri) { 
-	// console.log("FETCH_SCORE ACTION on URI: ", uri);
 	const promise = axios.get(uri);
 	return { 
 		type: FETCH_SCORE,
@@ -120,11 +119,11 @@ export function fetchTEI(uri) {
     }
 }
 
-export function traverse(
+export function registerTraversal(
 	docUri,
 	{  // use destructuring to simulate named parameters
 		objectPrefixWhitelist=[], objectUriWhitelist=[], objectTypeWhitelist = [], 
-		objectPrefixBlacklist=[], objectUriBlacklist=[], objectTypeBlacklist = [],
+		objectPrefixBlacklist=[], objectUriBlacklist=[], objectTypeBlacklist = [], objectBlacklistTest = false,
 		propertyPrefixWhitelist=[], propertyUriWhitelist=[],
 		propertyPrefixBlacklist=[], propertyUriBlacklist=[],
 		objectives={}, numHops=MAX_TRAVERSAL_HOPS,
@@ -172,19 +171,66 @@ export function traverse(
 	// n.b. must update here if function signature changes
 	let params = {  
 		objectPrefixWhitelist, objectUriWhitelist, objectTypeWhitelist, 
-		objectPrefixBlacklist, objectUriBlacklist, objectTypeBlacklist,
+		objectPrefixBlacklist, objectUriBlacklist, objectTypeBlacklist, objectBlacklistTest,
 		propertyPrefixWhitelist, propertyUriWhitelist,
 		propertyPrefixBlacklist, propertyUriBlacklist,
 		objectives, numHops,
 		useEtag, etag
 	}
+//	console.log("Register a traversal");
+  return {
+    type: REGISTER_TRAVERSAL,
+    payload: { docUri, params}
+  };
+}
+export function traverse(docUri, params)
+	{
+	// PURPOSE:
+	// *************************************************************************
+	// Traverse through a graph, looking for entities of interest
+	//   (keys of 'objectives') and undertaking actions in response
+	//   (values of 'objectives'). 
+	// For each subject, traverse along its predicates to its attached objects, 
+	//   then recurse (each object becomes subject in next round).
+	// When recursing, check for instances of object-as-subject in the current 
+	//   file (traverseInternal), AND do an HTTP GET to resolve the object URI 
+	//   and recurse there (external traversal).
+	// If useEtag is specified, then worry about etags for external traversals
+	// 	 (and re-request if the file has changed)
+	// 	 n.b. this is only an issue for dynamic MELD deployments
+	// With each hop, decrement numHops. 
+	// Stop when numHops reaches zero, or when there are no more objects
+	//   to traverse to.
+	// If an objectPrefixWhitelist is specified, only traverse to objects with 
+	//  URIs that start with a prefix in the list. 
+	// If an objectUriWhitelist is specified, only traverse to objects with 
+	//  URIs in the list.
+	// If an objectTypeWhitelist is specified, only traverse to objects with 
+	//  a type that's in the list. 
+	// If an objectPrefixBlacklist is specified, only traverse to objects with
+	//  URIs that do NOT start with a prefix in the list.
+	// If an objectUriBlacklist is specified, only traverse to objects with 
+	//  URIs that are NOT in the list.
+	// If an objectTypeBlacklist is specified, do NOT traverse to  objects with 
+	//  types in the list.
+	// If a propertyPrefixWhitelist is specified, only traverse to objects along
+	//  properties whose URIs start with a prefix in the list. 
+	// If a propertyUriWhitelist is specified, only traverse to objects along
+	//  properties with URIs in the list. 
+	// If a propertyPrefixBlacklist is specified, only traverse to objects along
+	//  properties whose URIs do NOT start with a prefix in the list. 
+	// If a propertyUriWhitelist is specified, only traverse to objects along
+	//  properties with URIs that are NOT in the list. 
+	// *************************************************************************
+	
+	// create params object to pass on in recursive calls
+	// n.b. must update here if function signature changes
 	// set up HTTP request
 	const headers = {'Accept': 'application/ld+json'};
-	if(useEtag) { 
-		headers['If-None-Match'] = etag;
+	if(params.useEtag) { 
+		headers['If-None-Match'] = params.etag;
 	}
-
-	console.log("FETCHING: ", docUri, params);
+//	console.log("FETCHING: ", docUri, params);
  	const promise = axios.get(docUri, {
 		headers: headers,
 		validateStatus: function(stat) { 
@@ -194,11 +240,16 @@ export function traverse(
 		}
 	});
 	return (dispatch) => { 
+		dispatch({
+			type: RUN_TRAVERSAL,
+			payload: {docUri}
+		});
 		promise.then( (response) => {
 			if(response.status == 304) {
+				dispatch({type: TRAVERSAL_UNNECCESSARY, payload: {docUri}});				
 				return; // file not modified, i.e. etag matched, no updates required
 			}
-			console.log(response.headers["content-type"]);
+//			console.log(response.headers["content-type"]);
 			let data = response.data;
 			// appropriately handle content types
 //			if(isRDF(response.headers["content-type"])) {
@@ -215,90 +266,196 @@ export function traverse(
 //				case "text/n3":
 //
 					
-			if(response.headers["content-type"] === "application/ld+json") {
-			// expand the JSON-LD object so that we are working with full URIs, not compacted into prefixes
+			if(response.headers["content-type"] === "application/ld+json"
+				 || response.request.responseURL.indexOf('.json-ld') > -1 // for testing
+				) {
+				// expand the JSON-LD object so that we are working with full URIs, not compacted into prefixes
 				jsonld.expand(response.data, (err, expanded) => {
-					if(err) { console.log("EXPANSION ERROR: ", docUri, err); }
+					if(err) { console.log("EXPANSION ERROR: ", docUri, err, response.data); }
 					// flatten the expanded JSON-LD object so that each described entity has an ID at the top-level of the tree
 					jsonld.flatten(expanded, (err, flattened) => {
-						dispatch({
-							type: FETCH_GRAPH_DOCUMENT,
-							payload: flattened
-						});
-						// convert the flattened array of JSON-LD structures into a lookup table using each entity's URI ("@id")
-						let idLookup = {}
-						Object.entries(flattened).forEach( ([key, value]) => {
-							idLookup[value["@id"]] = value;
-						})
-						Object.entries(idLookup).forEach( ([subjectUri, subjectDescription]) => {
-							// iterating through each entity within the document as the subject,
-							// look at its description (set of predicate-object tuples).
-							Object.entries(subjectDescription).forEach( ([pred,objs]) => {
-								// because JSON-LD, objs could be a single object or an array of objects
-								// therefore, ensure consistency:
-								objs = Array.isArray(objs) ? objs : [objs]
-								objs.map( (obj) => {
-									if(obj === Object(obj)) { 
-										// our *RDF* object is a *JAVASCRIPT* object
-										// but because we've flattened our document, we know that it will contain only an @id
-										// and that all of its other descriptors will be associated with that @id at the top-level
-										// (which we will handle in another iteration)
-										// CHECK FOR OBJECTIVES HERE
-										console.log("<>", subjectUri, pred, obj["@id"], docUri);
-										// Now recurse (if black/whitelist conditions and hop counter allow)
-										// Remember that we've already visited the current document to avoid loops  
-										if( numHops !== 0 && !(objectUriBlacklist.includes(obj["@id"])) ) {
-											const badPrefixMatches = objectPrefixBlacklist.filter((b) => {
-												return obj["@id"].startsWith(b)
-											})
-											if(badPrefixMatches.length === 0) { 
-												dispatch(traverse(obj["@id"], {
-													...params,
-													"objectUriBlacklist": objectUriBlacklist.concat(docUri),
-													"numHops": numHops-1
-												}))
-											}
-										}
-									}  else { 
-										// our *RDF* object is a literal
-										// n.b. exceptions where pred is @type, @id, etc. There, the obj is still a URI, not a literal
-										// Could test for those explicitly here.
-										// CHECK FOR OBJECTIVES HERE
-										console.log("||", subjectUri, pred, obj, docUri)
-
-									}
-								});
-							})
-
-						})
+						var skolemized = skolemize(flattened, docUri);
+//						console.log(skolemized);
+						handleFlattenedJson(dispatch, docUri, params, err, skolemized);
 					});
-					// since we will sometimes obtain arrays, do the following to ensure consistency:
-	//				expanded = Array.isArray(expanded) ? expanded : [ expanded ];
-	//				expanded.map( (subject) => {
-	//					// we've encountered a subject of interest. 
-	//					// traverse through its associated predicates and objects:
-	//					const predicates = Object.keys(subject).filter((p) => { if(!(p in propertyUriBlacklist)) return p });
-	//					predicates.map( (p) =>  {
-	//						console.log(p);
-	//					});
-	//				});
 				})
+			} else {
+//				console.log("found", docUri);
+//				var n3parser = new N3.Parser();
+				// n3parser.parse(response.data,
+				// 							 (e, q, p)=>(console.log(e ? ["gah!", e] : (q ? q : p))),
+				// 							 (x)=>console.log("ooooooooooo"));
+				if(docUri.indexOf('.mei')===-1 && docUri.indexOf('.wav')===-1 && docUri.indexOf('.mp3')===-1
+					 && docUri.indexOf('.tei')===-1 && !/^\s*<\?xml/.test(response.data)) {
+					try{
+//						console.log(response.request.responseURL, '!!!!!!!!!!!');
+/*						jsonld.fromRDF(deblankNodes(response.data, response.request.responseURL),
+//													 {format: 'application/n-quads'},
+handleFlattenedJson.bind(null, dispatch, docUri, params));*/
+						jsonld.fromRDF(response.data, (err, flattened) => {
+							var skolemized = skolemize(flattened, docUri);
+//							console.log(skolemized.length);
+							handleFlattenedJson(dispatch, docUri, params, err, skolemized);
+						});
+						//console.log(n3parser.parse(response.data));
+					} catch(error) {
+						console.log("Don't worry too much, but", error);
+					}
+				} else if(docUri.indexOf('.mei')>-1){
+					dispatch({type: TRAVERSAL_UNNECCESSARY, payload: {docUri}});
+					fetchScore(docUri);
+				} else if(docUri.indexOf('.tei')>-1){
+					dispatch({type: TRAVERSAL_UNNECCESSARY, payload: {docUri}});
+					fetchTEI(docUri);
+				} else {
+//					console.log("missed", docUri);
+					dispatch({type: TRAVERSAL_UNNECCESSARY, payload: {docUri}});
+				}
 			}
-		}).catch( (err) => console.log("Could not retrieve ", docUri, err));
+		}).catch( (err) => {
+			console.log("Could not retrieve ", docUri, err);
+			dispatch({type: TRAVERSAL_FAILED, payload: {docUri}});
+			return {type: TRAVERSAL_FAILED };
+		});
+		return { type: TRAVERSAL_PREHOP };
 	}
+}
+
+
+//helper function: 
+// skolemize blank nodes to prevent identifier clashes between documents
+// by detecting "_:<blank-node-identifier>"
+// and replacing with document uri appended with  /genid/<blank-node-identifier> 
+// by virtue of traversal mechanism, we only ever visit each document once, 
+// so clashes with the same document should not occur.
+function skolemize(obj,docUri) {
+  if(Array.isArray(obj)) {
+    // if fed an array, recur on each constitutent
+    obj = obj.map( (o) => skolemize(o, docUri) );
+  } else if(obj === Object(obj)) {
+    // if fed an object, iterate over each key
+    Object.keys(obj).map( (k) => {
+      if(k === "@id") {
+      // found an @id, check for blank node and skolemize if necesssary
+          obj["@id"] = obj["@id"].replace("_:", docUri + "/genid/");
+      } else { 
+        // recur on value
+        obj[k] = skolemize(obj[k], docUri);
+      }
+    })
+  }
+  return obj;
+}
+
+function handleFlattenedJson(dispatch, docUri, {  // use destructuring to simulate named parameters
+		objectPrefixWhitelist=[], objectUriWhitelist=[], objectTypeWhitelist = [], 
+  	objectPrefixBlacklist=[], objectUriBlacklist=[], objectTypeBlacklist = [], objectBlacklistTest = false,
+		propertyPrefixWhitelist=[], propertyUriWhitelist=[],
+		propertyPrefixBlacklist=[], propertyUriBlacklist=[],
+		objectives={}, numHops=MAX_TRAVERSAL_HOPS,
+		useEtag = false, etag=""} = {}, err, flattened){
+	if(err) return console.log(err);
+	let params = {  
+		objectPrefixWhitelist, objectUriWhitelist, objectTypeWhitelist, 
+		objectPrefixBlacklist, objectUriBlacklist, objectTypeBlacklist, objectBlacklistTest,
+		propertyPrefixWhitelist, propertyUriWhitelist,
+		propertyPrefixBlacklist, propertyUriBlacklist,
+		objectives, numHops,
+		useEtag, etag
+	}
+	dispatch({
+		type: FETCH_GRAPH_DOCUMENT,
+		payload: flattened
+	});
+	// convert the flattened array of JSON-LD structures into a lookup table using each entity's URI ("@id")
+	let idLookup = {}
+	Object.entries(flattened).forEach( ([key, value]) => {
+		idLookup[value["@id"]] = value;
+	})
+	Object.entries(idLookup).forEach( ([subjectUri, subjectDescription]) => {
+		// iterating through each entity within the document as the subject,
+		// look at its description (set of predicate-object tuples).
+		Object.entries(subjectDescription).forEach( ([pred,objs]) => {
+			// because JSON-LD, objs could be a single object or an array of objects
+			// therefore, ensure consistency:
+//			console.log(pred, objs);
+			objs = Array.isArray(objs) ? objs : [objs]
+			objs.map( (obj) => {
+				if(obj === Object(obj) && obj["@id"]) { 
+					// our *RDF* object is a *JAVASCRIPT* object
+					// but because we've flattened our document, we know that it will contain only an @id
+					// and that all of its other descriptors will be associated with that @id at the top-level
+					// (which we will handle in another iteration)
+					// CHECK FOR OBJECTIVES HERE
+					// console.log("<>", subjectUri, pred, obj["@id"], docUri);
+					if(!obj["@id"]) console.log("!!!", subjectUri, obj);
+					if((obj["@id"].indexOf(".json-ld")===-1 && obj["@id"].indexOf(".nq")===-1) && /[.]+[^/]*$/.test(obj["@id"])) {
+						if(pred==='http://purl.org/vocab/frbr/core#embodiment'
+							 && obj['@id'].split('#')[0].endsWith('.mei')){
+							fetchScore(obj['@id']);
+						}
+						return;
+					}
+//					console.log("~~~~~~~~~");
+					// Now recurse (if black/whitelist conditions and hop counter allow)
+					// Remember that we've already visited the current document to avoid loops  
+					if( numHops !== 0 && !(objectUriBlacklist.includes(obj["@id"]))
+							&& (!objectBlacklistTest || !objectBlacklistTest(obj["@id"]))) {
+						const badPredMatches = propertyPrefixBlacklist ?
+									propertyPrefixBlacklist.filter( b => pred.startsWith(b)) : [];
+						const badPrefixMatches = objectPrefixBlacklist.filter((b) => {
+							return obj["@id"].startsWith(b)
+						})
+						const goodPrefixMatches = objectPrefixWhitelist.length
+									? objectPrefixWhitelist.filter((w) => obj["@id"].startsWith(w))
+									: ["ok"];
+						if(badPrefixMatches.length === 0 && goodPrefixMatches.length && !doceq(obj["@id"], subjectUri) && badPredMatches.length===0 && !excludeURI(obj["@id"])) {
+							dispatch(registerTraversal(obj["@id"], {
+								...params,
+								"objectUriBlacklist": objectUriBlacklist.concat(docUri),
+								"numHops": numHops-1
+							}))
+						}
+					} 
+				}  else { 
+					// our *RDF* object is a literal
+					// n.b. exceptions where pred is @type, @id, etc. There, the obj is still a URI, not a literal
+					// Could test for those explicitly here.
+					// CHECK FOR OBJECTIVES HERE
+//					console.log("||", subjectUri, pred, obj, docUri)
+				}
+			});
+		})
+	})
+	return {type: TRAVERSAL_HOP}
+}
+function excludeURI(uri){
+	return uri.indexOf("/genid")>-1;
+}
+
+function doceq (uri1, uri2){
+	var frag1 = uri1.indexOf("#");	
+	var frag2 = uri2.indexOf("#");
+	if(frag1 > -1) uri1 = uri1.substring(0, frag1);
+	if(frag2 > -1) uri2 = uri2.substring(0, frag2);
+	return uri1==uri2;
+}
+
+function deblankNodes (triples, uri){
+	return triples.replace(/_:(\S+)/g, "<"+uri+"#$1>");
 }
 
 export function checkTraversalObjectives(graph, objectives) { 
 	// check a given json-ld structure against a set of objectives (json-ld frames)
 	return (dispatch) => { 
-		objectives.map( (obj, ix) => { 
+		objectives.map( (obj, ix) => {
 			jsonld.frame(graph, obj, (err, framed) => { 
 				if(err) { 
 					console.log("FRAMING ERROR: ", objectives[ix], err);
 				} else {
 					dispatch({
 						type:APPLY_TRAVERSAL_OBJECTIVE,
-						payload: {ix, framed}
+						payload: {ix:ix, framed: framed}
 					})
 				}
 			})
@@ -918,10 +1075,9 @@ export function postAnnotation(session, etag, json, retries=MAX_RETRIES) {
 export function markAnnotationProcessed(session, etag, annotation, retries=MAX_RETRIES) {
 	if(retries) { 
 		// console.log("PATCHING: ", session, etag, annotation);
-		const patchJson = JSON.stringify( { 
-			"@id": annotation["@id"],
-			"meld:state": {"@id": "meld:processed"}
-		});
+		var patchObj = {"@id": annotation["@id"]};
+		patchObj[prefix.meld+"state"] = {"@id": prefix.meld+"processed"}
+		const patchJson = JSON.stringify(patchObj);
 		axios.patch(
 			session,
 			patchJson,
@@ -963,10 +1119,9 @@ export function markAnnotationProcessed(session, etag, annotation, retries=MAX_R
 export function patchAndProcessAnnotation(action, session, etag, annotation, success={type: ANNOTATION_PATCHED}, retries=MAX_RETRIES) {
 	if(retries) { 
 		// console.log("PATCHING: ", session, etag, annotation);
-		const patchJson = JSON.stringify( { 
-			"@id": annotation["@id"],
-			"meld:state": {"@id": "meld:processed"}
-		});
+		var patchObj = {"@id": annotation["@id"]};
+		patchObj[prefix.meld+"state"] = {"@id": prefix.meld+"processed"}
+		const patchJson = JSON.stringify(patchObj);
 		return (dispatch) => {
 			axios.patch(
 				session,

@@ -42,12 +42,13 @@ export function setScoreReducerVerovioOptions(options){
 	vrvOptions = options;
 };
 
-export function ScoreReducer(state = {publishedScores: {}, conceptualScores: {}, MEI: {}, SVG: {}, componentTargets: {}, scoreMapping: {}, pageNum: 1, pageCount: 0, triggerNextSession: "", triggerPrevSession: ""}, action) { 
+export function ScoreReducer(state = {publishedScores: {}, conceptualScores: {}, MEI: {}, SVG: {}, options: {}, vrvTk: vrvTk, componentTargets: {}, scoreMapping: {}, pageNum: 1, pageCount: 0, triggerNextSession: "", triggerPrevSession: ""}, action) { 
 	let svg;
 	const pageCount = vrvTk.getPageCount();
 	switch(action.type) {
-	case FETCH_SCORE:
-        svg = vrvTk.renderData(action.payload.data, vrvOptions);
+		case FETCH_SCORE:
+//			console.log("looking at", action.payload);
+      svg = false && vrvTk.renderData(action.payload.data, vrvOptions);
 		return update(state, {
 			SVG: { $merge: { [action.payload.config.url]: svg } },
 			MEI: { $merge: { [action.payload.config.url]: action.payload.data } } ,
@@ -71,7 +72,10 @@ export function ScoreReducer(state = {publishedScores: {}, conceptualScores: {},
 			// part wasn't on segment line
 			return state;
 		}
-		let fragments={};
+			let fragments={};
+			if(state.componentTargets && state.componentTargets[target["@id"]]){
+				fragments=state.componentTargets[target["@id"]]
+			}
 		// go through each part, finding embodibags
 		if(EMBODIMENT in part) { 
 			if(!Array.isArray(part[EMBODIMENT])) { 
@@ -99,14 +103,20 @@ export function ScoreReducer(state = {publishedScores: {}, conceptualScores: {},
 					if(!Array.isArray(embodiment[MEMBER])) { 
 						embodiment[MEMBER] = [embodiment[MEMBER]];
 					}
+					if(target["@id"]==="http://meld.linkedmusic.org/companion/F1Segment3"){
+						console.log(fragtype);
+					}
 					fragments[fragtype] = fragments[fragtype] || [];
 					fragments[fragtype] = fragments[fragtype].concat(embodiment[MEMBER].map( (member) => {
 						return member["@id"];
 					}));
-					fragments["description"] = target["rdfs:label"];
-					if(target["@type"].includes("meld:Muzicode")) {
-						fragments["muzicodeType"] = target["mc:type"];
-						fragments["cue"] = target["climb:cue"];
+					if(target["@id"]==="http://meld.linkedmusic.org/companion/F1Segment3"){
+						console.log(fragments['MEI'], "----!");
+					}
+					fragments["description"] = target[prefix.rdfs+"label"];
+					if(target["@type"].includes(prefix.meld+"Muzicode")) {
+						fragments["muzicodeType"] = target[prefix.mc+"type"];
+						fragments["cue"] = target[prefix.climb+"cue"];
 					}
 				} else { console.log("Embodiment without members: ", part, embodiment); }
 			});

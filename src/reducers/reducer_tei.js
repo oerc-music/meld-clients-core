@@ -27,7 +27,10 @@ export default function(state = {TEI: {}, componentTargets: {}, fragImages:{}, l
 		}
 		// console.log("In FETCH_MANIFESTATIONS TEI, target is: ", target, " part is: ", part);
 		let fragments = [];
-		let libretto = [];	
+		if(state.componentTargets && state.componentTargets[target["@id"]]){
+			fragments=state.componentTargets[target["@id"]]
+		}
+			let libretto = {};	
 		// go through each part, finding embodibags
 		if(EMBODIMENT in part) { 
 			if(!Array.isArray(part[EMBODIMENT])) { 
@@ -47,16 +50,23 @@ export default function(state = {TEI: {}, componentTargets: {}, fragImages:{}, l
 						let TEIFrags = 	embodiment[MEMBER].map( (member) => {
 							return member["@id"];
 						});
-						if(embodiment["@type"].includes(LIBRETTOTYPE)){
-							console.log("----------------------");
-							libretto = libretto.concat(TEIFrags);
+						if(embodiment["@type"].includes(LIBRETTOTYPE) && LANGUAGE in embodiment){
+							let lang = embodiment[LANGUAGE];
+							if(!libretto[lang]) libretto[lang] = {};
+							TEIFrags.forEach((x)=>{libretto[lang][x] = [target["@id"]];});
 						}
 						fragments = fragments.concat(TEIFrags);
 					} else { console.log("TEI Reducer: Embodiment with unknown type", embodiment); }
 					//fragments[fragtype] = embodiment[MEMBER].map( (member) => {
 				} else { console.log("Embodiment without members: ", part, embodiment); }
 			});
-			return update(state, {componentTargets: { $merge: { [target["@id"]]: fragments } }, librettoTargets: { $merge: { [target["@id"]]: libretto } } });
+			var intermediateState = update(state, {componentTargets: { $merge: { [target["@id"]]: fragments } } });
+			var oldLibrettoTargets = state.librettoTargets;
+			var newLibrettoTargets = update(oldLibrettoTargets, {$merge: libretto});
+			intermediateState.librettoTargets = newLibrettoTargets;
+			return intermediateState;
+			// console.log(update(intermediateState, {librettoTargets: newLibrettoTargets }));
+			// return update(state, {componentTargets: { $merge: { [target["@id"]]: fragments } }, librettoTargets: newLibrettoTargets });
 		};
 		/*
         if(ASSOCIATED in target) { 
