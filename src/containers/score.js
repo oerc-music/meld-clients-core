@@ -1,8 +1,8 @@
-import React, { Component } from 'react';
+import React from 'react';
 import ReactDOM from 'react-dom'
 import { connect } from 'react-redux';
 import { bindActionCreators} from 'redux';
-import { ensureArray, fetchScore, scoreNextPage, scorePrevPage, HAS_BODY, HAS_TARGET } from '../actions/index';
+import { ensureArray, fetchScore, updateLatestRenderedPageNum, scoreNextPage, scorePrevPage, HAS_BODY, HAS_TARGET } from '../actions/index';
 import { 
 	MARKUP_EMPHASIS, 
 	handleEmphasis,
@@ -26,7 +26,6 @@ import {
 } from '../actions/meldActions';
 
 
-import InlineSVG from 'svg-inline-react';
 const defaultVrvOptions = {
 	ignoreLayout:1,
 	adjustPageHeight:1,
@@ -42,8 +41,8 @@ const defaultVrvOptions = {
 };
 
 
-class Score extends Component { 
-	constructor(props) { 
+class Score extends React.Component {
+	constructor(props) {
 		super(props);
 
 		this.state = { 
@@ -81,7 +80,7 @@ class Score extends Component {
 				<div id={this.props.uri} className="scorepane">
 					<div className="controls" />
 					<div className="annotations" />
-					<InlineSVG className="score" src={ svg } />
+					<div className="score" dangerouslySetInnerHTML={{__html: svg}} />
 				</div>
 			);
 		}
@@ -92,7 +91,7 @@ class Score extends Component {
 		this.props.fetchScore(this.props.uri);
 	}
 
-	componentDidUpdate() {
+	componentDidUpdate(prevProps, prevState) {
 		let annotations = this.props.annotations;
 		if(!Array.isArray(annotations)) { 
 			annotations = [annotations]
@@ -132,6 +131,13 @@ class Score extends Component {
 				} 
 			});
 		});
+
+    if(prevProps.score.pageNum !== this.props.score.pageNum || // on page flip... 
+       prevProps.score.pageCount < this.props.score.pageCount // ...or first load   
+    ){ 
+      // signal that Verovio has rendered a new page
+      this.props.updateLatestRenderedPageNum(this.props.score.pageNum);
+    }
 			
 	}
 
@@ -210,7 +216,7 @@ function mapStateToProps({ score }) {
 }
 
 function mapDispatchToProps(dispatch) { 
-	return bindActionCreators({ fetchScore, handleEmphasis, handleHighlight, handleHighlight2, handleCueAudio, handleCueVideo, scorePrevPage, scoreNextPage, handleQueueNextSession, handleCreateNextSession, handleTransitionToNextSession, handleIdentifyMuzicode, handleChoiceMuzicode, handleChallengePassed, handleDisklavierStart, handleMuzicodeTriggered, handleArchivedMuzicodeTrigger}, dispatch);
+	return bindActionCreators({ fetchScore, updateLatestRenderedPageNum, handleEmphasis, handleHighlight, handleHighlight2, handleCueAudio, handleCueVideo, scorePrevPage, scoreNextPage, handleQueueNextSession, handleCreateNextSession, handleTransitionToNextSession, handleIdentifyMuzicode, handleChoiceMuzicode, handleChallengePassed, handleDisklavierStart, handleMuzicodeTriggered, handleArchivedMuzicodeTrigger}, dispatch);
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(Score);

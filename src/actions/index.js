@@ -56,6 +56,7 @@ export const TRAVERSAL_FAILED="TRAVERSAL_FAILED";
 export const TRAVERSAL_UNNECCESSARY = "TRAVERSAL_UNNECCESSARY";
 export const RUN_TRAVERSAL="RUN_TRAVERSAL";
 export const REGISTER_TRAVERSAL="REGISTER_TRAVERSAL";
+export const UPDATE_LATEST_RENDERED_PAGENUM="UPDATE_LATEST_RENDERED_PAGENUM";
 
 export const muzicodesUri = "http://127.0.0.1:5000/MUZICODES"
 
@@ -1225,3 +1226,9 @@ export function registerClock(clockUri) {
 	}
 }
 
+export function updateLatestRenderedPageNum(pageNum) { 
+  return {
+    type: "UPDATE_LATEST_RENDERED_PAGENUM",
+    payload:pageNum
+  }
+}
