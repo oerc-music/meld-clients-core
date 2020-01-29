@@ -80,7 +80,7 @@ class Score extends React.Component {
 				<div id={this.props.uri} className="scorepane">
 					<div className="controls" />
 					<div className="annotations" />
-					<div dangerouslySetInnerHTML={{__html: svg}} />
+					<div className="score" dangerouslySetInnerHTML={{__html: svg}} />
 				</div>
 			);
 		}
