@@ -83,7 +83,7 @@ export function handleCueAudio(component, annotation, body, uri, fragments) {
     return annotationNotHandled(annotation);
 }
 
-export function handleCueVidio(component, annotation, body, uri, fragments) { 
+export function handleCueVideo(component, annotation, body, uri, fragments) {
     if("MEI" in fragments && "Video" in fragments) { 
         fragments.MEI.map((f) => { 
             const fLocalId = f.substr(f.indexOf("#"))
