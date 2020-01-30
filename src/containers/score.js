@@ -77,11 +77,28 @@ class Score extends React.Component {
 				svg = oSerializer.serializeToString(svgObject);
 			};
 			return (
-				<div id={this.props.uri} className="scorepane">
-					<div className="controls" />
-					<div className="annotations" />
-					<div className="score" dangerouslySetInnerHTML={{__html: svg}} />
-				</div>
+        React.createElement(
+          'div', 
+          {
+            id: this.props.uri,
+            className: "scorepane"
+          },
+          React.createElement(
+            'div', 
+            { className: "controls" }
+          ),
+          React.createElement(
+            'div',
+            { className: "annotations" }
+          ), 
+          React.createElement(
+            'div',
+            {
+              className: "score",
+              dangerouslySetInnerHTML: { __html: svg }
+            }
+          )
+        )
 			);
 		}
 		return <div>Loading...</div>;
