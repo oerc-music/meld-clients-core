@@ -101,7 +101,11 @@ class Score extends React.Component {
         )
 			);
 		}
-		return <div>Loading...</div>;
+		return React.createElement(
+      'div',
+      {},
+      "Loading..."
+    );
 	}
 
 	componentDidMount() { 
