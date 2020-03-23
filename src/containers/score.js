@@ -219,4 +219,4 @@ function mapDispatchToProps(dispatch) {
 	return bindActionCreators({ fetchScore, updateLatestRenderedPageNum, handleEmphasis, handleHighlight, handleHighlight2, handleCueAudio, handleCueVideo, scorePrevPage, scoreNextPage, handleQueueNextSession, handleCreateNextSession, handleTransitionToNextSession, handleIdentifyMuzicode, handleChoiceMuzicode, handleChallengePassed, handleDisklavierStart, handleMuzicodeTriggered, handleArchivedMuzicodeTrigger}, dispatch);
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(Score);
+export default connect(mapStateToProps, mapDispatchToProps, null, {forwardRef: true})(Score);
