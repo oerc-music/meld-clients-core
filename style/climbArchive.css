@@ -1,103 +1,103 @@
-.score .meld-muzicode-identify { 
-	fill: #080;
-	stroke: #080;
-	color: #080;
+.score .meld-muzicode-identify {
+    fill: #080;
+    stroke: #080;
+    color: #080;
 }
 
-.score .meld-muzicode-choice { 
-	fill: #c00 !important;
-	stroke: #c00 !important;
-	color: #c00 !important;
+.score .meld-muzicode-choice {
+    fill: #c00 !important;
+    stroke: #c00 !important;
+    color: #c00 !important;
 }
 
-.score .meld-muzicode-challenge-passed { 
-	fill: #c00 !important;
-	stroke: #c00 !important;
-	color: #c00 !important;
+.score .meld-muzicode-challenge-passed {
+    fill: #c00 !important;
+    stroke: #c00 !important;
+    color: #c00 !important;
 }
 
-.score .meld-muzicode-disklavier-start { 
-	fill: #00d !important;
-	stroke: #00d !important;
-	color: #00d !important;
+.score .meld-muzicode-disklavier-start {
+    fill: #00d !important;
+    stroke: #00d !important;
+    color: #00d !important;
 }
 
 .scorepane {
     float: left;
 }
 
-#restpane { 
-    float:right;
+#restpane {
+    float: right;
     font-size: 2.5em;
     height: 100%;
-    overflow-y:auto;
-    width:45%;
+    overflow-y: auto;
+    width: 45%;
 }
 
-#restpane #controls { 
+#restpane #controls {
     padding-bottom: 1em;
     margin-bottom: 1em;
 }
 
-#restpane #controls div { 
+#restpane #controls div {
     /*display:inline-block;*/
-    padding-top:.2em;
-    padding-bottom:.2em;
-    padding-right:.1em;
-    clear:both;
-    float:left;
-    border:1px solid black;
+    padding-top: .2em;
+    padding-bottom: .2em;
+    padding-right: .1em;
+    clear: both;
+    float: left;
+    border: 1px solid black;
 
 }
 
 
-#prev{ 
-    cursor:pointer;
+#prev {
+    cursor: pointer;
 }
 
-#next { 
-    cursor:pointer;
+#next {
+    cursor: pointer;
 }
 
-button { 
+button {
     width: 80px;
     margin-left: 10px;
     margin-right: 25px;
 }
 
-.motivation_muzicodeChoice { 
-	fill: slateblue;
-	stroke: slateblue; 
-	color: slateblue;
-	cursor:pointer;
+.motivation_muzicodeChoice {
+    fill: slateblue;
+    stroke: slateblue;
+    color: slateblue;
+    cursor: pointer;
 }
 
-.motivation_muzicodeChallengePassed { 
-	fill: seagreen;
-	stroke: seagreen;
-	color: seagreen;
-	cursor: pointer;
+.motivation_muzicodeChallengePassed {
+    fill: seagreen;
+    stroke: seagreen;
+    color: seagreen;
+    cursor: pointer;
 }
 
-.motivation_muzicodeDisklavierStart { 
-	fill: orange;
-	stroke: orange;
-	color: orange;
-	cursor: pointer;
+.motivation_muzicodeDisklavierStart {
+    fill: orange;
+    stroke: orange;
+    color: orange;
+    cursor: pointer;
 }
 
-.motivation_muzicodeIdentify { 
-	fill: red;
-	stroke: red;
-	color: red;
-	cursor: pointer;
+.motivation_muzicodeIdentify {
+    fill: red;
+    stroke: red;
+    color: red;
+    cursor: pointer;
 }
 
-.annotationTarget { 
-	cursor:pointer;
+.annotationTarget {
+    cursor: pointer;
 }
 
-.timestamp { 
-	color:#bbb;
-	margin-left: 1em;
+.timestamp {
+    color: #bbb;
+    margin-left: 1em;
 }

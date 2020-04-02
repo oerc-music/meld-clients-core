@@ -201,7 +201,7 @@ function InstrumentMeasure(barStaff, MEIObject){
     nsResolver, XPathResult.NUMBER_TYPE, null).numberValue;
   this.events = [];
   this.duration = 0;
-  var eventObjs = this.MEIObject.evaluate('./mei:layer/mei:note | ./mei:layer/mei:rest | ./mei:layer/mei:chord', barStaff, nsResolver, XPathResult.ORDERED_NODE_ITERATORTYPE, null);
+  var eventObjs = this.MEIObject.evaluate('./mei:layer/mei:note | ./mei:layer/mei:rest | ./mei:layer/mei:chord', barStaff, nsResolver, XPathResult.ORDERED_NODE_ITERATOR_TYPE , null);
   var event = eventObjs.iterateNext();
   var t = 0;
   var newt = false;
@@ -220,7 +220,7 @@ function InstrumentMeasure(barStaff, MEIObject){
 }
 function findMeasures(n, MEIObject){
   // Given parsed MEI, find all the bars with music in for staff/instrument n
-  var staves = MEIObject.evaluate('//mei:staff[@n='+n+' and .//mei:note]', MEIObject, nsResolver, XPathResult.ORDERED_NODE_ITERATORTYPE, null);
+  var staves = MEIObject.evaluate('//mei:staff[@n='+n+' and .//mei:note]', MEIObject, nsResolver, XPathResult.ORDERED_NODE_ITERATOR_TYPE , null);
   var staff = staves.iterateNext();
   var bars = [];
   while(staff){
@@ -301,7 +301,7 @@ Instrument.prototype.drawRibbon = function(SVG, top, height, left, step){
 
 function findInstruments(MEIObject){
   // Given parsed MEI, return objects for all instruments
-  var staffDefs = MEIObject.evaluate('//mei:staffDef', MEIObject, nsResolver, XPathResult.ORDERED_NODE_ITERATORTYPE, null);
+  var staffDefs = MEIObject.evaluate('//mei:staffDef', MEIObject, nsResolver, XPathResult.ORDERED_NODE_ITERATOR_TYPE , null);
   var staffDef = staffDefs.iterateNext();
   var instruments = [];
   while(staffDef){
