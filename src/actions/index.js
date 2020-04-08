@@ -1,4 +1,5 @@
 import axios from 'axios';
+import auth from 'solid-auth-client';
 import jsonld from 'jsonld'
 import querystring from 'querystring';
 import {
@@ -92,7 +93,7 @@ const context = {
 
 export function fetchScore(uri) {
   // console.log("FETCH_SCORE ACTION on URI: ", uri);
-  const promise = axios.get(uri);
+  const promise = auth.fetch(uri);
   return {
     type: FETCH_SCORE,
     payload: promise
@@ -101,7 +102,7 @@ export function fetchScore(uri) {
 
 export function fetchRibbonContent(uri) {
   // console.log("FETCH_RIBBON_CONTENT ACTION on URI: ", uri);
-  const promise = axios.get(uri);
+  const promise = auth.fetch(uri);
   return {
     type: FETCH_RIBBON_CONTENT,
     payload: promise
@@ -196,13 +197,8 @@ export function traverse(docUri, params) {
   }
 
   console.log("FETCHING: ", docUri, params);
-  const promise = axios.get(docUri, {
-    headers: headers,
-    validateStatus: function (stat) {
-      // only complain if code is greater or equal to 400
-      // this is to not treat 304's as errors}
-      return stat < 400;
-    }
+  const promise = auth.fetch(docUri, {
+    headers: headers
   });
   return (dispatch) => {
     dispatch({
@@ -424,13 +420,8 @@ export function fetchSessionGraph(uri, etag = "") {
   // console.log("FETCH_SESSION_GRAPH ACTION ON URI: ", uri, " with etag: ", etag);
   // TODO add etag to header as If-None-Match and enable corresponding support on server
   // so that it can respond with 304 instead of 200 (i.e. so it can ommit file body)
-  const promise = axios.get(uri, {
-    headers: {'Accept': 'application/ld+json', 'If-None-Match': etag},
-    validateStatus: function (stat) {
-      // only complain if code is greater or equal to 400
-      // this is to not treat 304's as errors}
-      return stat < 400;
-    }
+  const promise = auth.fetch(uri, {
+    headers: {'Accept': 'application/ld+json', 'If-None-Match': etag}
   });
 
   return (dispatch) => {
@@ -479,7 +470,7 @@ export function fetchSessionGraph(uri, etag = "") {
 
 export function fetchGraph(uri) {
   // console.log("FETCH_GRAPH ACTION ON URI: ", uri);
-  const promise = axios.get(uri);
+  const promise = auth.fetch(uri);
 
   return (dispatch) => {
     promise.then(({data}) => {
@@ -534,7 +525,7 @@ function processComponentAnnotation(annotation, conceptualScore = "") {
 
 export function fetchComponentTarget(uri, conceptualScore = "") {
   // console.log("FETCH_COMPONENT_TARGET ACTION ON URI: ", uri);
-  const promise = axios.get(uri, {headers: {'Accept': 'application/ld+json'}});
+  const promise = auth.fetch(uri, {headers: {'Accept': 'application/ld+json'}});
   return (dispatch) => {
     promise.then((data) => {
       // console.log("Attemping to frame data", data);
@@ -704,7 +695,7 @@ export function fetchWork(target, parts, work, expressionObj) {
         chords: expressionObj
       }
     });
-    axios.get(work).then((data) => {
+    auth.fetch(work).then((data) => {
       jsonld.fromRDF(data.data, (err, doc) => {
         if (err) {
           console.log("ERROR TRANSLATING NQUADS TO JSONLD: ", err, data.data)
@@ -801,7 +792,7 @@ export function fetchStructure(target, parts, segline) {
         structure: segline
       }
     });
-    axios.get(segline).then((data) => {
+    auth.fetch(segline).then((data) => {
       jsonld.fromRDF(data.data, (err, doc) => {
         if (err) {
           console.log("ERROR TRANSLATING NQUADS TO JSONLD: ", err, data.data)
@@ -839,7 +830,7 @@ export function fetchStructure(target, parts, segline) {
 
 export function fetchConceptualScore(session, uri) {
   // console.log("FETCH_CONCEPTUAL_SCORE ON URI: ", uri);
-  const promise = axios.get(uri, {headers: {'Accept': 'application/ld+json'}});
+  const promise = auth.fetch(uri, {headers: {'Accept': 'application/ld+json'}});
 
   return (dispatch) => {
     promise.then((response) => {
@@ -1008,7 +999,7 @@ export function postAnnotation(session, etag, json, retries = MAX_RETRIES) {
         if (error.response.status == 412) {
           console.log("ARF Mid-air collision while attempting to POST annotation. Retrying.", session, etag, json);
           // GET the session resource to figure out new etag
-          axios.get(session).then((response) => {
+          auth.fetch(session).then((response) => {
             return (dispatch) => {
               // and try again
               setTimeout(() => {
@@ -1053,7 +1044,7 @@ export function markAnnotationProcessed(session, etag, annotation, retries = MAX
       if (error.response.status == 412) {
         console.log("Mid-air collision while attempting to MARK annotation processed. Retrying.", session, etag, annotation);
         // GET the session resource to figure out new etag
-        axios.get(session).then((response) => {
+        auth.fetch(session).then((response) => {
           // and try again
           return (dispatch) => {
             setTimeout(() => {
@@ -1104,7 +1095,7 @@ export function patchAndProcessAnnotation(action, session, etag, annotation, suc
         if (error.response.status == 412) {
           console.log("Mid-air collision while attempting to PATCH annotation. Retrying.", session, etag, annotation);
           // GET the session resource to figure out new etag
-          axios.get(session).then((response) => {
+          auth.fetch(session).then((response) => {
             // and try again
             return (dispatch) => {
               setTimeout(() => {
@@ -1141,7 +1132,7 @@ export function updateMuzicodes(muzicodesUri, session, mei = "") {
     "meldmei": mei
   });
 
-  axios.post(muzicodesUri, params);
+  auth.fetch(muzicodesUri, params);
   return ({
     type: MUZICODES_UPDATED
   })
@@ -1179,7 +1170,7 @@ export function createSession(sessionsUri, scoreUri, {session = "", etag = "", r
   return (dispatch) => {
     if (retries) {
       // console.log("Trying to create session: ", sessionsUri, scoreUri, etag, retries, performerUri);
-      axios.get(sessionsUri).then((getResponse) => {
+      auth.fetch(sessionsUri).then((getResponse) => {
         axios.post(
             sessionsUri,
             JSON.stringify({
