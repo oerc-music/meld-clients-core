@@ -6,9 +6,9 @@
 }
 
 .TEIContainer .meld-emphasis.infocus {
-	color:red;
-	cursor:pointer;
-  font-weight: bold;
+    color: red;
+    cursor: pointer;
+    font-weight: bold;
 }
 
 /* HACK HACK HACK *//*
@@ -51,21 +51,21 @@
 /* END HACK */
 
 .score .meld-emphasis {
-	fill: red;
+    fill: red;
 }
 
 /*.score .meld-emphasis.infocus g.note, .score .meld-emphasis.infocus.note{*/
-.score .meld-emphasis.infocus, .score .meld-emphasis.infocus *{
-	cursor:pointer;
-  fill: darkorange;
-/*	animation-name: pulse_animation;
-	animation-duration: 1500ms;
-	transform-origin:70% 70%;
-	animation-iteration-count: infinite;
-	animation-timing-function: linear;*/
+.score .meld-emphasis.infocus, .score .meld-emphasis.infocus * {
+    cursor: pointer;
+    fill: darkorange;
+    /*	animation-name: pulse_animation;
+        animation-duration: 1500ms;
+        transform-origin:70% 70%;
+        animation-iteration-count: infinite;
+        animation-timing-function: linear;*/
 }
 
-.TEIContainer .meld-highlight{
+.TEIContainer .meld-highlight {
     text-decoration: underline;
     -moz-text-decoration-color: blue; /* Code for Firefox */
     -webkit-text-decoration-color: blue;
@@ -73,30 +73,30 @@
 }
 
 .TEIContainer .meld-highlight.infocus {
-	color:blue;
-	cursor:pointer;
-  font-weight: bold;
+    color: blue;
+    cursor: pointer;
+    font-weight: bold;
 }
 
 .score .meld-highlight {
-	fill: blue;
-	stroke: blue !important;
-	color: blue;
+    fill: blue;
+    stroke: blue !important;
+    color: blue;
 }
 
 /*.score .meld-highlight.infocus g.note, .score .meld-highlight.infocus.note{*/
-.score .meld-highlight.infocus *, .score .meld-highlight.infocus{
-	cursor:pointer;
-  fill: #F6F;
-/*	animation-name: pulse_animation;
-	animation-duration: 1500ms;
-	transform-origin:70% 70%;
-	animation-iteration-count: infinite;
-	animation-timing-function: linear;*/
+.score .meld-highlight.infocus *, .score .meld-highlight.infocus {
+    cursor: pointer;
+    fill: #F6F;
+    /*	animation-name: pulse_animation;
+        animation-duration: 1500ms;
+        transform-origin:70% 70%;
+        animation-iteration-count: infinite;
+        animation-timing-function: linear;*/
 }
 
 
-.TEIContainer .meld-highlight2{
+.TEIContainer .meld-highlight2 {
     text-decoration: underline;
     -moz-text-decoration-color: green; /* Code for Firefox */
     -webkit-text-decoration-color: green;
@@ -104,52 +104,53 @@
 }
 
 .TEIContainer .meld-highlight2.infocus {
-	color:green;
-	cursor:pointer;
-	font-weight: bold;
+    color: green;
+    cursor: pointer;
+    font-weight: bold;
 }
 
 .score .meld-highlight2 {
-	fill: green;
-	stroke: green !important;
-	color: green;
+    fill: green;
+    stroke: green !important;
+    color: green;
 }
 
 /*.score .meld-highlight2.infocus g.note, .score .meld-highlight2.infocus.note{*/
 .score .meld-highlight2.infocus *, .score .meld-highlight2.infocus {
-	cursor:pointer;
-  fill: #37F;
-/*	animation-name: pulse_animation;
-	animation-duration: 1500ms;
-	transform-origin:70% 70%;
-	animation-iteration-count: infinite;
-	animation-timing-function: linear;*/
+    cursor: pointer;
+    fill: #37F;
+    /*	animation-name: pulse_animation;
+        animation-duration: 1500ms;
+        transform-origin:70% 70%;
+        animation-iteration-count: infinite;
+        animation-timing-function: linear;*/
 }
 
 .TEIContainer {
-    position:absolute;
-    width:450px;
-	max-height: 750px;
-	padding-right: 20px;
-    top:0px;
-    margin-top:-20px;
-    left:770px;
-    padding-left:20px;
-//    font-size:large;
-  font-size: 94%;
-  overflow-y: scroll;
+    position: absolute;
+    width: 450px;
+    max-height: 750px;
+    padding-right: 20px;
+    top: 0px;
+    margin-top: -20px;
+    left: 770px;
+    padding-left: 20px;
+/ / font-size: large;
+    font-size: 94%;
+    overflow-y: scroll;
 }
 
 .scorepane {
-	/*max-height: 250px;*/
-    margin-top:-60px;
+    /*max-height: 250px;*/
+    margin-top: -60px;
     margin-left: -50px;
-	max-width: 740px;
-	overflow-y:auto;
+    max-width: 740px;
+    overflow-y: auto;
 }
+
 .scorepane[id="http://meld.linkedmusic.org/companion/mei/Rheingold2.mei"] {
-	/*max-height: 250px;*/
-    margin-top:-75px;
+    /*max-height: 250px;*/
+    margin-top: -75px;
     border-top: 1px solid #99A;
 }
 
@@ -166,48 +167,50 @@
 }
 */
 tei-foreign {
-	font-style:italic;
+    font-style: italic;
 }
 
 img {
-  padding-top: 10px;
-  padding-bottom: 10px;
-	top: 710px;
-	left: 762px;
-	position: absolute;
-	height:230px;
-	visibility:hidden;
-    cursor:pointer;
-    padding-left:40px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    top: 710px;
+    left: 762px;
+    position: absolute;
+    height: 230px;
+    visibility: hidden;
+    cursor: pointer;
+    padding-left: 40px;
 }
 
 img[src='http://meld.linkedmusic.org/resources/images/Illustration_thumb.jpg'] {
-	visibility:visible;
+    visibility: visible;
 }
 
 figure img {
-	top: 0px;
-	left: 0px;
-	position: relative;
-	height:auto;
-	visibility:visible;
+    top: 0px;
+    left: 0px;
+    position: relative;
+    height: auto;
+    visibility: visible;
 }
 
 .carousel img {
-  border: none;
-  padding: 0px;
+    border: none;
+    padding: 0px;
 }
 
 .carouselWrapper {
-  position:relative;
-  top:80px;
-  left:600px;
-  margin-bottom:6000px;
-  width: 400px;
+    position: relative;
+    top: 80px;
+    left: 600px;
+    margin-bottom: 6000px;
+    width: 400px;
 }
+
 .carouselWrapper figure {
-            margin: 0
+    margin: 0
 }
+
 .react-3d-carousel {
     width: 400px;
     height: 300px;
@@ -222,7 +225,7 @@ figure img {
     transform-style: preserve-3d;
 }
 
-.react-3d-carousel .carousel  figure {
+.react-3d-carousel .carousel figure {
     display: block;
     position: absolute;
     width: 400px;
@@ -242,23 +245,24 @@ figure img {
 }
 
 .react-3d-carousel .carousel figure.blank {
-  border: none;
-  background: #FFF;
+    border: none;
+    background: #FFF;
 }
 
-.react-3d-carousel   .prev {
+.react-3d-carousel .prev {
     position: absolute;
     height: 100%;
     width: 15%;
     top: 0px;
     left: 0px;
-    border-radius:24px;
-}
-.react-3d-carousel .prev:hover, .react-3d-carousel .next:hover {
-  background-color: rgba(192,192,224,0.2);
+    border-radius: 24px;
 }
 
-.react-3d-carousel   .prev:before {
+.react-3d-carousel .prev:hover, .react-3d-carousel .next:hover {
+    background-color: rgba(192, 192, 224, 0.2);
+}
+
+.react-3d-carousel .prev:before {
     content: url("http://s3.postimg.org/o6xpvkidb/chevron_left_white.png");
     position: absolute;
     top: 0;
@@ -270,15 +274,15 @@ figure img {
     margin: auto;
 }
 
-.react-3d-carousel  .next {
+.react-3d-carousel .next {
     position: absolute;
     height: 100%;
     width: 15%;
     top: 0px;
     right: -5px;
 }
-.react-3d-carousel  .next:before
-{
+
+.react-3d-carousel .next:before {
     content: url("http://s2.postimg.org/l0n6eaoad/chevron_right_white.png");
     position: absolute;
     top: 0;
@@ -291,49 +295,59 @@ figure img {
 }
 
 audio {
-    width:575px;
-    padding-right:155px;
-	overflow-y:auto;
-    margin-left:-40px;
+    width: 575px;
+    padding-right: 155px;
+    overflow-y: auto;
+    margin-left: -40px;
     margin-top: -10px;
 }
 
 /* Orchestral Ribbon */
 .Woodwind {
-  fill: #A6CEE3;
+    fill: #A6CEE3;
 }
+
 .Strings {
-  fill: #1F78B4;
+    fill: #1F78B4;
 }
+
 .Brass {
-  fill: #B2DF8A;
+    fill: #B2DF8A;
 }
+
 .Cast {
-  fill: #33A02C;
+    fill: #33A02C;
 }
+
 .ribbon-barline {
-  stroke: #666;
-  dash-array: 5 5 1 5;
+    stroke: #666;
+    dash-array: 5 5 1 5;
 }
+
 rect.timeline {
-  fill: none;
-  stroke: #666;
+    fill: none;
+    stroke: #666;
 }
+
 line.scene {
-  stroke: #666;
+    stroke: #666;
 }
+
 line.act {
-  stroke: #000;
+    stroke: #000;
 }
+
 line.annotation {
-  stroke: blue;
+    stroke: blue;
 }
+
 line.annotation:hover {
-  stroke: #FA0;
-  stroke-width: 3;
+    stroke: #FA0;
+    stroke-width: 3;
 }
+
 line.annotation.active {
-  stroke: red;
-  stroke-width: 3;
+    stroke: red;
+    stroke-width: 3;
 }
 
