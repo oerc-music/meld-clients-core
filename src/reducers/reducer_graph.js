@@ -1,47 +1,41 @@
 import update from 'immutability-helper';
-import JSum from 'jsum'
-import {
-  APPLY_TRAVERSAL_OBJECTIVE,
-  ensureArray,
-  FETCH_GRAPH,
-  FETCH_GRAPH_DOCUMENT,
-  FETCH_WORK,
-  SESSION_GRAPH_ETAG,
-  SET_TRAVERSAL_OBJECTIVES
-} from '../actions/index'
-import {QUEUE_NEXT_SESSION} from '../actions/meldActions';
-
+import JSum from 'jsum';
+import { APPLY_TRAVERSAL_OBJECTIVE, ensureArray, FETCH_GRAPH, FETCH_GRAPH_DOCUMENT, FETCH_WORK, SESSION_GRAPH_ETAG, SET_TRAVERSAL_OBJECTIVES } from '../actions/index';
+import { QUEUE_NEXT_SESSION } from '../actions/meldActions';
 const INIT_STATE = {
-//    graph: {  
-//        annoGraph: {}, 
-//        targetsById: {}, 
-//        targetsByType: {}
-//    },
+  //    graph: {  
+  //        annoGraph: {}, 
+  //        targetsById: {}, 
+  //        targetsByType: {}
+  //    },
   etags: {},
   nextSession: "",
   info: {},
   graph: [],
+  graphDocs: [],
   objectives: [],
   outcomes: [],
   outcomesHash: ""
 };
-
 export default function (state = INIT_STATE, action) {
   switch (action.type) {
     case FETCH_GRAPH:
       let byId = {};
       let byType = {};
       let payload = action.payload;
+
       if (typeof payload === "string") {
         payload = JSON.parse(payload);
-      }
-      // console.log("Hello from FETCH_GRAPH. Action is: ", action);
-      payload = ensureArray(payload, "@graph");
-      // console.log("Looking at ", payload);
+      } 
+
+
+      payload = ensureArray(payload, "@graph"); 
+
       payload = payload["@graph"][0];
+
       if ("ldp:contains" in payload) {
         payload = ensureArray(payload, "ldp:contains");
-        payload["ldp:contains"].map((a) => {
+        payload["ldp:contains"].map(a => {
           if ("meld:state" in a && a["meld:state"]["@id"] == "meld:processed") {
             // Decide whether we want to render the processed annotation
             // ... and modify its motivation if necessary to signal its new purpose
@@ -49,57 +43,81 @@ export default function (state = INIT_STATE, action) {
             // and side effects (should only happen once)
             if (a["oa:motivatedBy"]["@id"] === "motivation:muzicodeTriggered") {
               a["oa:motivatedBy"]["@id"] = "motivation:archivedMuzicodeTrigger";
-              delete (a["meld:state"]);
+              delete a["meld:state"];
             } else {
               // We can skip this processed annotation
-              return
+              return;
             }
           }
+
           a = ensureArray(a, "oa:hasTarget");
-          a["oa:hasTarget"].map((targetResource) => {
+          a["oa:hasTarget"].map(targetResource => {
             // lookup target IDs to get types and component annotations
             if (targetResource["@id"] in byId) {
-              // console.log("Trying to push:", byId[targetResource["@id"]]["annotations"]);
               byId[targetResource["@id"]]["annotations"].push(a);
             } else {
               byId[targetResource["@id"]] = {
                 "type": targetResource["@type"],
                 "annotations": [a]
-              }
-            }
-            // lookup target type to get target ID
-            if (targetResource["@type"] in byType) {
-              byType[targetResource["@type"]].push({[targetResource["@id"]]: true});
-            } else {
-              byType[targetResource["@type"]] = [{[targetResource["@id"]]: true}];
-            }
+              };
+            } // lookup target type to get target ID
 
+
+            if (targetResource["@type"] in byType) {
+              byType[targetResource["@type"]].push({
+                [targetResource["@id"]]: true
+              });
+            } else {
+              byType[targetResource["@type"]] = [{
+                [targetResource["@id"]]: true
+              }];
+            }
           });
         });
       } else {
-        console.log("Graph contains no annotations: ", payload)
+        console.log("Graph contains no annotations: ", payload);
       }
 
       return update(state, {
-        annoGraph: {$set: payload},
-        targetsById: {$set: byId},
-        targetsByType: {$set: byType}
+        annoGraph: {
+          $set: payload
+        },
+        targetsById: {
+          $set: byId
+        },
+        targetsByType: {
+          $set: byType
+        }
       });
+
     case SESSION_GRAPH_ETAG:
       return update(state, {
         etags: {
-          $set: {[action.payload.uri]: action.payload.etag}
+          $set: {
+            [action.payload.uri]: action.payload.etag
+          }
         }
       });
+
     case QUEUE_NEXT_SESSION:
       // console.log("Setting next session: ", action.payload);
       return update(state, {
-        nextSession: {$set: action.payload}
+        nextSession: {
+          $set: action.payload
+        }
       });
+
     case FETCH_WORK:
       if (action.payload.info) {
-        return update(state, {info: {$merge: {[action.payload.target["@id"]]: action.payload.info}}});
+        return update(state, {
+          info: {
+            $merge: {
+              [action.payload.target["@id"]]: action.payload.info
+            }
+          }
+        });
       }
+
       break;
 
     case SET_TRAVERSAL_OBJECTIVES:
@@ -114,13 +132,23 @@ export default function (state = INIT_STATE, action) {
           $set: new Array(action.payload.length)
         }
       });
+
     case FETCH_GRAPH_DOCUMENT:
-      // new graph fragment has arrived. Add it to our graph.
-      return update(state, {
-        graph: {
-          $push: action.payload
-        }
-      });
+      // new graph fragment has arrived. If we don't have it from a previous traversal, add it to our graph.
+      if(!state.graphDocs.includes(action.payload.uri)) { 
+       // console.log(state.graph, state.graphDocs, action)
+        return update(state, {
+          graph: {
+            $push: action.payload.data 
+          },
+          graphDocs: { 
+            $push: [action.payload.uri]
+          }
+        });
+      } else { 
+        //console.log("FETCH_GRAPH_DOCUMENT: ignoring as already seen: ", action.payload.uri);
+      }
+
     case APPLY_TRAVERSAL_OBJECTIVE:
       // an objective has been applied against the graph. Store the outcome at the
       // appropriate index.
@@ -135,8 +163,8 @@ export default function (state = INIT_STATE, action) {
           $set: updatedOutcomesHash
         }
       });
+
     default:
       return state;
   }
 }
-

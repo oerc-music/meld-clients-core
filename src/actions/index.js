@@ -91,12 +91,22 @@ const context = {
 
 };
 
-export function fetchScore(uri) {
-  // console.log("FETCH_SCORE ACTION on URI: ", uri);
-  const promise = auth.fetch(uri);
-  return {
-    type: FETCH_SCORE,
-    payload: promise
+export function fetchScore(url) {
+  console.log("FETCH_SCORE ACTION on URI: ", url);
+  return(dispatch) => { 
+    auth.fetch(url, {mode: 'cors'})
+      .then( (response) => {
+        return response.text()
+      })
+      .then( (data) => {
+        dispatch({
+          type: FETCH_SCORE,
+          payload: { 
+            data, 
+            config: { url }
+          }
+        })
+      })
   }
 }
 
@@ -198,7 +208,8 @@ export function traverse(docUri, params) {
 
   console.log("FETCHING: ", docUri, params);
   const promise = auth.fetch(docUri, {
-    headers: headers
+    headers: headers,
+    mode: 'cors'
   });
   return (dispatch) => {
     dispatch({
@@ -268,7 +279,7 @@ function skolemize(obj, docUri) {
     Object.keys(obj).map((k) => {
       if (k === "@id") {
         // found an @id, check for blank node and skolemize if necesssary
-        obj["@id"] = obj["@id"].replace("_:", docUri + "/genid/");
+        obj["@id"] = obj["@id"].replace("_:", docUri + "#genid-");
       } else {
         // recur on value
         obj[k] = skolemize(obj[k], docUri);
@@ -279,6 +290,7 @@ function skolemize(obj, docUri) {
 }
 
 function traverseJSONLD(dispatch, docUri, params, dataPromise) {
+  console.log("in traverseJSONLDf or doc ", docUri, "with blacklist ", params["objectUriBlacklist"]);
   // expand the JSON-LD object so that we are working with full URIs, not compacted into prefixes
   dataPromise.then((data) => {
     console.log("attempting to expand: ", data);
@@ -292,7 +304,10 @@ function traverseJSONLD(dispatch, docUri, params, dataPromise) {
         const skolemized = skolemize(flattened, docUri);
         dispatch({
           type: FETCH_GRAPH_DOCUMENT,
-          payload: skolemized
+          payload:  { 
+            data: skolemized,
+            uri: docUri
+          }
         });
         // convert the flattened array of JSON-LD structures into a lookup table using each entity's URI ("@id")
         let idLookup = {};
@@ -316,11 +331,11 @@ function traverseJSONLD(dispatch, docUri, params, dataPromise) {
                 //console.log("<>", subjectUri, pred, obj["@id"], docUri);
                 // Now recurse (if black/whitelist conditions and hop counter allow)
                 if (passesTraversalConstraints(obj, params)) {
-                  console.log("registering next traversal!", obj["@id"])
+//                  console.log("registering next traversal!", obj["@id"])
                   dispatch(registerTraversal(obj["@id"], {
                     ...params,
                     // Remember that we've already visited the current document to avoid loops
-                    "objectUriBlacklist": params["objectUriBlacklist"].concat(docUri),
+                    "objectUriBlacklist": params["objectUriBlacklist"].concat(docUri.split("#")[0]),
                     "numHops": params["numHops"] - 1
                   }))
                 }
@@ -348,48 +363,57 @@ function passesTraversalConstraints(obj, params) {
   //
   // test: ensure we haven't run out of hops
   if (params["numHops"] === 0) {
+    //console.log("Test 1: Out of hops", obj, params)
     return false;
   }
 
   // test: ensure obj is not a literal
   if (!("@id" in obj)) {
+   // ////console.log("Test 2: Found a literal", obj, params)
     return false;
   }
+
+  const resourceUri = obj["@id"].split("#")[0]; // don't traverse fragments of a blacklisted resource...
 
   // test: object URI doesn't violate constraints
   if (params["objectUriWhitelist"].length) {
     // URI whitelist specified:
     // only pass if included in URI whitelist AND not in URI blacklist
-    if (!obj["@id"] in params["objectUriWhitelist"] ||
-        obj["@id"] in params["objectUriBlacklist"]) {
+    if (!params["objectUriWhitelist"].includes(resourceUri) ||
+        params["objectUriBlacklist"].includes(resourceUri)) {
+      //console.log("Test 3: object blacklisted (and not in whitelist)", obj, params)
       return false;
     }
   } else {
     // no URI whitelist
     // only pass if not in URI blacklist
-    if (obj["@id"] in params["objectUriBlacklist"]) {
+    if (params["objectUriBlacklist"].includes(resourceUri)) {
+      //console.log("Test 4: object blacklisted (without whitelist)", obj, params)
       return false;
     }
   }
 
   // test: object URI doesn't violate PREFIX constraints
   const prefixBlackListed = params["objectPrefixBlacklist"].filter((pre) => {
-    return obj["@id"].startsWith(pre);
+    return resourceUri.startsWith(pre.split("#")[0]);
   });
   // only pass if prefix not blacklisted
   if (prefixBlackListed.length) {
+    //console.log("Test 5: prefix blacklisted", obj, params)
     return false;
   }
   if (params["objectPrefixWhitelist"].length) {
     // Prefix whitelist specified:
     const prefixWhiteListed = params["objectPrefixWhitelist"].filter((pre) => {
-      return obj["@id"].startsWith(pre);
+      return resourceUri.startsWith(pre);
     });
     // only pass if included in prefix whitelist
     if (prefixWhiteListed.length === 0) {
+      //console.log("Test 6: prefix not in specified whitelist", obj, params)
       return false
     }
   }
+  //console.log("Object passes all traversal constraint tests", obj, params, params["objectPrefixWhitelist"], params["objectPrefixBlacklist"], params["objectUriBlacklist"]);
   return true;
 }
 
@@ -425,7 +449,8 @@ export function fetchSessionGraph(uri, etag = "") {
   // TODO add etag to header as If-None-Match and enable corresponding support on server
   // so that it can respond with 304 instead of 200 (i.e. so it can ommit file body)
   const promise = auth.fetch(uri, {
-    headers: {'Accept': 'application/ld+json', 'If-None-Match': etag}
+    headers: {'Accept': 'application/ld+json', 'If-None-Match': etag},
+    mode: 'cors'
   });
 
   return (dispatch) => {
@@ -529,7 +554,7 @@ function processComponentAnnotation(annotation, conceptualScore = "") {
 
 export function fetchComponentTarget(uri, conceptualScore = "") {
   // console.log("FETCH_COMPONENT_TARGET ACTION ON URI: ", uri);
-  const promise = auth.fetch(uri, {headers: {'Accept': 'application/ld+json'}});
+  const promise = auth.fetch(uri, {headers: {'Accept': 'application/ld+json'}, mode: 'cors'});
   return (dispatch) => {
     promise.then((data) => {
       // console.log("Attemping to frame data", data);
@@ -1007,13 +1032,11 @@ export function postAnnotation(session, etag, json, retries = MAX_RETRIES) {
             return (dispatch) => {
               // and try again
               setTimeout(() => {
-                console.log("ARF trying agian to post annotation after timeout");
                 dispatch(postAnnotation(session, response.headers.etag, json, retries - 1))
               }, RETRY_DELAY);
             }
           });
         } else {
-          console.log("ARF Error while posting annotation: ", error);
           console.log("Retrying.");
           setTimeout(() => {
             dispatch(postAnnotation(session, response.headers.etag, json, retries - 1))
