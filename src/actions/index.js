@@ -1019,27 +1019,28 @@ export function postPrevPageAnnotation(session, etag) {
 export function postAnnotation(session, etag, json, retries = MAX_RETRIES) {
   return (dispatch) => {
     if (retries) {
-      // console.log("Posting annotation: ", session, etag, json)
-      axios.post(
-          session,
-          json,
-          {headers: {'Content-Type': 'application/ld+json', 'If-None-Match': etag}}
-      ).catch(function (error) {
+      console.log("Posting annotation: ", session, etag, json)
+      auth.fetch(session, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/ld+json', 'If-None-Match': etag},
+        body: JSON.stringify(json)
+      })
+      .catch(function (error) {
         if (error.response.status == 412) {
-          console.log("ARF Mid-air collision while attempting to POST annotation. Retrying.", session, etag, json);
+          console.log("Mid-air collision while attempting to POST annotation. Retrying.", session, etag, json);
           // GET the session resource to figure out new etag
           auth.fetch(session).then((response) => {
             return (dispatch) => {
               // and try again
               setTimeout(() => {
-                dispatch(postAnnotation(session, response.headers.etag, json, retries - 1))
+                dispatch(postAnnotation(session, response.headers.get('etag'), json, retries - 1))
               }, RETRY_DELAY);
             }
           });
         } else {
           console.log("Retrying.");
           setTimeout(() => {
-            dispatch(postAnnotation(session, response.headers.etag, json, retries - 1))
+            dispatch(postAnnotation(session, response.headers.get(etag), json, retries - 1))
           }, RETRY_DELAY);
         }
       });
