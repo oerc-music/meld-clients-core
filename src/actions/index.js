@@ -1017,6 +1017,9 @@ export function postPrevPageAnnotation(session, etag) {
 }
 
 export function postAnnotation(session, etag, json, retries = MAX_RETRIES, callback = {}) {
+  if(retries === "") { 
+    retries = MAX_RETRIES;
+  }
   return (dispatch) => {
     if (retries) {
       console.log("Posting annotation: ", session, etag, json, "with callback: ", callback)
