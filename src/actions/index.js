@@ -1019,7 +1019,7 @@ export function postPrevPageAnnotation(session, etag) {
 export function postAnnotation(session, etag, json, retries = MAX_RETRIES, callback = {}) {
   return (dispatch) => {
     if (retries) {
-      console.log("Posting annotation: ", session, etag, json)
+      console.log("Posting annotation: ", session, etag, json, "with callback: ", callback)
       auth.fetch(session, {
         method: 'POST',
         headers: {'Content-Type': 'application/ld+json', 'If-None-Match': etag},
