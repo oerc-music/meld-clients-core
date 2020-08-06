@@ -35,6 +35,15 @@ class TEI extends Component {
       textBox.scrollTop = targetElements[0].offsetTop - textBox.offsetTop + (textBox.clientHeight / 2);
     }
   }
+	scrollToURI(){
+		if(this.props.scrollToURI && this.containerDiv){
+			var fragment = this.props.scrollToURI.substring(this.props.scrollToURI.indexOf('#')+1);
+			var el = this.containerDiv.getElementByID(fragment);
+			if(el){
+				textBox.scrollTop = el.offsetTop - textBox.offsetTop + (textBox.clientHeight / 2);
+			}
+		}
+	}
 
   render() {
     if (Object.keys(this.props.tei.TEI).length && this.props.uri in this.props.tei.TEI) {
@@ -46,7 +55,8 @@ class TEI extends Component {
         return <div dangerouslySetInnerHTML={this.returnHTMLizedTEI()} className="TEIContainer commentary"
                     id={this.props.uri.substr(this.props.uri.indexOf("commentaries/") + 13)}/>;
       } else {
-        return <div dangerouslySetInnerHTML={this.returnHTMLizedTEI()} className="TEIContainer other"/>;
+        return ( <div dangerouslySetInnerHTML={this.returnHTMLizedTEI()} className="TEIContainer other"
+											onScroll={this.props.scrollFun}/> );
       }
       // END HACK //
     }
@@ -58,21 +68,31 @@ class TEI extends Component {
   }
 
   returnHTMLizedTEI() {
-    return {__html: this.props.tei.TEI[this.props.uri].innerHTML};
+		var TEIhtml = this.props.tei.TEI[this.props.uri].innerHTML;
+		if(this.props.title) {
+			TEIhtml = TEIhtml.replace(/<tei-title data-teiname="title">.*tei-title>/gi,
+																'<tei-title data-teiname="title">'+this.props.title+'</tei-title>');
+		}
+    return {__html: TEIhtml};
   }
 
   componentDidUpdate() {
+		if(!Object.keys(this.props.tei.TEI).length || !(this.props.uri in this.props.tei.TEI)) return;
     if (this.props.motif && this.props.uri.indexOf("commentaries") === -1) {
       this.scrollToMotif(this.props.motif);
-
-    }
+    } else if(this.props.scrollToURI){
+			this.scrollToURI();
+		}
+		/*
     var mc = this.props.onMotifChange;
     ReactDOM.findDOMNode(this).onclick = function (e) {
       var target = e.target;
+			console.log(e, target);	
       if (target && target.className.match(/F[0-9]+/).length) {
         mc(target.className.match(/F[0-9]+/)[0]);
       }
-    };
+			};*/
+		if(!this.props.annotations || !this.props.showAnnotations) return false;
     this.props.annotations.map((annotation) => {
       // each annotation...
       const frags = annotation["oa:hasTarget"].map((annotationTarget) => {
