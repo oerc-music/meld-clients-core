@@ -3,8 +3,12 @@ import PropTypes from 'prop-types'
 import { withMediaProps } from 'react-media-player'
 
 class CustomPlayPause extends Component {
-  _handlePlayPause () {
-    this.props.media.playPause()
+	constructor(props){
+		super(props)
+		this._handlePlayPause = this.__handlePlayPause.bind(this);
+	}
+  __handlePlayPause () {
+    this.props.media.playPause();
   }
 
   render() {
