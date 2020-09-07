@@ -18,5 +18,6 @@ export const prefix = {
 	so: "http://www.linkedmusic.org/ontologies/segment/",
 	dct: "http://purl.org/dc/terms/",
 	climb: "http://meld.linkedmusic.org/climb/terms/",
-	mc: "http://meld.linkedmusic.org/climb/muzicodeTypes/"
+	mc: "http://meld.linkedmusic.org/climb/muzicodeTypes/",
+	dbp: "http://dbpedia.org/page/"
 }
