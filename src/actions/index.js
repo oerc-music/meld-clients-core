@@ -111,13 +111,28 @@ export function fetchScore(url) {
   }
 }
 
-export function fetchRibbonContent(uri) {
+export function fetchRibbonContent(url) {
   // console.log("FETCH_RIBBON_CONTENT ACTION on URI: ", uri);
-  const promise = auth.fetch(uri);
+  const promise = auth.fetch(url);
+  return(dispatch) => { 
+    auth.fetch(url, {mode: 'cors'})
+      .then( (response) => {
+        return response.text()
+      })
+      .then( (data) => {
+        dispatch({
+          type: FETCH_RIBBON_CONTENT,
+          payload: { 
+            data, 
+            config: { url }
+          }
+        })
+      })
+  }/*
   return {
     type: FETCH_RIBBON_CONTENT,
     payload: promise
-  }
+  }*/
 }
 
 export function fetchTEI(uri) {
