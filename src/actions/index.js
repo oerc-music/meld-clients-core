@@ -1041,7 +1041,13 @@ export function postAnnotation(session, etag, json, retries = MAX_RETRIES) {
         headers: {'Content-Type': 'application/ld+json', 'If-None-Match': etag},
         body: JSON.stringify(json)
       })
-      .catch(function (error) {
+				.catch(function (error) {
+					if(!error.response){
+						console.log(error, "Annotation post failed. Giving up.");
+						return {
+							type: ANNOTATION_NOT_HANDLED
+						}
+					}
         if (error.response.status == 412) {
           console.log("Mid-air collision while attempting to POST annotation. Retrying.", session, etag, json);
           // GET the session resource to figure out new etag
