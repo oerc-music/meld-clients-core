@@ -1032,7 +1032,10 @@ export function postPrevPageAnnotation(session, etag) {
   }
 }
 
-export function postAnnotation(session, etag, json, retries = MAX_RETRIES) {
+export function postAnnotation(session, etag, json, retries = MAX_RETRIES, callback = {}) {
+  if(retries === "") { 
+    retries = MAX_RETRIES;
+  }
   return (dispatch) => {
     if (retries) {
       console.log("Posting annotation: ", session, etag, json)
@@ -1040,14 +1043,15 @@ export function postAnnotation(session, etag, json, retries = MAX_RETRIES) {
         method: 'POST',
         headers: {'Content-Type': 'application/ld+json', 'If-None-Match': etag},
         body: JSON.stringify(json)
-      })
-				.catch(function (error) {
-					if(!error.response){
-						console.log(error, "Annotation post failed. Giving up.");
-						return {
-							type: ANNOTATION_NOT_HANDLED
-						}
-					}
+      }).then( (response) => { 
+          typeof callback === "function" && callback(response)
+      }).catch(function (error) {
+        if(!error.response){
+          console.log(error, "Annotation post failed. Giving up.");
+          return {
+            type: ANNOTATION_NOT_HANDLED
+          }
+        }
         if (error.response.status == 412) {
           console.log("Mid-air collision while attempting to POST annotation. Retrying.", session, etag, json);
           // GET the session resource to figure out new etag
