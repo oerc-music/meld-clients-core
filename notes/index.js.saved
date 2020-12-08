@@ -150,17 +150,16 @@ export function fetchTEI(uri) {
   }
 }
 
-export function registerTraversal(docUri, suppliedParams = {}) {
-/* @@TODO - remove this when new code is shown to work
+export function registerTraversal(
+    docUri,
     {  // use destructuring to simulate named parameters
-      expandObjectPrefix = [], expandObjectUri = [], expandObjectType = [],
-      ignoreObjectPrefix = [], ignoreObjectUri = [], ignoreObjectType = [],
-      followPropertyPrefix = [], followPropertyUri = [],
-      ignorePpropertyPrefix = [], ignorePropertyUri = [],
+      objectPrefixWhitelist = [], objectUriWhitelist = [], objectTypeWhitelist = [],
+      objectPrefixBlacklist = [], objectUriBlacklist = [], objectTypeBlacklist = [],
+      propertyPrefixWhitelist = [], propertyUriWhitelist = [],
+      propertyPrefixBlacklist = [], propertyUriBlacklist = [],
       objectives = {}, numHops = MAX_TRAVERSAL_HOPS,
       useEtag = false, etag = ""
     } = {}) {
-*/
   // PURPOSE:
   // *************************************************************************
   // Traverse through a graph, looking for entities of interest
@@ -177,77 +176,38 @@ export function registerTraversal(docUri, suppliedParams = {}) {
   // With each hop, decrement numHops.
   // Stop when numHops reaches zero, or when there are no more objects
   //   to traverse to.
-  // If an expandObjectPrefix is specified, only traverse to objects with
+  // If an objectPrefixWhitelist is specified, only traverse to objects with
   //  URIs that start with a prefix in the list.
-  // If an expandObjectUri is specified, only traverse to objects with
+  // If an objectUriWhitelist is specified, only traverse to objects with
   //  URIs in the list.
-  // If an expandObjectType is specified, only traverse to objects with
+  // If an objectTypeWhitelist is specified, only traverse to objects with
   //  a type that's in the list.
-  // If an ignoreObjectPrefix is specified, only traverse to objects with
+  // If an objectPrefixBlacklist is specified, only traverse to objects with
   //  URIs that do NOT start with a prefix in the list.
-  // If an ignoreObjectUri is specified, only traverse to objects with
+  // If an objectUriBlacklist is specified, only traverse to objects with
   //  URIs that are NOT in the list.
-  // If an ignoreObjectType is specified, do NOT traverse to  objects with
+  // If an objectTypeBlacklist is specified, do NOT traverse to  objects with
   //  types in the list.
-  // If a followPropertyPrefix is specified, only traverse to objects along
+  // If a propertyPrefixWhitelist is specified, only traverse to objects along
   //  properties whose URIs start with a prefix in the list.
-  // If a followPropertyUri is specified, only traverse to objects along
+  // If a propertyUriWhitelist is specified, only traverse to objects along
   //  properties with URIs in the list.
-  // If a ignorePpropertyPrefix is specified, only traverse to objects along
+  // If a propertyPrefixBlacklist is specified, only traverse to objects along
   //  properties whose URIs do NOT start with a prefix in the list.
-  // If a followPropertyUri is specified, only traverse to objects along
+  // If a propertyUriWhitelist is specified, only traverse to objects along
   //  properties with URIs that are NOT in the list.
   // *************************************************************************
 
-  const defaultParams = {
-    expandObjectPrefix: [], expandObjectUri: [], expandObjectType: [],
-    ignoreObjectPrefix: [], ignoreObjectUri: [], ignoreObjectType: [],
-    followPropertyPrefix: [], followPropertyUri: [],
-    ignorePpropertyPrefix: [], ignorePropertyUri: [],
-    objectives: {}, numHops: MAX_TRAVERSAL_HOPS,
-    useEtag: false, etag: ""
-  };
-
-  // create new params object to pass on in recursive calls
+  // create params object to pass on in recursive calls
   // n.b. must update here if function signature changes
-  let params = {...defaultParams} ;
-/* @@TODO remove this
-    expandObjectPrefix, expandObjectUri, expandObjectType,
-    ignoreObjectPrefix, ignoreObjectUri, ignoreObjectType,
-    followPropertyPrefix, followPropertyUri,
-    ignorePpropertyPrefix, ignorePropertyUri,
+  let params = {
+    objectPrefixWhitelist, objectUriWhitelist, objectTypeWhitelist,
+    objectPrefixBlacklist, objectUriBlacklist, objectTypeBlacklist,
+    propertyPrefixWhitelist, propertyUriWhitelist,
+    propertyPrefixBlacklist, propertyUriBlacklist,
     objectives, numHops,
     useEtag, etag
   };
-*/
-
-  for (var key in suppliedParams) {
-    if ( !(key in params) ) {
-      console.log("registerTraversal: unrecognized option: ", key);
-    }
-  }
-
-  oldParamsMap = (
-    ( "objectPrefixWhitelist",    "expandObjectPrefix"    )
-    ( "objectUriWhitelist",       "expandObjectUri"       )
-    ( "objectTypeWhitelist",      "expandObjectType"      )
-    ( "objectPrefixBlacklist",    "ignoreObjectPrefix"    )
-    ( "objectUriBlacklist",       "ignoreObjectUri"       )
-    ( "objectTypeBlacklist",      "ignoreObjectType"      )
-    ( "propertyPrefixWhitelist",  "followPropertyPrefix"  )
-    ( "propertyUriWhitelist",     "followPropertyUri"     )
-    ( "propertyPrefixBlacklist",  "ignorePpropertyPrefix" )
-    ( "propertyUriBlacklist",     "ignorePropertyUri"     )
-  ) ;
-  for ( var i in oldParamsMap ) {
-    var oldkey = oldParamsMap[i][0];
-    var newkey = oldParamsMap[i][1];
-    if ( (oldkey in suppliedParams) && !((newkey in suppliedParams)) ) {
-      params[newkey] = suppliedParams[oldkey]
-    }
-  }
-
-  console.log("FETCHING: ", docUri, params);
 
   return ({
     type: REGISTER_TRAVERSAL,
@@ -346,7 +306,7 @@ function skolemize(obj, docUri) {
 }
 
 function traverseJSONLD(dispatch, docUri, params, dataPromise) {
-  console.log("in traverseJSONLDf or doc ", docUri, "with blacklist ", params["ignoreObjectUri"]);
+  console.log("in traverseJSONLDf or doc ", docUri, "with blacklist ", params["objectUriBlacklist"]);
   // expand the JSON-LD object so that we are working with full URIs, not compacted into prefixes
   dataPromise.then((data) => {
     console.log("attempting to expand: ", data);
@@ -391,7 +351,7 @@ function traverseJSONLD(dispatch, docUri, params, dataPromise) {
                   dispatch(registerTraversal(obj["@id"], {
                     ...params,
                     // Remember that we've already visited the current document to avoid loops
-                    "ignoreObjectUri": params["ignoreObjectUri"].concat(docUri.split("#")[0]),
+                    "objectUriBlacklist": params["objectUriBlacklist"].concat(docUri.split("#")[0]),
                     "numHops": params["numHops"] - 1
                   }))
                 }
@@ -432,25 +392,25 @@ function passesTraversalConstraints(obj, params) {
   const resourceUri = obj["@id"].split("#")[0]; // don't traverse fragments of a blacklisted resource...
 
   // test: object URI doesn't violate constraints
-  if (params["expandObjectUri"].length) {
+  if (params["objectUriWhitelist"].length) {
     // URI whitelist specified:
     // only pass if included in URI whitelist AND not in URI blacklist
-    if (!params["expandObjectUri"].includes(resourceUri) ||
-        params["ignoreObjectUri"].includes(resourceUri)) {
+    if (!params["objectUriWhitelist"].includes(resourceUri) ||
+        params["objectUriBlacklist"].includes(resourceUri)) {
       //console.log("Test 3: object blacklisted (and not in whitelist)", obj, params)
       return false;
     }
   } else {
     // no URI whitelist
     // only pass if not in URI blacklist
-    if (params["ignoreObjectUri"].includes(resourceUri)) {
+    if (params["objectUriBlacklist"].includes(resourceUri)) {
       //console.log("Test 4: object blacklisted (without whitelist)", obj, params)
       return false;
     }
   }
 
   // test: object URI doesn't violate PREFIX constraints
-  const prefixBlackListed = params["ignoreObjectPrefix"].filter((pre) => {
+  const prefixBlackListed = params["objectPrefixBlacklist"].filter((pre) => {
     return resourceUri.startsWith(pre.split("#")[0]);
   });
   // only pass if prefix not blacklisted
@@ -458,9 +418,9 @@ function passesTraversalConstraints(obj, params) {
     //console.log("Test 5: prefix blacklisted", obj, params)
     return false;
   }
-  if (params["expandObjectPrefix"].length) {
+  if (params["objectPrefixWhitelist"].length) {
     // Prefix whitelist specified:
-    const prefixWhiteListed = params["expandObjectPrefix"].filter((pre) => {
+    const prefixWhiteListed = params["objectPrefixWhitelist"].filter((pre) => {
       return resourceUri.startsWith(pre);
     });
     // only pass if included in prefix whitelist
@@ -469,7 +429,7 @@ function passesTraversalConstraints(obj, params) {
       return false
     }
   }
-  //console.log("Object passes all traversal constraint tests", obj, params, params["expandObjectPrefix"], params["ignoreObjectPrefix"], params["ignoreObjectUri"]);
+  //console.log("Object passes all traversal constraint tests", obj, params, params["objectPrefixWhitelist"], params["objectPrefixBlacklist"], params["objectUriBlacklist"]);
   return true;
 }
 
