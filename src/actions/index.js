@@ -221,22 +221,24 @@ export function registerTraversal(docUri, suppliedParams = {}) {
   };
 */
 
-  for (var key in suppliedParams) {
+  var key;
+
+  for (key in suppliedParams) {
     if ( !(key in params) ) {
       console.log("registerTraversal: unrecognized option: ", key);
     }
   }
 
   oldParamsMap = (
-    ( "objectPrefixWhitelist",    "expandObjectPrefix"    )
-    ( "objectUriWhitelist",       "expandObjectUri"       )
-    ( "objectTypeWhitelist",      "expandObjectType"      )
-    ( "objectPrefixBlacklist",    "ignoreObjectPrefix"    )
-    ( "objectUriBlacklist",       "ignoreObjectUri"       )
-    ( "objectTypeBlacklist",      "ignoreObjectType"      )
-    ( "propertyPrefixWhitelist",  "followPropertyPrefix"  )
-    ( "propertyUriWhitelist",     "followPropertyUri"     )
-    ( "propertyPrefixBlacklist",  "ignorePpropertyPrefix" )
+    ( "objectPrefixWhitelist",    "expandObjectPrefix"    ),
+    ( "objectUriWhitelist",       "expandObjectUri"       ),
+    ( "objectTypeWhitelist",      "expandObjectType"      ),
+    ( "objectPrefixBlacklist",    "ignoreObjectPrefix"    ),
+    ( "objectUriBlacklist",       "ignoreObjectUri"       ),
+    ( "objectTypeBlacklist",      "ignoreObjectType"      ),
+    ( "propertyPrefixWhitelist",  "followPropertyPrefix"  ),
+    ( "propertyUriWhitelist",     "followPropertyUri"     ),
+    ( "propertyPrefixBlacklist",  "ignorePpropertyPrefix" ),
     ( "propertyUriBlacklist",     "ignorePropertyUri"     )
   ) ;
   for ( var i in oldParamsMap ) {
@@ -244,6 +246,20 @@ export function registerTraversal(docUri, suppliedParams = {}) {
     var newkey = oldParamsMap[i][1];
     if ( (oldkey in suppliedParams) && !((newkey in suppliedParams)) ) {
       params[newkey] = suppliedParams[oldkey]
+    }
+  }
+
+  unimplementedParams = (
+    "expandObjectType",
+    "ignoreObjectType",    
+    "followPropertyPrefix", 
+    "followPropertyUri",
+    "ignorePpropertyPrefix",
+    "ignorePropertyUri"
+    );
+  for (key in unimplementedParams) {
+    if ( (key in params) ) {
+      console.log("registerTraversal: unimplemented option: ", key);
     }
   }
 
