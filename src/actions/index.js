@@ -293,6 +293,7 @@ export function traverse(docUri, params) {
           response.headers.get("Content-Type").startsWith("text/turtle")) {
         // treat as RDF document
         // TODO: Translate RDF to JSON-LD, then proceed with traverseJSONLD as above
+        console.log("traverse: RDF-to-JSON conversion not implemented: ", docUri);
       } else {
         dispatch({type: TRAVERSAL_FAILED});
         console.log("Don't know how to treat this document: ", docUri, response)
