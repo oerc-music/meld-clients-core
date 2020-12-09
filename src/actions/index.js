@@ -229,7 +229,7 @@ export function registerTraversal(docUri, suppliedParams = {}) {
     }
   }
 
-  oldParamsMap = (
+  const oldParamsMap = (
     ( "objectPrefixWhitelist",    "expandObjectPrefix"    ),
     ( "objectUriWhitelist",       "expandObjectUri"       ),
     ( "objectTypeWhitelist",      "expandObjectType"      ),
@@ -249,7 +249,7 @@ export function registerTraversal(docUri, suppliedParams = {}) {
     }
   }
 
-  unimplementedParams = (
+  const unimplementedParams = (
     "expandObjectType",
     "ignoreObjectType",    
     "followPropertyPrefix", 
