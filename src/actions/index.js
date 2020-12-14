@@ -62,6 +62,7 @@ export const TRAVERSAL_PREHOP = "TRAVERSAL_PREHOP";
 export const TRAVERSAL_HOP = "TRAVERSAL_HOP";
 export const TRAVERSAL_FAILED = "TRAVERSAL_FAILED";
 export const TRAVERSAL_UNNECCESSARY = "TRAVERSAL_UNNECCESSARY";
+export const TRAVERSAL_CONSTRAINED = "TRAVERSAL_CONSTRAINED";
 export const RUN_TRAVERSAL = "RUN_TRAVERSAL";
 export const REGISTER_TRAVERSAL = "REGISTER_TRAVERSAL";
 export const UPDATE_LATEST_RENDERED_PAGENUM = "UPDATE_LATEST_RENDERED_PAGENUM";
@@ -207,12 +208,18 @@ export function registerTraversal(
     propertyPrefixBlacklist, propertyUriBlacklist,
     objectives, numHops,
     useEtag, etag
-  };
-
-  return ({
-    type: REGISTER_TRAVERSAL,
-    payload: {docUri, params}
-  });
+  }
+  
+  if(passesTraversalConstraints({"@id":docUri}, params)) { 
+    return ({
+      type: REGISTER_TRAVERSAL,
+      payload: {docUri, params}
+    })
+  } else { 
+    return ({
+      type: TRAVERSAL_CONSTRAINED
+    })
+  }
 }
 
 export function traverse(docUri, params) {
