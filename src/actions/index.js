@@ -269,6 +269,18 @@ export function registerTraversal(docUri, suppliedParams = {}) {
     type: REGISTER_TRAVERSAL,
     payload: {docUri, params}
   });
+
+  if(passesTraversalConstraints({"@id":docUri}, params)) { 
+    return ({
+      type: REGISTER_TRAVERSAL,
+      payload: {docUri, params}
+    })
+  } else { 
+    return ({
+      type: TRAVERSAL_CONSTRAINED
+    })
+  }
+
 }
 
 export function traverse(docUri, params) {
