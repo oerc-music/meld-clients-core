@@ -353,7 +353,7 @@ function skolemize(obj, docUri) {
 }
 
 function traverseJSONLD(dispatch, docUri, params, dataPromise) {
-  console.log("in traverseJSONLDf or doc ", docUri, "with blacklist ", params["ignoreObjectUri"]);
+  console.log("in traverseJSONLDf or doc ", docUri, "with exclude list ", params["ignoreObjectUri"]);
   // expand the JSON-LD object so that we are working with full URIs, not compacted into prefixes
   dataPromise.then((data) => {
     console.log("attempting to expand: ", data);
@@ -392,7 +392,7 @@ function traverseJSONLD(dispatch, docUri, params, dataPromise) {
                 // (which we will handle in another iteration)
                 // CHECK FOR OBJECTIVES HERE
                 //console.log("<>", subjectUri, pred, obj["@id"], docUri);
-                // Now recurse (if black/whitelist conditions and hop counter allow)
+                // Now recurse (if exclusion/inclusion conditions and hop counter allow)
                 if (passesTraversalConstraints(obj, params)) {
 //                  console.log("registering next traversal!", obj["@id"])
                   dispatch(registerTraversal(obj["@id"], {
@@ -436,43 +436,43 @@ function passesTraversalConstraints(obj, params) {
     return false;
   }
 
-  const resourceUri = obj["@id"].split("#")[0]; // don't traverse fragments of a blacklisted resource...
+  const resourceUri = obj["@id"].split("#")[0]; // don't traverse fragments of an excluded resource...
 
   // test: object URI doesn't violate constraints
   if (params["extendObjectUri"].length) {
-    // URI whitelist specified:
-    // only pass if included in URI whitelist AND not in URI blacklist
+    // URI inclusion list specified:
+    // only pass if included in URI inclusion list AND not in URI exclusion list
     if (!params["extendObjectUri"].includes(resourceUri) ||
         params["ignoreObjectUri"].includes(resourceUri)) {
-      //console.log("Test 3: object blacklisted (and not in whitelist)", obj, params)
+      //console.log("Test 3: object excluded (and not in inclusion list)", obj, params)
       return false;
     }
   } else {
-    // no URI whitelist
-    // only pass if not in URI blacklist
+    // no URI inclusion list
+    // only pass if not in URI exclusion list
     if (params["ignoreObjectUri"].includes(resourceUri)) {
-      //console.log("Test 4: object blacklisted (without whitelist)", obj, params)
+      //console.log("Test 4: object excluded (without inclusion list)", obj, params)
       return false;
     }
   }
 
   // test: object URI doesn't violate PREFIX constraints
-  const prefixBlackListed = params["ignoreObjectPrefix"].filter((pre) => {
+  const prefixExcluded = params["ignoreObjectPrefix"].filter((pre) => {
     return resourceUri.startsWith(pre.split("#")[0]);
   });
-  // only pass if prefix not blacklisted
-  if (prefixBlackListed.length) {
-    //console.log("Test 5: prefix blacklisted", obj, params)
+  // only pass if prefix not excluded
+  if (prefixExcluded.length) {
+    //console.log("Test 5: prefix excluded", obj, params)
     return false;
   }
   if (params["extendObjectPrefix"].length) {
-    // Prefix whitelist specified:
-    const prefixWhiteListed = params["extendObjectPrefix"].filter((pre) => {
+    // Prefix inclusion list specified:
+    const prefixIncluded = params["extendObjectPrefix"].filter((pre) => {
       return resourceUri.startsWith(pre);
     });
-    // only pass if included in prefix whitelist
-    if (prefixWhiteListed.length === 0) {
-      //console.log("Test 6: prefix not in specified whitelist", obj, params)
+    // only pass if included in prefix inclusion list
+    if (prefixIncluded.length === 0) {
+      //console.log("Test 6: prefix not in specified inclusion list", obj, params)
       return false
     }
   }
