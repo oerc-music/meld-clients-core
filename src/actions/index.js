@@ -62,6 +62,7 @@ export const TRAVERSAL_PREHOP = "TRAVERSAL_PREHOP";
 export const TRAVERSAL_HOP = "TRAVERSAL_HOP";
 export const TRAVERSAL_FAILED = "TRAVERSAL_FAILED";
 export const TRAVERSAL_UNNECCESSARY = "TRAVERSAL_UNNECCESSARY";
+export const TRAVERSAL_CONSTRAINED = "TRAVERSAL_CONSTRAINED";
 export const RUN_TRAVERSAL = "RUN_TRAVERSAL";
 export const REGISTER_TRAVERSAL = "REGISTER_TRAVERSAL";
 export const UPDATE_LATEST_RENDERED_PAGENUM = "UPDATE_LATEST_RENDERED_PAGENUM";
@@ -151,16 +152,6 @@ export function fetchTEI(uri) {
 }
 
 export function registerTraversal(docUri, suppliedParams = {}) {
-/* @@TODO - remove this when new code is shown to work
-    {  // use destructuring to simulate named parameters
-      expandObjectPrefix = [], expandObjectUri = [], expandObjectType = [],
-      ignoreObjectPrefix = [], ignoreObjectUri = [], ignoreObjectType = [],
-      followPropertyPrefix = [], followPropertyUri = [],
-      ignorePpropertyPrefix = [], ignorePropertyUri = [],
-      objectives = {}, numHops = MAX_TRAVERSAL_HOPS,
-      useEtag = false, etag = ""
-    } = {}) {
-*/
   // PURPOSE:
   // *************************************************************************
   // Traverse through a graph, looking for entities of interest
@@ -199,6 +190,8 @@ export function registerTraversal(docUri, suppliedParams = {}) {
   //  properties with URIs that are NOT in the list.
   // *************************************************************************
 
+  // create new params object to pass on in recursive calls
+  // n.b. must update here if function signature changes
   const defaultParams = {
     expandObjectPrefix: [], expandObjectUri: [], expandObjectType: [],
     ignoreObjectPrefix: [], ignoreObjectUri: [], ignoreObjectType: [],
@@ -207,22 +200,9 @@ export function registerTraversal(docUri, suppliedParams = {}) {
     objectives: {}, numHops: MAX_TRAVERSAL_HOPS,
     useEtag: false, etag: ""
   };
-
-  // create new params object to pass on in recursive calls
-  // n.b. must update here if function signature changes
   let params = {...defaultParams} ;
-/* @@TODO remove this
-    expandObjectPrefix, expandObjectUri, expandObjectType,
-    ignoreObjectPrefix, ignoreObjectUri, ignoreObjectType,
-    followPropertyPrefix, followPropertyUri,
-    ignorePpropertyPrefix, ignorePropertyUri,
-    objectives, numHops,
-    useEtag, etag
-  };
-*/
 
   var key;
-
   for (key in suppliedParams) {
     if ( !(key in params) ) {
       console.log("registerTraversal: unrecognized option: ", key);
@@ -264,11 +244,6 @@ export function registerTraversal(docUri, suppliedParams = {}) {
   }
 
   console.log("FETCHING: ", docUri, params);
-
-  return ({
-    type: REGISTER_TRAVERSAL,
-    payload: {docUri, params}
-  });
 
   if(passesTraversalConstraints({"@id":docUri}, params)) { 
     return ({
