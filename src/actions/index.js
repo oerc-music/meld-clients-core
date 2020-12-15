@@ -315,19 +315,19 @@ export function traverse(docUri, params) {
         console.log("Don't know how to treat this document: ", docUri, response)
       }
       // appropriately handle content types
-//			if(isRDF(response.headers.get("Content-Type"))) {
-//				toNQuads(
-//					
-//			}
-//			switch(response.headers.get("Content-Type")) {
-//				// If we are working with RDF, we need to convert it to JSON-LD.
-//				// Unfortunately jsonld.js only reads nquads.
-//				// Thus, convert non-nquad RDF formats to nquad first
-//				case "text/turtle":
-//				case "application/trig":
-//				case "application/n-triples":
-//				case "text/n3":
-//
+      //			if(isRDF(response.headers.get("Content-Type"))) {
+      //				toNQuads(
+      //					
+      //			}
+      //			switch(response.headers.get("Content-Type")) {
+      //				// If we are working with RDF, we need to convert it to JSON-LD.
+      //				// Unfortunately jsonld.js only reads nquads.
+      //				// Thus, convert non-nquad RDF formats to nquad first
+      //				case "text/turtle":
+      //				case "application/trig":
+      //				case "application/n-triples":
+      //				case "text/n3":
+      //
     }).catch((err) => {
       dispatch({type: TRAVERSAL_FAILED});
       console.log("Could not retrieve ", docUri, err);
