@@ -1,7 +1,7 @@
 # Script to re-build meld-clients-core library
 #
 # 'node_modules' is moved to 'node_modules_save', because building apps against a
-# local copy fails is the nodule_modules directory is present in 'meld-clients-core'
+# local copy fails if the nodule_modules directory is present in 'meld-clients-core'
 #
 # 'npm link' sets up for testing with the local instance:
 # In an app that is to be built/run against the local instance, 

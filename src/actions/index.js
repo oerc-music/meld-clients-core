@@ -358,6 +358,7 @@ function traverseJSONLD(dispatch, docUri, params, dataPromise) {
   dataPromise.then((data) => {
     console.log("attempting to expand: ", data);
     jsonld.expand(data, (err, expanded) => {
+      console.log("traverseJSONLD jsonld.expand callback", err, expanded);
       if (err) {
         console.log("EXPANSION ERROR: ", docUri, err);
       }
