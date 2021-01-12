@@ -21,16 +21,21 @@
     "chai": "",
     "jsdom": ""
   },
+  "peerDependencies": {
+    "react": "^16.13.0 || ^17.0.0",
+    "react-dom": "^16.13.0 || ^17.0.0"
+  },
   "dependencies": {
     "axios": "^0.21.1",
     "immutability-helper": "^3.1.1",
     "jsonld": "^3.2.0",
     "jsum": "^0.1.4",
-    "react-media-player": "^0.7.9",
     "solid-auth-client": "^2.5.4"
   },
   "old_dependencies": {
+    "react": "^16.13.0",
     "react-dom": "^16.13.0",
+    "react-media-player": "^0.7.9",
     "react-redux": "^7.2.0",
     "redux": "^4.0.5",
     "axios": "^0.19.0",
@@ -40,11 +45,9 @@
     "leaflet": "^1.2.0",
     "n3": "^1.0.3",
     "querystring": "^0.2.0",
-    "react": "^16.13.0",
     "react-3d-carousel": "0.0.6",
     "react-leaflet": "^1.7.8",
     "react-leaflet-iiif": "^0.1.9",
-    "react-media-player": "^0.7.9",
     "react-router": "latest",
     "react-router-dom": "^4.3.1",
     "react-scripts": "^3.1.1",
