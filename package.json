@@ -4,40 +4,60 @@
   "version": "2.0.0",
   "description": "Music Encoding and Linked Data (MELD) clients core library",
   "main": "lib/index.js",
+  "exports": {
+    "./containers/*": "./lib/containers/*.js",
+    "./components/*": "./lib/components/*.js",
+    "./lib/containers/*": "./lib/containers/*.js",
+    "./lib/components/*": "./lib/components/*.js",
+    "./lib/actions/index": "./lib/actions/index",
+    ".": "lib/index.js"
+  },
   "repository": "git@github.com:musicog/meld-clients-core.git",
   "scripts": {
     "start": "react-scripts start",
+    "prepare": "babel src --out-dir lib",
     "build": "babel src --out-dir lib",
     "build-dev": "babel src --out-dir lib --source-maps inline"
   },
   "author": "David M. Weigl, David Lewis, Oxford e-Research Centre, University of Oxford",
   "license": "BSD-3-Clause",
   "devDependencies": {
-    "@babel/cli": "^7.12.10",
+    "@babel/cli": "^7.12.0",
     "@babel/core": "^7.0.0",
+    "@babel/preset-env": "^7.12.0",
     "@babel/preset-react": "^7.12.0"
-  },
-  "old_devDependencies": {
-    "chai": "",
-    "jsdom": ""
   },
   "peerDependencies": {
     "react": "^16.13.0 || ^17.0.0",
-    "react-dom": "^16.13.0 || ^17.0.0"
+    "react-native": "*"
   },
   "dependencies": {
     "axios": "^0.21.1",
     "immutability-helper": "^3.1.1",
     "jsonld": "^3.2.0",
     "jsum": "^0.1.4",
+    "redux": "^4.0.5",
+    "react-dom": "^16.13.0 || ^17.0.0",
+    "react-redux": "^7.2.2",
+    "react-native-web": "~0.13.7",
     "solid-auth-client": "^2.5.4"
+  },
+  "try_peerDependencies": {
+    "react": "^17.0.1",
+    "react-dom": "^17.0.1",
+    "react-redux": "^7.2.2",
+    "redux": "^4.0.5"
+  },
+  "old_devDependencies": {
+    "chai": "",
+    "jsdom": ""
   },
   "old_dependencies": {
     "react": "^16.13.0",
     "react-dom": "^16.13.0",
-    "react-media-player": "^0.7.9",
     "react-redux": "^7.2.0",
     "redux": "^4.0.5",
+    "react-media-player": "^0.7.9",
     "axios": "^0.19.0",
     "immutability-helper": "^2.1.2",
     "jsonld": "^0.4.11",

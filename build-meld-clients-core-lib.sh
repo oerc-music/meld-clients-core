@@ -9,10 +9,42 @@
 #   npm link meld-clients-core
 # 
 
-mv node_modules_save node_modules
+if [[ "$1" == "clean" ]]; then
+    echo "Rebuild from scratch..."
+    rm package-lock.json
+    rm -rf node_modules 
+    rm -rf lib
+    # return 0
+fi
+
+
+if [[ "$1" == "unlink" ]]; then
+    echo "Unlink from global node_modules..."
+    rm $(npm root -g)/meld-clients-core
+    return 0
+fi
+
+
+if [[ "$1" == "link-peers" ]]; then
+    echo "Link to peer dependency modules..."
+    npm link react
+    npm link react-dom
+    npm link react-redux
+    # npm link redux
+    return 0
+fi
+
+# mv node_modules_save node_modules
 npm install
-npm run build
-npm link  # Used for testing with local instance
-mv node_modules node_modules_save
+npm run build # Not needed if prepare script provided?  
+              # Cf. https://docs.npmjs.com/cli/v6/configuring-npm/package-json#devdependencies
+# npm link  # Used for testing with local instance
+# mv node_modules node_modules_save
+
+# Set up links for peer dependencies
+# npm link react
+# npm link react-dom
+# npm link react-redux
+# npm link redux
 
 # End.
