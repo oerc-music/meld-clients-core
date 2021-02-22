@@ -1,7 +1,7 @@
 {
   "name": "meld-clients-core",
   "type": "module",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Music Encoding and Linked Data (MELD) clients core library",
   "main": "lib/index.js",
   "exports": {
@@ -25,22 +25,18 @@
     "@babel/cli": "^7.12.0",
     "@babel/core": "^7.0.0",
     "@babel/preset-env": "^7.12.0",
-    "@babel/preset-react": "^7.12.0"
-  },
-  "peerDependencies": {
-    "react": "^16.13.0 || ^17.0.0",
-    "react-native": "*"
+    "@babel/preset-react": "^7.12.0",
+    "debug": "^4.3.1"
   },
   "dependencies": {
-    "axios": "^0.21.1",
     "immutability-helper": "^3.1.1",
-    "jsonld": "^3.2.0",
+    "jsonld": "^1.8.0",
     "jsum": "^0.1.4",
-    "redux": "^4.0.5",
+    "react": "^16.13.0 || ^17.0.0",
     "react-dom": "^16.13.0 || ^17.0.0",
     "react-redux": "^7.2.2",
-    "react-native-web": "~0.13.7",
-    "solid-auth-client": "^2.5.4"
+    "redux": "^4.0.5",
+    "solid-auth-client": "^2.4.1"
   },
   "try_peerDependencies": {
     "react": "^17.0.1",

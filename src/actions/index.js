@@ -246,14 +246,16 @@ export function registerTraversal(docUri, suppliedParams = {}) {
     }
   }
 
-  console.log("FETCHING: ", docUri, params);
+  console.log("registerTraversal: FETCHING: ", docUri, params);
 
   if(passesTraversalConstraints({"@id":docUri}, params)) { 
+    console.log("passes Traversal Constraints: REGISTER_TRAVERSAL");
     return ({
       type: REGISTER_TRAVERSAL,
       payload: {docUri, params}
     })
   } else { 
+    console.log("fails Traversal Constraints: TRAVERSAL_CONSTRAINED");
     return ({
       type: TRAVERSAL_CONSTRAINED
     })
@@ -268,7 +270,7 @@ export function traverse(docUri, params) {
     headers['If-None-Match'] = params["etag"];
   }
 
-  console.log("FETCHING: ", docUri, params);
+  console.log("traverse: FETCHING: ", docUri, params);
   const promise = auth.fetch(docUri, {
     headers: headers,
     mode: 'cors'
@@ -280,6 +282,7 @@ export function traverse(docUri, params) {
     });
     promise.then((response) => {
       if (response.status == 304) {
+        console.log("traverse: TRAVERSAL_UNNECCESSARY");
         dispatch({type: TRAVERSAL_UNNECCESSARY});
         return; // file not modified, i.e. etag matched, no updates required
       }
@@ -301,8 +304,9 @@ export function traverse(docUri, params) {
         // TODO: Translate RDF to JSON-LD, then proceed with traverseJSONLD as above
         console.log("traverse: RDF-to-JSON conversion not implemented: ", docUri);
       } else {
-        dispatch({type: TRAVERSAL_FAILED});
+        console.log("traverse: TRAVERSAL_FAILED");
         console.log("Don't know how to treat this document: ", docUri, response)
+        dispatch({type: TRAVERSAL_FAILED});
       }
       // appropriately handle content types
       //			if(isRDF(response.headers.get("Content-Type"))) {
@@ -353,7 +357,7 @@ function skolemize(obj, docUri) {
 }
 
 function traverseJSONLD(dispatch, docUri, params, dataPromise) {
-  console.log("in traverseJSONLDf or doc ", docUri, "with exclude list ", params["ignoreObjectUri"]);
+  console.log("in traverseJSONLD or doc ", docUri, "with exclude list ", params["ignoreObjectUri"]);
   // expand the JSON-LD object so that we are working with full URIs, not compacted into prefixes
   dataPromise.then((data) => {
     console.log("attempting to expand: ", data);
