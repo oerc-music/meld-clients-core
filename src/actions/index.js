@@ -253,13 +253,18 @@ export function traverse(docUri, params) {
         // treat as JSON-LD document
         dispatch(traverseJSONLD(dispatch, docUri, params, response.json()));
       } else if (docUri.endsWith(".ttl") || docUri.endsWith(".n3") || docUri.endsWith(".rdf") ||
-          docUri.endsWith(".nq") || docUri.endsWith(".nt") ||
+          docUri.endsWith(".nt") ||
           response.headers.get("Content-Type").startsWith("application/rdf+xml") ||
-          response.headers.get("Content-Type").startsWith("application/nquads") ||
           response.headers.get("Content-Type").startsWith("application/x-turtle") ||
           response.headers.get("Content-Type").startsWith("text/turtle")) {
         // treat as RDF document
         // TODO: Translate RDF to JSON-LD, then proceed with traverseJSONLD as above
+        dispatch({type: TRAVERSAL_FAILED});
+        console.log("Can't handle this document: (We currently only support nq and JSON-LD)", docUri, response)
+				// dispatch(traverseRDF(dispatch, docUri, params, response.text()));
+			} else if (docUri.endsWith(".nq") || 
+								 response.headers.get("Content-Type").startsWith("application/nquads")) {
+				dispatch(traverseRDF(dispatch, docUri, params, response.text()));
       } else {
         dispatch({type: TRAVERSAL_FAILED});
         console.log("Don't know how to treat this document: ", docUri, response)
@@ -312,69 +317,84 @@ function skolemize(obj, docUri) {
   return obj;
 }
 
-function traverseJSONLD(dispatch, docUri, params, dataPromise) {
-  console.log("in traverseJSONLDf or doc ", docUri, "with blacklist ", params["objectUriBlacklist"]);
+
+function traverseRDF(dispatch, docUri, params, dataPromise){
+  console.log("in traverseRDF for doc ", docUri, "with blacklist ", params["objectUriBlacklist"]);
   // expand the JSON-LD object so that we are working with full URIs, not compacted into prefixes
   dataPromise.then((data) => {
-    console.log("attempting to expand: ", data);
-    jsonld.expand(data, (err, expanded) => {
-      if (err) {
-        console.log("EXPANSION ERROR: ", docUri, err);
-      }
-      console.log("Got expanded json: ", expanded);
-      // flatten the expanded JSON-LD object so that each described entity has an ID at the top-level of the tree
-      jsonld.flatten(expanded, (err, flattened) => {
-        const skolemized = skolemize(flattened, docUri);
-        dispatch({
-          type: FETCH_GRAPH_DOCUMENT,
-          payload:  { 
-            data: skolemized,
-            uri: docUri
-          }
-        });
-        // convert the flattened array of JSON-LD structures into a lookup table using each entity's URI ("@id")
-        let idLookup = {};
-        Object.entries(skolemized).forEach(([key, value]) => {
-          idLookup[value["@id"]] = value;
-        });
-        Object.entries(idLookup).forEach(([subjectUri, subjectDescription]) => {
-          // iterating through each entity within the document as the subject,
-          // look at its description (set of predicate-object tuples).
-          Object.entries(subjectDescription).forEach(([pred, objs]) => {
-            // because JSON-LD, objs could be a single object or an array of objects
-            // therefore, ensure consistency:
-            objs = Array.isArray(objs) ? objs : [objs];
-            objs.map((obj) => {
-              if (obj === Object(obj)) {
-                // our *RDF* object is a *JAVASCRIPT* object
-                // but because we've flattened our document, we know that it will contain only an @id
-                // and that all of its other descriptors will be associated with that @id at the top-level
-                // (which we will handle in another iteration)
-                // CHECK FOR OBJECTIVES HERE
-                //console.log("<>", subjectUri, pred, obj["@id"], docUri);
-                // Now recurse (if black/whitelist conditions and hop counter allow)
-                if (passesTraversalConstraints(obj, params)) {
-//                  console.log("registering next traversal!", obj["@id"])
-                  dispatch(registerTraversal(obj["@id"], {
-                    ...params,
-                    // Remember that we've already visited the current document to avoid loops
-                    "objectUriBlacklist": params["objectUriBlacklist"].concat(docUri.split("#")[0]),
-                    "numHops": params["numHops"] - 1
-                  }))
-                }
-              } else {
-                // our *RDF* object is a literal
-                // n.b. exceptions where pred is @type, @id, etc. There, the obj is still a URI, not a literal
+		dispatch(traverseJSONLD(dispatch, docUri, params, jsonld.fromRDF(data, {format: 'application/n-quads'})));
+	}).catch((err)=> console.error(err));
+	return {type: TRAVERSAL_HOP}
+}
+
+function traverseJSONLD(dispatch, docUri, params, dataPromise) {
+  console.log("in traverseJSONLD for doc ", docUri, "with blacklist ", params["objectUriBlacklist"]);
+  // expand the JSON-LD object so that we are working with full URIs, not compacted into prefixes
+  dataPromise.then((data) => {
+		// If it's not a string, then it's a JSONLD object. Turn it into string
+		// if(typeof(data)!=="string") {
+		// 	console.log("CONVERTING", data, typeof(data));
+		// 	data = JSON.stringify(data);
+		// }
+		console.log(data);
+		console.log("attempting to expand: ", data);
+		jsonld.expand(data, (err, expanded) => {
+			if (err) {
+				console.log("EXPANSION ERROR: ", docUri, err);
+			}
+			console.log("Got expanded json: ", expanded);
+			// flatten the expanded JSON-LD object so that each described entity has an ID at the top-level of the tree
+			jsonld.flatten(expanded, (err, flattened) => {
+				const skolemized = skolemize(flattened, docUri);
+				dispatch({
+					type: FETCH_GRAPH_DOCUMENT,
+					payload:  { 
+						data: skolemized,
+						uri: docUri
+					}
+				});
+				// convert the flattened array of JSON-LD structures into a lookup table using each entity's URI ("@id")
+				let idLookup = {};
+				Object.entries(skolemized).forEach(([key, value]) => {
+					idLookup[value["@id"]] = value;
+				});
+				Object.entries(idLookup).forEach(([subjectUri, subjectDescription]) => {
+					// iterating through each entity within the document as the subject,
+					// look at its description (set of predicate-object tuples).
+					Object.entries(subjectDescription).forEach(([pred, objs]) => {
+						// because JSON-LD, objs could be a single object or an array of objects
+						// therefore, ensure consistency:
+						objs = Array.isArray(objs) ? objs : [objs];
+						objs.map((obj) => {
+							if (obj === Object(obj)) {
+								// our *RDF* object is a *JAVASCRIPT* object
+								// but because we've flattened our document, we know that it will contain only an @id
+								// and that all of its other descriptors will be associated with that @id at the top-level
+								// (which we will handle in another iteration)
+								// CHECK FOR OBJECTIVES HERE
+								//console.log("<>", subjectUri, pred, obj["@id"], docUri);
+								// Now recurse (if black/whitelist conditions and hop counter allow)
+								if (passesTraversalConstraints(obj, params)) {
+									//                  console.log("registering next traversal!", obj["@id"])
+									dispatch(registerTraversal(obj["@id"], {
+										...params,
+										// Remember that we've already visited the current document to avoid loops
+										"objectUriBlacklist": params["objectUriBlacklist"].concat(docUri.split("#")[0]),
+										"numHops": params["numHops"] - 1
+									}))
+								}
+							} else {
+								// our *RDF* object is a literal
+								// n.b. exceptions where pred is @type, @id, etc. There, the obj is still a URI, not a literal
                 // Could test for those explicitly here.
-                // CHECK FOR OBJECTIVES HERE
-                //	console.log("||", subjectUri, pred, obj, docUri)
-
-              }
-            });
-          })
-
-        })
-      });
+								// CHECK FOR OBJECTIVES HERE
+								//	console.log("||", subjectUri, pred, obj, docUri)
+								
+							}
+						});
+					})
+				});
+      })
     });
   });
   return {type: TRAVERSAL_HOP}
