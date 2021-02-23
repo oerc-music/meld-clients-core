@@ -40,6 +40,7 @@
     "redux-promise": "^0.6.0",
     "redux-thunk": "^2.3.0",
     "solid-auth-client": "^2.4.1",
-    "svg-inline-react": "^3.2.0"
+    "svg-inline-react": "^3.2.0",
+    "uuid": "^8.3.2"
   }
 }

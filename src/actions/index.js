@@ -2,6 +2,7 @@ import axios from 'axios';
 import auth from 'solid-auth-client';
 import jsonld from 'jsonld'
 import querystring from 'querystring';
+import { v4 as uuidv4 } from 'uuid';
 import {prefix} from '../library/prefixes.js'; 
 import {
   ANNOTATION_HANDLED,
