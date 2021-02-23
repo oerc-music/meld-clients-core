@@ -1075,12 +1075,21 @@ export function postAnnotation(session, etag, json, retries = MAX_RETRIES, callb
   if(retries === "") { 
     retries = MAX_RETRIES;
   }
+  if(!("id" in json) && !("@id" in json)) { 
+    // bootstrap a UUID for this annotation
+    json["@id"] = uuidv4();
+  }
+
   return (dispatch) => {
     if (retries) {
       console.log("Posting annotation: ", session, etag, json)
       auth.fetch(session, {
         method: 'POST',
-        headers: {'Content-Type': 'application/ld+json', 'If-None-Match': etag},
+        headers: {
+          'Content-Type': 'application/ld+json', 
+          'If-None-Match': etag,
+          'Slug': json["@id"] || json["id"]
+        },
         body: JSON.stringify(json)
       }).then( (response) => { 
           typeof callback === "function" && callback(response)
