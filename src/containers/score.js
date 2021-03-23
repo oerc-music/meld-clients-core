@@ -59,17 +59,14 @@ class Score extends React.Component {
   }
 
   render() {
-    if (Object.keys(this.props.score).length) {
-      if (this.props.score.MEI[this.props.uri]) {
-        this.props.score.vrvTk.loadData(this.props.score.MEI[this.props.uri]);
-        this.props.score.vrvTk.setOptions(this.props.options ? this.props.options : defaultVrvOptions);
-        this.props.score.vrvTk.redoLayout();
-        var svg = this.props.score.vrvTk.renderToSVG(this.props.score.pageNum);
-      } else if (this.props.score.SVG[this.props.uri]) {
-        svg = this.props.score.SVG[this.props.uri];
-      } else {
-        svg = '';
-      }
+    let svg = '';
+    // ensure verovio has generated an SVG for the current MEI and current page: 
+    if(this.props.uri in this.props.score.SVG &&
+       this.props.uri in this.props.score.pageState &&
+       "currentPage" in this.props.score.pageState[this.props.uri] &&
+       this.props.score.pageState[this.props.uri].currentPage in this.props.score.SVG[this.props.uri]) { 
+      let currentPage = this.props.score.pageState[this.props.uri].currentPage;
+      svg = this.props.score.SVG[this.props.uri][currentPage].data;
       if (this.props.scoreAnnotations && this.props.drawAnnotation && svg) {
         // We can't edit the output of Verovio while it's a string,
         // so, if there's anything to be done to it, it should happen
@@ -141,12 +138,17 @@ class Score extends React.Component {
         }
       });
     });
-
-    if (prevProps.score.pageNum !== this.props.score.pageNum || // on page flip...
-        prevProps.score.pageCount < this.props.score.pageCount // ...or first load
+    if (Object.keys(prevProps.score.pageState).length &&
+        this.props.uri in prevProps.score.pageState && (
+        prevProps.score.pageState[this.props.uri].currentPage !== 
+          this.props.score.pageState[this.props.uri].currentPage || // on page flip...
+        prevProps.score.pageState[this.props.uri].pageCount < 
+          this.props.score.pageState[this.props.uri].pageCount)   // ...or first load
     ) {
       // signal that Verovio has rendered a new page
-      this.props.updateLatestRenderedPageNum(this.props.score.pageNum);
+      this.props.updateLatestRenderedPageNum(
+        this.props.score.pageState[this.props.uri].currentPage
+      );
     }
 
   }
@@ -181,11 +183,11 @@ class Score extends React.Component {
           break;
         case "motivation:nextPageOrPiece":
           // console.log("----", this.props);
-          this.props.scoreNextPage(this.props.session, this.props.nextSession, this.props.etag, annotation, this.props.uri, this.props.score.pageNum, this.props.score.MEI[this.props.uri]);
+          this.props.scoreNextPage(this.props.session, this.props.nextSession, this.props.etag, annotation, this.props.uri, this.props.score.pageState[this.props.uri].currentPage, this.props.score.MEI[this.props.uri]);
           break;
         case "motivation:prevPageOrPiece":
           // console.log("----", this.props);
-          this.props.scorePrevPage(this.props.session, this.props.nextSession, this.props.etag, annotation, this.props.uri, this.props.score.pageNum, this.props.score.MEI[this.props.uri]);
+          this.props.scorePrevPage(this.props.session, this.props.nextSession, this.props.etag, annotation, this.props.uri, this.props.score.pageState[this.props.uri].currentPage, this.props.score.MEI[this.props.uri]);
           break;
         case "motivation:queueNextSession":
           this.props.handleQueueNextSession(this.props.session, this.props.etag, annotation);

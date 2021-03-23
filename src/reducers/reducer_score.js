@@ -1,29 +1,54 @@
 import update from 'immutability-helper';
-import { FETCH_COMPONENT_TARGET, FETCH_CONCEPTUAL_SCORE, FETCH_MANIFESTATIONS, FETCH_RIBBON_CONTENT, FETCH_SCORE, REGISTER_PUBLISHED_PERFORMANCE_SCORE, SCORE_NEXT_PAGE, SCORE_PAGE_TO_TARGET, SCORE_PREV_PAGE, TRANSITION_TO_NEXT_SESSION, UPDATE_LATEST_RENDERED_PAGENUM } from '../actions/index';
+import { FETCH_COMPONENT_TARGET, FETCH_CONCEPTUAL_SCORE, FETCH_MANIFESTATIONS, FETCH_RIBBON_CONTENT, FETCH_SCORE, REGISTER_PUBLISHED_PERFORMANCE_SCORE, SCORE_NEXT_PAGE, SCORE_PAGE_TO_TARGET, SCORE_PREV_PAGE, TRANSITION_TO_NEXT_SESSION, UPDATE_LATEST_RENDERED_PAGENUM, SCORE_SET_OPTIONS } from '../actions/index';
 const EMBODIMENT = 'frbr:embodiment';
 const MEITYPE = 'meld:MEIEmbodiment';
 const AUDIOTYPE = 'meld:AudioEmbodiment';
 const TEITYPE = 'meld:TEIEmbodiment';
 const MEMBER = 'rdfs:member';
-const scale = 35;
+
 let conceptualScore;
-let vrvOptions = {
-  // override these defaults from your MELD app using
-  // setScoreReducerVerovioOptions (below)
-  ignoreLayout: 1,
-  adjustPageHeight: 1,
-  scale: scale,
-  pageHeight: 1000 * 100 / scale,
-  pageWidth: 700 * 100 / scale
-};
-export function setScoreReducerVerovioOptions(options) {
-  vrvOptions = options;
+
+function retrieveOrGenerateSVG(data, state, url, pageNum, options) { 
+  // We can use the previously cached SVG if:
+  // 1. We already have SVG rendered for this URI
+  // 2. We already have SVG rendered for this page number
+  // 3. We rendered it with these options
+  if(url in state.pageState && url in state.SVG &&
+    pageNum in state.SVG[url] &&
+    JSON.stringify(state.SVG[url][pageNum].options) ===
+    JSON.stringify(options)
+  ) { 
+    // we can reuse the cached SVG!
+    console.log(`Score reducer: Reusing SVG for ${url} page ${pageNum}`);
+    return state.SVG[url][pageNum].data;
+  } else { 
+    // we need to generate SVG!
+    // is the MEI file currently loaded into Verovio?
+    if(url !== state.currentlyLoadedIntoVrv) { 
+      // no -- so set our options, and then load it
+      state.vrvTk.setOptions(options);
+      state.vrvTk.loadData(data);
+    } 
+    // have we loaded this page before?
+    if(url in state.SVG &&
+      pageNum in state.SVG[url]) { 
+      // yes. Options must have changed, or we would have returned above.
+      // So, redo layout to take account of new options
+      state.vrvTk.setOptions(options);
+      state.vrvTk.redoLayout();
+    }
+    // now render the page and return the SVG
+    return state.vrvTk.renderToSVG(pageNum, options);
+  }
 }
+
 export function ScoreReducer(state = {
+  currentlyLoadedIntoVrv: null,
   publishedScores: {},
   conceptualScores: {},
   MEI: {},
   SVG: {},
+  pageState: {},
   componentTargets: {},
   scoreMapping: {},
   pageNum: 1,
@@ -31,43 +56,58 @@ export function ScoreReducer(state = {
   pageCount: 0,
   triggerNextSession: "",
   triggerPrevSession: "",
-  vrvTk: new verovio.toolkit()
+  vrvTk: new verovio.toolkit(),
+  options: {
+    ignoreLayout: 1,
+    adjustPageHeight: 1,
+    scale: 35,
+    pageHeight: 1000 * 100 / 35,
+    pageWidth: 700 * 100 / 35 
+  }
 }, action) {
   let svg;
+  let url;
+  let currentPage;
   const pageCount = state.vrvTk.getPageCount();
   switch (action.type) {
     case FETCH_SCORE:
-      // In the past, we rendered scores pre-emptively, but there's
-      // nothing to say that this score will ever be drawn, and doing
-      // it here puts all the processing up front. For multiple
-      // scores, it's noticably slow.
-      console.log("FETCH_SCORE: ", action)
-      svg = false && state.vrvTk.renderData(action.payload.data, vrvOptions);
-      if("config" in action.payload) { 
-        return update(state, {
-          SVG: {
-            $merge: {
-              [action.payload.config.url]: svg
+      url = action.payload.config.url;
+      currentPage = url in state.pageState 
+        ? state.pageState[url].currentPage : 1;
+      console.log("FETCH_SCORE: ", action);
+      // We can use a previously cached SVG if:
+      // 1. We already have SVG rendered for this URI
+      // 2. We already have SVG rendered for this page number
+      // 3. We already have SVG rendered for these options
+      svg = retrieveOrGenerateSVG(action.payload.data, state, url, currentPage, state.options);
+      return update(state, {
+        currentlyLoadedIntoVrv: { 
+          $set: url
+        },
+        SVG: {
+          [url]: {
+            $set: { 
+              [currentPage]: {
+                data: svg,
+                options: state.options
+              }
             }
-          },
-          MEI: {
-            $merge: {
-              [action.payload.config.url]: action.payload.data
-            }
-          },
-          pageNum: {
-            $set: 1
-          },
-          pageCount: {
-            $set: pageCount
           }
-        });
-      }
-      else { 
-        console.error("Problem fetching score: ", action);
-        return state;
-      }
-
+        },
+        MEI: {
+          $merge: {
+            [url]: action.payload.data
+          }
+        },
+        pageState: { 
+          [url]: {
+            $set: {
+              currentPage: currentPage,
+              pageCount: state.vrvTk.getPageCount()
+            }
+          }
+        }
+      })
     case FETCH_RIBBON_CONTENT:
       /*		var orch =  new Orchestration(action.payload.data);
           var svgRibbon = orch.drawOrchestration(false, 0, 400, 0, 600);
@@ -191,75 +231,119 @@ export function ScoreReducer(state = {
       return newState;
 
     case SCORE_NEXT_PAGE:
+      url = action.payload.uri;
       if (!action.payload.data) {
         console.log("SCORE_NEXT_PAGE attempted on non-loaded MEI data - ignoring!");
         return state;
       }
-
-      console.log("Page count: ", pageCount);
-      console.log("Page num: ", action.payload.pageNum);
-      console.log("URI: ", action.payload.uri);
-
-      if (action.payload.pageNum === pageCount) {
+      if(action.payload.pageNum !== state.pageState[url].currentPage) { 
+        console.warn(`Mismatch in page numbers: received ${action.payload.pageNum} expected ${state.pageState[url].currentPage}`);
+      }
+      if(action.payload.pageNum === pageCount) {
         // we've left the last page, set up a transfer to the next session
         // console.log("TRIGGERING")
+        console.info("Attempted SCORE_NEXT_PAGE while on last page of score");
         return update(state, {
           triggerNextSession: {
             $set: true
           }
         });
       } else {
+        svg = retrieveOrGenerateSVG(state.MEI[url], state, url, action.payload.pageNum + 1, state.options);
         return update(state, {
-          //SVG: { $merge: { [action.payload.uri]: svg } }, -- DW merge -> set 20170722
           SVG: {
-            $set: {
-              [action.payload.uri]: svg
+            [url]: { 
+              $merge: { 
+                [action.payload.pageNum+1]: {
+                  data: svg,
+                  options: state.options
+                }
+              }
             }
           },
-          pageNum: {
-            $set: action.payload.pageNum + 1
-          },
-          pageCount: {
-            $set: pageCount
+          pageState: {
+              [url]: {
+                $set: {
+                  currentPage: action.payload.pageNum+1, 
+                  pageCount: state.vrvTk.getPageCount()
+                }
+              }
           }
         });
       }
-
     case SCORE_PREV_PAGE:
+      url = action.payload.uri;
       if (!action.payload.data) {
         console.log("SCORE_PREV_PAGE attempted on non-loaded MEI data - ignoring!");
         return state;
       }
-
-      console.log("Page count: ", pageCount);
-      console.log("Page num: ", action.payload.pageNum);
-      console.log("URI: ", action.payload.uri);
-
-      if (action.payload.pageNum === 0) {
-        // we've left the first page, go back in history (to previous session)
-        // TODO do this within react-router
-        console.log("SCORE_PREV_PAGE attempted on first page -- go back to previous session!");
+      if(action.payload.pageNum !== state.pageState[url].currentPage) { 
+        console.warn(`Mismatch in page numbers: received ${action.payload.pageNum} expected ${state.pageState[url].currentPage}`);
+      }
+      if(action.payload.pageNum === 1) {
+        // we're on the first page, go back to previous session
+        // console.log("TRIGGERING")
+        console.info("Attempted SCORE_PREV_PAGE while on first page of score");
         return update(state, {
           triggerPrevSession: {
             $set: true
           }
         });
       } else {
+        svg = retrieveOrGenerateSVG(state.MEI[url], state, url, action.payload.pageNum - 1, state.options);
         return update(state, {
-          //SVG: { $merge: { [action.payload.uri]: svg } }, -- DW merge -> set 20170722
           SVG: {
-            $set: {
-              [action.payload.uri]: svg
+            [url]: { 
+              $merge: { 
+                [action.payload.pageNum-1]: {
+                  data: svg,
+                  options: state.options
+                }
+              }
             }
           },
-          pageNum: {
-            $set: action.payload.pageNum - 1
-          },
-          pageCount: {
-            $set: pageCount
+          pageState: {
+              [url]: {
+                $set: {
+                  currentPage: action.payload.pageNum-1, 
+                  pageCount: state.vrvTk.getPageCount()
+                }
+              }
           }
         });
       }
+    
+    case SCORE_SET_OPTIONS:
+      url = action.payload.uri;
+      currentPage = url in state.pageState && "currentPage" in state.pageState[url]
+        ? state.pageState[url].currentPage : 1;
+      svg = retrieveOrGenerateSVG(state.MEI[url], state, url, currentPage, action.payload.options);
+      return update(state, { 
+        options: { 
+          $set: action.payload.options
+        },
+        currentlyLoadedIntoVrv: { 
+          $set: url
+        },
+        SVG: { 
+          [url]: { 
+            $set: {
+              [currentPage]: {
+                data: svg,
+                options: action.payload.options
+              }
+            }
+          }
+        }, 
+        pageState: { 
+          [url]: { 
+            $set: { 
+              currentPage: currentPage,
+              pageCount: state.vrvTk.getPageCount()
+            }
+          }
+        }
+      });
 
     case TRANSITION_TO_NEXT_SESSION:
       // console.log("forcing transition to next session if queued");
