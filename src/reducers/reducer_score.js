@@ -57,7 +57,7 @@ export function ScoreReducer(state = {
   triggerNextSession: "",
   triggerPrevSession: "",
   vrvTk: new verovio.toolkit(),
-  options: {
+  options: { // default, unless overridden in FETCH_SCORE or SCORE_SET_OPTIONS
     ignoreLayout: 1,
     adjustPageHeight: 1,
     scale: 35,
@@ -68,18 +68,28 @@ export function ScoreReducer(state = {
   let svg;
   let url;
   let currentPage;
+  let options;
   const pageCount = state.vrvTk.getPageCount();
   switch (action.type) {
     case FETCH_SCORE:
       url = action.payload.config.url;
       currentPage = url in state.pageState 
         ? state.pageState[url].currentPage : 1;
-      console.log("FETCH_SCORE: ", action);
+      // set options:
+      if(typeof action.payload.config.options === "object") { 
+        // use options object if supplied with action
+        options = action.payload.config.options;
+      } else if(url in state.SVG && currentPage in state.SVG[url]) { 
+        // otherwise if we've previously rendered this page, use those options
+        options = state.SVG[url][currentPage].options;
+      } else { 
+        options = state.options; // or as fallback, use defaults
+      }
       // We can use a previously cached SVG if:
       // 1. We already have SVG rendered for this URI
       // 2. We already have SVG rendered for this page number
       // 3. We already have SVG rendered for these options
-      svg = retrieveOrGenerateSVG(action.payload.data, state, url, currentPage, state.options);
+      svg = retrieveOrGenerateSVG(action.payload.data, state, url, currentPage, options);
       return update(state, {
         currentlyLoadedIntoVrv: { 
           $set: url
@@ -89,7 +99,7 @@ export function ScoreReducer(state = {
             $set: { 
               [currentPage]: {
                 data: svg,
-                options: state.options
+                options: options
               }
             }
           }

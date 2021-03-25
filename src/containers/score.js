@@ -93,7 +93,7 @@ class Score extends React.Component {
   }
 
   componentDidMount() {
-    this.props.fetchScore(this.props.uri);
+    this.props.fetchScore(this.props.uri, this.props.options);
   }
 
   componentDidUpdate(prevProps, prevState) {
