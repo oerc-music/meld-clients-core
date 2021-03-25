@@ -94,7 +94,7 @@ const context = {
 
 };
 
-export function fetchScore(url) {
+export function fetchScore(url, options) {
   console.log("FETCH_SCORE ACTION on URI: ", url);
   return(dispatch) => { 
     auth.fetch(url, {mode: 'cors'})
@@ -106,7 +106,7 @@ export function fetchScore(url) {
           type: FETCH_SCORE,
           payload: { 
             data, 
-            config: { url }
+            config: { url, options }
           }
         })
       })
