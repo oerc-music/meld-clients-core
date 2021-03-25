@@ -61,7 +61,8 @@ class Score extends React.Component {
   render() {
     let svg = '';
     // ensure verovio has generated an SVG for the current MEI and current page: 
-    if(this.props.uri in this.props.score.SVG &&
+    if("score" in this.props &&
+       this.props.uri in this.props.score.SVG &&
        this.props.uri in this.props.score.pageState &&
        "currentPage" in this.props.score.pageState[this.props.uri] &&
        this.props.score.pageState[this.props.uri].currentPage in this.props.score.SVG[this.props.uri]) { 
