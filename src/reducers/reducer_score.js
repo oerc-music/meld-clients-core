@@ -266,8 +266,8 @@ export function ScoreReducer(state = {
           }
         });
       } else {
-        svg = retrieveOrGenerateSVG(state.MEI[url], state, url, action.payload.pageNum + 1, state.options);
         options = retrieveOptions(state.pageState[url].currentOptions, url, state.pageState.currentPage, state);
+        svg = retrieveOrGenerateSVG(state.MEI[url], state, url, action.payload.pageNum + 1, options);
         return update(state, {
           SVG: {
             [url]: { 
@@ -309,8 +309,8 @@ export function ScoreReducer(state = {
           }
         });
       } else {
-        svg = retrieveOrGenerateSVG(state.MEI[url], state, url, action.payload.pageNum - 1, state.options);
         options = retrieveOptions(state.pageState[url].currentOptions, url, state.pageState.currentPage, state)
+        svg = retrieveOrGenerateSVG(state.MEI[url], state, url, action.payload.pageNum - 1, options);
         return update(state, {
           SVG: {
             [url]: { 
@@ -386,11 +386,12 @@ export function ScoreReducer(state = {
         console.log("SCORE_PAGE_TO_TARGET attempted on a target that doesn't exist in the MEI - ignoring!", frag);
         return state;
       }
-      svg = retrieveOrGenerateSVG(state.MEI[action.payload.uri], state, action.payload.uri, pageNum)
-      options = retrieveOptions(state.pageState[action.payload.uri].currentOptions, action.payload.uri, pageNum, state)
+      url = action.payload.uri; 
+      options = retrieveOptions(state.pageState[url].currentOptions, url, pageNum, state)
+      svg = retrieveOrGenerateSVG(state.MEI[url], state, url, pageNum, options)
       return update(state, {
         SVG: {
-          [action.payload.uri]: { 
+          [url]: { 
             $merge: { 
               [pageNum]: { 
                 data: svg,
