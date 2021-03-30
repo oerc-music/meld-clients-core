@@ -42,6 +42,20 @@ function retrieveOrGenerateSVG(data, state, url, pageNum, options) {
   }
 }
 
+function retrieveOptions(options, url, currentPage, state) { 
+  let opts;
+  if(typeof options === "object") { 
+    // use options object if supplied with action
+    opts = options;
+  } else if(url in state.SVG && currentPage in state.SVG[url]) { 
+    // otherwise if we've previously rendered this page, use those options
+    opts = state.SVG[url][currentPage].options;
+  } else { 
+    opts = state.options; // or as fallback, use defaults
+  }
+  return opts;
+}
+
 export function ScoreReducer(state = {
   currentlyLoadedIntoVrv: null,
   publishedScores: {},
@@ -76,15 +90,7 @@ export function ScoreReducer(state = {
       currentPage = url in state.pageState 
         ? state.pageState[url].currentPage : 1;
       // set options:
-      if(typeof action.payload.config.options === "object") { 
-        // use options object if supplied with action
-        options = action.payload.config.options;
-      } else if(url in state.SVG && currentPage in state.SVG[url]) { 
-        // otherwise if we've previously rendered this page, use those options
-        options = state.SVG[url][currentPage].options;
-      } else { 
-        options = state.options; // or as fallback, use defaults
-      }
+      options = retrieveOptions(action.payload.config.options, url, currentPage, state); 
       // We can use a previously cached SVG if:
       // 1. We already have SVG rendered for this URI
       // 2. We already have SVG rendered for this page number
@@ -113,7 +119,8 @@ export function ScoreReducer(state = {
           [url]: {
             $set: {
               currentPage: currentPage,
-              pageCount: state.vrvTk.getPageCount()
+              pageCount: state.vrvTk.getPageCount(),
+              currentOptions: options
             }
           }
         }
@@ -260,13 +267,14 @@ export function ScoreReducer(state = {
         });
       } else {
         svg = retrieveOrGenerateSVG(state.MEI[url], state, url, action.payload.pageNum + 1, state.options);
+        options = retrieveOptions(state.pageState[url].currentOptions, url, state.pageState.currentPage, state);
         return update(state, {
           SVG: {
             [url]: { 
               $merge: { 
                 [action.payload.pageNum+1]: {
                   data: svg,
-                  options: state.options
+                  options: options
                 }
               }
             }
@@ -275,7 +283,8 @@ export function ScoreReducer(state = {
               [url]: {
                 $set: {
                   currentPage: action.payload.pageNum+1, 
-                  pageCount: state.vrvTk.getPageCount()
+                  pageCount: state.vrvTk.getPageCount(),
+                  currentOptions: options
                 }
               }
           }
@@ -301,13 +310,14 @@ export function ScoreReducer(state = {
         });
       } else {
         svg = retrieveOrGenerateSVG(state.MEI[url], state, url, action.payload.pageNum - 1, state.options);
+        options = retrieveOptions(state.pageState[url].currentOptions, url, state.pageState.currentPage, state)
         return update(state, {
           SVG: {
             [url]: { 
               $merge: { 
                 [action.payload.pageNum-1]: {
                   data: svg,
-                  options: state.options
+                  options: options
                 }
               }
             }
@@ -316,7 +326,8 @@ export function ScoreReducer(state = {
               [url]: {
                 $set: {
                   currentPage: action.payload.pageNum-1, 
-                  pageCount: state.vrvTk.getPageCount()
+                  pageCount: state.vrvTk.getPageCount(),
+                  currentOptions: options
                 }
               }
           }
@@ -349,7 +360,8 @@ export function ScoreReducer(state = {
           [url]: { 
             $set: { 
               currentPage: currentPage,
-              pageCount: state.vrvTk.getPageCount()
+              pageCount: state.vrvTk.getPageCount(),
+              currentOptions: options
             }
           }
         }
@@ -368,23 +380,33 @@ export function ScoreReducer(state = {
         console.log("SCORE_PAGE_TO_TARGET attempted on non-loaded MEI data - ignoring!");
         return state;
       }
-
       const frag = action.payload.target.split("#")[1];
       const pageNum = state.vrvTk.getPageWithElement(frag);
-
       if (pageNum === 0) {
         console.log("SCORE_PAGE_TO_TARGET attempted on a target that doesn't exist in the MEI - ignoring!", frag);
         return state;
       }
-
+      svg = retrieveOrGenerateSVG(state.MEI[action.payload.uri], state, action.payload.uri, pageNum)
+      options = retrieveOptions(state.pageState[action.payload.uri].currentOptions, action.payload.uri, pageNum, state)
       return update(state, {
         SVG: {
-          $set: {
-            [action.payload.uri]: svg
+          [action.payload.uri]: { 
+            $merge: { 
+              [pageNum]: { 
+                data: svg,
+                options: options
+              }
+            }
           }
-        },
-        pageNum: {
-          $set: pageNum
+        }, 
+        pageState: { 
+          [url]: { 
+            $set: { 
+              currentPage: pageNum,
+              pageCount: state.vrvTk.getPageCount(),
+              currentOptions: options
+            }
+          }
         }
       });
 
