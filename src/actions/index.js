@@ -1073,12 +1073,13 @@ export function postPrevPageAnnotation(session, etag) {
 }
 
 export function postAnnotation(session, etag, json, retries = MAX_RETRIES, callback = {}) {
+  let uuid = uuidv4();
   if(retries === "") { 
     retries = MAX_RETRIES;
   }
   if(!("id" in json) && !("@id" in json)) { 
     // bootstrap a UUID for this annotation
-    json["@id"] = uuidv4();
+    json["@id"] = session + uuid + ".jsonld";
   }
 
   return (dispatch) => {
@@ -1089,7 +1090,7 @@ export function postAnnotation(session, etag, json, retries = MAX_RETRIES, callb
         headers: {
           'Content-Type': 'application/ld+json', 
           'If-None-Match': etag,
-          'Slug': json["@id"] || json["id"]
+          'Slug': uuid + ".jsonld"
         },
         body: JSON.stringify(json)
       }).then( (response) => { 
