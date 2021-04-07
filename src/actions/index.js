@@ -248,6 +248,8 @@ export function registerTraversal(docUri, suppliedParams = {}) {
 
   console.log("FETCHING: ", docUri, params);
 
+  
+	docUri = new URL(docUri, document.URL).toString();
   if(passesTraversalConstraints({"@id":docUri}, params)) { 
     return ({
       type: REGISTER_TRAVERSAL,
@@ -292,14 +294,18 @@ export function traverse(docUri, params) {
         // treat as JSON-LD document
         dispatch(traverseJSONLD(dispatch, docUri, params, response.json()));
       } else if (docUri.endsWith(".ttl") || docUri.endsWith(".n3") || docUri.endsWith(".rdf") ||
-          docUri.endsWith(".nq") || docUri.endsWith(".nt") ||
+          docUri.endsWith(".nt") ||
           response.headers.get("Content-Type").startsWith("application/rdf+xml") ||
-          response.headers.get("Content-Type").startsWith("application/nquads") ||
           response.headers.get("Content-Type").startsWith("application/x-turtle") ||
           response.headers.get("Content-Type").startsWith("text/turtle")) {
         // treat as RDF document
         // TODO: Translate RDF to JSON-LD, then proceed with traverseJSONLD as above
-        console.log("traverse: RDF-to-JSON conversion not implemented: ", docUri);
+        dispatch({type: TRAVERSAL_FAILED});
+        console.log("Can't handle this document: (We currently only support nq and JSON-LD)", docUri, response)
+				// dispatch(traverseRDF(dispatch, docUri, params, response.text()));
+			} else if (docUri.endsWith(".nq") || 
+								 response.headers.get("Content-Type").startsWith("application/nquads")) {
+				dispatch(traverseRDF(dispatch, docUri, params, response.text()));
       } else {
         dispatch({type: TRAVERSAL_FAILED});
         console.log("Don't know how to treat this document: ", docUri, response)
@@ -352,7 +358,18 @@ function skolemize(obj, docUri) {
   return obj;
 }
 
+
+function traverseRDF(dispatch, docUri, params, dataPromise){
+  console.log("in traverseRDF for doc ", docUri, "with blacklist ", params["objectUriBlacklist"]);
+  // expand the JSON-LD object so that we are working with full URIs, not compacted into prefixes
+  dataPromise.then((data) => {
+		dispatch(traverseJSONLD(dispatch, docUri, params, jsonld.fromRDF(data, {format: 'application/n-quads'})));
+	}).catch((err)=> console.error(err));
+	return {type: TRAVERSAL_HOP}
+}
+
 function traverseJSONLD(dispatch, docUri, params, dataPromise) {
+	console.log("in traverseJSONLD for doc ", docUri, "with blacklist ", params["objectUriBlacklist"]);
   console.log("in traverseJSONLDf or doc ", docUri, "with exclude list ", params["ignoreObjectUri"]);
   // expand the JSON-LD object so that we are working with full URIs, not compacted into prefixes
   dataPromise.then((data) => {
@@ -406,15 +423,14 @@ function traverseJSONLD(dispatch, docUri, params, dataPromise) {
                 // our *RDF* object is a literal
                 // n.b. exceptions where pred is @type, @id, etc. There, the obj is still a URI, not a literal
                 // Could test for those explicitly here.
-                // CHECK FOR OBJECTIVES HERE
-                //	console.log("||", subjectUri, pred, obj, docUri)
-
-              }
-            });
-          })
-
-        })
-      });
+								// CHECK FOR OBJECTIVES HERE
+								//	console.log("||", subjectUri, pred, obj, docUri)
+								
+							}
+						});
+					})
+				});
+      })
     });
   });
   return {type: TRAVERSAL_HOP}
