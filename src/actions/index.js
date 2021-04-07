@@ -210,6 +210,7 @@ export function registerTraversal(
     useEtag, etag
   }
   
+	docUri = new URL(docUri, document.URL).toString();
   if(passesTraversalConstraints({"@id":docUri}, params)) { 
     return ({
       type: REGISTER_TRAVERSAL,
