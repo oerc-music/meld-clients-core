@@ -42,9 +42,11 @@ if [[ "$1" == "clean" ]]; then
 fi
 
 # mv node_modules_save node_modules
+echo "npm install ..."
 npm install
 # npm run build # Not needed if prepare script provided?  
 #               # Cf. https://docs.npmjs.com/cli/v6/configuring-npm/package-json#devdependencies
+echo "npm link ..."
 npm link  # Used for testing with local instance
 # rm -rf node_modules_save
 # mv node_modules node_modules_save
