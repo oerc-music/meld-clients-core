@@ -15,7 +15,8 @@ const INIT_STATE = {
   graphDocs: [],
   objectives: [],
   outcomes: [],
-  outcomesHash: ""
+  outcomesHash: "",
+  allObjectivesApplied: false
 };
 export default function (state = INIT_STATE, action) {
   switch (action.type) {
@@ -148,6 +149,7 @@ export default function (state = INIT_STATE, action) {
       } else { 
         //console.log("FETCH_GRAPH_DOCUMENT: ignoring as already seen: ", action.payload.uri);
       }
+      break;
 
     case APPLY_TRAVERSAL_OBJECTIVE:
       // an objective has been applied against the graph. Store the outcome at the
@@ -161,6 +163,9 @@ export default function (state = INIT_STATE, action) {
         },
         outcomesHash: {
           $set: updatedOutcomesHash
+        },
+        allObjectivesApplied: { 
+          $set: action.payload.ix === state.objectives.length-1 ? true : false
         }
       });
 
