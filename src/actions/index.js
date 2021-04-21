@@ -375,9 +375,6 @@ function traverseJSONLD(dispatch, docUri, params, dataPromise) {
   dataPromise.then(data => {
     console.log("attempting to expand: ", data);
 		jsonld.expand(data).then(expanded => {
-      if (err) {
-        console.log("EXPANSION ERROR: ", docUri, err);
-      }
       console.log("Got expanded json: ", expanded);
       // flatten the expanded JSON-LD object so that each described entity has an ID at the top-level of the tree
       jsonld.flatten(expanded).then(flattened => {

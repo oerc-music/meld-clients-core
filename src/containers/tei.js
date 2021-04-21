@@ -94,30 +94,19 @@ class TEI extends Component {
     } else if(this.props.scrollToURI){
 			this.scrollToURI();
 		}
-		/*
-    var mc = this.props.onMotifChange;
-    ReactDOM.findDOMNode(this).onclick = function (e) {
-      var target = e.target;
-			console.log(e, target);	
-      if (target && target.className.match(/F[0-9]+/).length) {
-        mc(target.className.match(/F[0-9]+/)[0]);
-      }
-			};*/
 		if(!this.props.annotations || !this.props.showAnnotations) return false;
+		// Depending on the type of annotation, this document may concern
+		// the target or body of annotations. Check for both (FIXME: but
+		// treat these differently?)
     this.props.annotations.map((annotation) => {
-			var annotationTarget = annotation[pref.oa+"hasTarget"];
-			if(!Array.isArray(annotationTarget)) annotationTarget = [annotationTarget];
+			var annotationTargets = annotation[pref.oa+"hasTarget"];
+			if(!Array.isArray(annotationTargets)) annotationTargets = [annotationTargets];
       // each annotation...
-      const frags = annotationTarget.map((annotationTarget) => {
+      var frags = annotationTargets.map((annotationTarget) => {
         // each annotation target
-        if ((annotationTarget["@id"].startsWith(this.props.uri) && annotationTarget["@id"].indexOf("#")>-1) || annotationTarget["@id"][0]=="#") {//
-					/* if(annotationTarget["@id"] in this.props.tei.componentTargets) {
-          // if this is my target, grab any of MY fragment IDs
-          const myFrags = this.props.tei.componentTargets[annotationTarget["@id"]]
-								.filter((frag) => {
-									return frag.substr(0, frag.indexOf("#")) === this.props.uri;
-								});
-					*/
+        if ((annotationTarget["@id"].startsWith(this.props.uri)
+						 && annotationTarget["@id"].indexOf("#")>-1)
+						|| annotationTarget["@id"][0]=="#") {//
 					const myFrags = [annotationTarget];
           if (myFrags.length) {
             // and apply any annotations
@@ -125,8 +114,50 @@ class TEI extends Component {
           }
         }
       });
+      var annotationBodies = annotation[pref.oa + "hasBody"];
+      if (!Array.isArray(annotationBodies)) annotationBodies = [annotationBodies]; // each annotation...
+      frags = annotationBodies.map(annotationBody => {
+        // each annotation target
+        if (annotationBody["@id"].startsWith(this.props.uri) && annotationBody["@id"].indexOf("#") > -1 || annotationBody["@id"][0] == "#") {
+          const myFrags = [annotationBody];
+          if (myFrags.length) {
+            // and apply any annotations
+            this.handleMELDActions(annotation, myFrags);
+          }
+        }
+      });
+			if((pref.oa+"motivatedBy") in annotation
+				 && annotation[pref.oa+"motivatedBy"]["@id"]===(pref.meldterm + "personInfo")) {
+				this.handleMELDActions(annotation, annotation[pref.oa+"hasTarget"]);
+			}
     });
+		this.findOtherRefs();
   }
+
+	findOtherRefs(){
+		/// Needed by Listening Through Time. Needs more
+		// generalisation. (that means it should not be considered
+		// particularly stable code)
+		// For some cross references, it makes more sense to discover the
+		// references themselves. Here, we find TEI refs and see if we
+		// know about the thing they refer to.
+		var refs = document.querySelectorAll('.TEIContainer *[ref]');
+		for(var i=0; i<refs.length; i++){
+			var refURI = refs[i].getAttributeNS(null, 'ref');
+			var perf = this.props.performances.find(x=>x[pref.frbr+'partOf']['@id']==refURI);
+			if(perf){
+				if(this.props.current.performance==perf){
+					refs[i].classList.add('current');
+				}
+				var defPerf = this.props.setPerformance.bind(null, perf);
+				var undefPerf = this.props.clearPerformance;
+				refs[i].onmouseenter = defPerf;
+				refs[i].ontouchstart = defPerf;
+				refs[i].onmouseleave = undefPerf;
+				refs[i].ontouchend = undefPerf;
+			}
+		}
+	}
 	cancelHighlights(){
 		var rules = document.styleSheets[0].cssRules || document.styleSheets[0].rules;
 		var i=0;
@@ -204,8 +235,23 @@ class TEI extends Component {
 					}
 					break;
 				case pref.meldterm+"personInfo":
-					var definition = { definition: annotation[pref.oa+"hasBody"][0].definition,
-														 head: annotation[pref.oa+"hasBody"][0].head };
+					// Some ontology disagreements between apps
+					var annBody = objOrFirstObj(annotation[pref.oa + "hasBody"])
+					if(annBody.definition) { // deprecated version
+						var definition = { definition: annotation[pref.oa+"hasBody"][0].definition,
+															 head: annotation[pref.oa+"hasBody"][0].head };
+					} else {
+						var definition = {
+							definition: annBody[pref.meldterm+"definition"]
+								? annBody[pref.meldterm+"definition"]
+								: annBody[pref.meldterm+"hasDefinition"],
+							head: annBody[pref.meldterm+"head"]
+								? annBody[pref.meldterm+"head"]
+								: annBody[pref.meldterm+"hasHead"],
+							role: annBody[pref.meldterm+"role"],
+							classref: annBody[pref.meldterm+"classref"]
+						};
+					}
 					for(var i=0; i<fragments.length; i++){
 						var fragString = fragments[i]['@id'];
 						var terms = document.getElementsByTagName("tei-persName");
@@ -225,6 +271,8 @@ class TEI extends Component {
 					break;
 			}
 		} else if ("oa:hasBody" in annotation) {
+			// Old code: deprecated and likely to be removed. Incompatible
+			// with new traversal mechanisms.
       annotation["oa:hasBody"].map((b) => {
         // TODO convert to switch statement
         if (b["@id"] === MARKUP_EMPHASIS) {
