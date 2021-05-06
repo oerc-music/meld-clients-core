@@ -1,0 +1,10 @@
+s/objectPrefixWhitelist/expandObjectPrefix/g
+s/objectUriWhitelist/expandObjectUri/g
+s/objectTypeWhitelist/expandObjectType/g
+s/objectPrefixBlacklist/ignoreObjectPrefix/g
+s/objectUriBlacklist/ignoreObjectUri/g
+s/objectTypeBlacklist/ignoreObjectType/g
+s/propertyPrefixWhitelist/followPropertyPrefix/g
+s/propertyUriWhitelist/followPropertyUri/g
+s/propertyPrefixBlacklist/ignorePpropertyPrefix/g
+s/propertyUriBlacklist/ignorePropertyUri/g
