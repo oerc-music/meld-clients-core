@@ -1,6 +1,6 @@
 import axios from 'axios';
 import auth from 'solid-auth-client';
-import jsonld from 'jsonld'
+import jsonld from 'jsonld';
 import querystring from 'querystring';
 import { v4 as uuidv4 } from 'uuid';
 import {prefix} from '../library/prefixes.js'; 
@@ -91,38 +91,37 @@ const context = {
   "so": "http://www.linkedmusic.org/ontologies/segment/",
   "dct": "http://purl.org/dc/terms/",
   "climb": "http://meld.linkedmusic.org/climb/terms/",
-  "mc": "http://meld.linkedmusic.org/climb/muzicodeTypes/",
-
+  "mc": "http://meld.linkedmusic.org/climb/muzicodeTypes/"
 };
 
 export function fetchScore(url, options) {
   console.log("FETCH_SCORE ACTION on URI: ", url);
   return(dispatch) => { 
     auth.fetch(url, {mode: 'cors'})
-      .then( (response) => {
+      .then(response => {
         return response.text()
       })
-      .then( (data) => {
+      .then(data => {
         dispatch({
           type: FETCH_SCORE,
           payload: { 
             data, 
             config: { url, options }
           }
-        })
-      })
-  }
+        });
+      });
+  };
 }
 
 export function fetchRibbonContent(url) {
   // console.log("FETCH_RIBBON_CONTENT ACTION on URI: ", uri);
   const promise = auth.fetch(url);
-  return(dispatch) => { 
+  return dispatch => { 
     auth.fetch(url, {mode: 'cors'})
-      .then( (response) => {
+      .then(response => {
         return response.text()
       })
-      .then( (data) => {
+      .then(data => {
         dispatch({
           type: FETCH_RIBBON_CONTENT,
           payload: { 
@@ -140,8 +139,8 @@ export function fetchRibbonContent(url) {
 
 export function fetchTEI(uri) {
   const promise = new CETEI().getHTML5(uri);
-  return (dispatch) => {
-    promise.then((data) => {
+  return dispatch => {
+    promise.then(data => {
       dispatch({
         type: FETCH_TEI,
         payload: {
@@ -153,16 +152,7 @@ export function fetchTEI(uri) {
   }
 }
 
-export function registerTraversal(
-    docUri,
-    {  // use destructuring to simulate named parameters
-      objectPrefixWhitelist = [], objectUriWhitelist = [], objectTypeWhitelist = [],
-      objectPrefixBlacklist = [], objectUriBlacklist = [], objectTypeBlacklist = [],
-      propertyPrefixWhitelist = [], propertyUriWhitelist = [],
-      propertyPrefixBlacklist = [], propertyUriBlacklist = [],
-      objectives = {}, numHops = MAX_TRAVERSAL_HOPS,
-      useEtag = false, etag = ""
-    } = {}) {
+export function registerTraversal(docUri, suppliedParams = {}) {
   // PURPOSE:
   // *************************************************************************
   // Traverse through a graph, looking for entities of interest
@@ -179,39 +169,90 @@ export function registerTraversal(
   // With each hop, decrement numHops.
   // Stop when numHops reaches zero, or when there are no more objects
   //   to traverse to.
-  // If an objectPrefixWhitelist is specified, only traverse to objects with
+  // If an extendObjectPrefix is specified, only traverse to objects with
   //  URIs that start with a prefix in the list.
-  // If an objectUriWhitelist is specified, only traverse to objects with
+  // If an extendObjectUri is specified, only traverse to objects with
   //  URIs in the list.
-  // If an objectTypeWhitelist is specified, only traverse to objects with
+  // If an extendObjectType is specified, only traverse to objects with
   //  a type that's in the list.
-  // If an objectPrefixBlacklist is specified, only traverse to objects with
+  // If an ignoreObjectPrefix is specified, only traverse to objects with
   //  URIs that do NOT start with a prefix in the list.
-  // If an objectUriBlacklist is specified, only traverse to objects with
+  // If an ignoreObjectUri is specified, only traverse to objects with
   //  URIs that are NOT in the list.
-  // If an objectTypeBlacklist is specified, do NOT traverse to  objects with
+  // If an ignoreObjectType is specified, do NOT traverse to  objects with
   //  types in the list.
-  // If a propertyPrefixWhitelist is specified, only traverse to objects along
+  // If a followPropertyPrefix is specified, only traverse to objects along
   //  properties whose URIs start with a prefix in the list.
-  // If a propertyUriWhitelist is specified, only traverse to objects along
+  // If a followPropertyUri is specified, only traverse to objects along
   //  properties with URIs in the list.
-  // If a propertyPrefixBlacklist is specified, only traverse to objects along
+  // If a ignorePpropertyPrefix is specified, only traverse to objects along
   //  properties whose URIs do NOT start with a prefix in the list.
-  // If a propertyUriWhitelist is specified, only traverse to objects along
+  // If a followPropertyUri is specified, only traverse to objects along
   //  properties with URIs that are NOT in the list.
   // *************************************************************************
 
-  // create params object to pass on in recursive calls
-  // n.b. must update here if function signature changes
-  let params = {
-    objectPrefixWhitelist, objectUriWhitelist, objectTypeWhitelist,
-    objectPrefixBlacklist, objectUriBlacklist, objectTypeBlacklist,
-    propertyPrefixWhitelist, propertyUriWhitelist,
-    propertyPrefixBlacklist, propertyUriBlacklist,
-    objectives, numHops,
-    useEtag, etag
+  // create new params object to pass on in recursive calls
+  // n.b. must update here if function signature changes - the
+  // params object is also used to check supplied parameter names.
+  const defaultParams = {
+    extendObjectPrefix: [], extendObjectUri: [], extendObjectType: [],
+    ignoreObjectPrefix: [], ignoreObjectUri: [], ignoreObjectType: [],
+    followPropertyPrefix: [], followPropertyUri: [],
+    ignorePpropertyPrefix: [], ignorePropertyUri: [],
+    objectives: {}, numHops: MAX_TRAVERSAL_HOPS,
+    useEtag: false, etag: ""
+  };
+  let params = {...defaultParams} ;
+
+  // Check for unknown parameter/option names, and issue warnings
+  var key;
+  for (key in suppliedParams) {
+    if ( !(key in params) ) {
+      console.log("registerTraversal: unrecognized option: ", key);
+    } else {
+			params[key] = suppliedParams[key];
+		}
   }
+
+  // For older app compatibility, map old parameter names to new
+  const oldParamsMap = (
+    ( "objectPrefixWhitelist",    "extendObjectPrefix"    ),
+    ( "objectUriWhitelist",       "extendObjectUri"       ),
+    ( "objectTypeWhitelist",      "extendObjectType"      ),
+    ( "objectPrefixBlacklist",    "ignoreObjectPrefix"    ),
+    ( "objectUriBlacklist",       "ignoreObjectUri"       ),
+    ( "objectTypeBlacklist",      "ignoreObjectType"      ),
+    ( "propertyPrefixWhitelist",  "followPropertyPrefix"  ),
+    ( "propertyUriWhitelist",     "followPropertyUri"     ),
+    ( "propertyPrefixBlacklist",  "ignorePpropertyPrefix" ),
+    ( "propertyUriBlacklist",     "ignorePropertyUri"     )
+  ) ;
+  for ( var i in oldParamsMap ) {
+    var oldkey = oldParamsMap[i][0];
+    var newkey = oldParamsMap[i][1];
+    if ( (oldkey in suppliedParams) && !(newkey in suppliedParams) ) {
+      params[newkey] = suppliedParams[oldkey]
+    }
+  }
+
+  const unimplementedParams = (
+    "extendObjectType",
+    "ignoreObjectType",    
+    "followPropertyPrefix", 
+    "followPropertyUri",
+    "ignorePpropertyPrefix",
+    "ignorePropertyUri"
+    );
+  for (key in unimplementedParams) {
+    if ( (key in params) ) {
+      console.log("registerTraversal: unimplemented option: ", key);
+    }
+  }
+
+  console.log("FETCHING: ", docUri, params);
+
   
+	docUri = new URL(docUri, document.URL).toString();
   if(passesTraversalConstraints({"@id":docUri}, params)) { 
     return ({
       type: REGISTER_TRAVERSAL,
@@ -222,6 +263,7 @@ export function registerTraversal(
       type: TRAVERSAL_CONSTRAINED
     })
   }
+
 }
 
 export function traverse(docUri, params) {
@@ -241,7 +283,7 @@ export function traverse(docUri, params) {
       type: RUN_TRAVERSAL,
       payload: {docUri}
     });
-    promise.then((response) => {
+    promise.then(response => {
       if (response.status == 304) {
         dispatch({type: TRAVERSAL_UNNECCESSARY});
         return; // file not modified, i.e. etag matched, no updates required
@@ -272,20 +314,20 @@ export function traverse(docUri, params) {
         console.log("Don't know how to treat this document: ", docUri, response)
       }
       // appropriately handle content types
-//			if(isRDF(response.headers.get("Content-Type"))) {
-//				toNQuads(
-//					
-//			}
-//			switch(response.headers.get("Content-Type")) {
-//				// If we are working with RDF, we need to convert it to JSON-LD.
-//				// Unfortunately jsonld.js only reads nquads.
-//				// Thus, convert non-nquad RDF formats to nquad first
-//				case "text/turtle":
-//				case "application/trig":
-//				case "application/n-triples":
-//				case "text/n3":
-//
-    }).catch((err) => {
+      //			if(isRDF(response.headers.get("Content-Type"))) {
+      //				toNQuads(
+      //					
+      //			}
+      //			switch(response.headers.get("Content-Type")) {
+      //				// If we are working with RDF, we need to convert it to JSON-LD.
+      //				// Unfortunately jsonld.js only reads nquads.
+      //				// Thus, convert non-nquad RDF formats to nquad first
+      //				case "text/turtle":
+      //				case "application/trig":
+      //				case "application/n-triples":
+      //				case "text/n3":
+      //
+    }).catch(err => {
       dispatch({type: TRAVERSAL_FAILED});
       console.log("Could not retrieve ", docUri, err);
     });
@@ -303,10 +345,10 @@ export function traverse(docUri, params) {
 function skolemize(obj, docUri) {
   if (Array.isArray(obj)) {
     // if fed an array, recur on each constitutent
-    obj = obj.map((o) => skolemize(o, docUri));
+    obj = obj.map(o => skolemize(o, docUri));
   } else if (obj === Object(obj)) {
     // if fed an object, iterate over each key
-    Object.keys(obj).map((k) => {
+    Object.keys(obj).map(k => {
       if (k === "@id") {
         // found an @id, check for blank node and skolemize if necesssary
         obj["@id"] = obj["@id"].replace("_:", docUri + "#genid-");
@@ -321,73 +363,64 @@ function skolemize(obj, docUri) {
 
 
 function traverseRDF(dispatch, docUri, params, dataPromise){
-  console.log("in traverseRDF for doc ", docUri, "with blacklist ", params["objectUriBlacklist"]);
-  // expand the JSON-LD object so that we are working with full URIs, not compacted into prefixes
-  dataPromise.then((data) => {
-		dispatch(traverseJSONLD(dispatch, docUri, params, jsonld.fromRDF(data, {format: 'application/n-quads'})));
-	}).catch((err)=> console.error(err));
+  console.log("in traverseRDF for doc ", docUri, "with exclude list ", params["ignoreObjectUri"]);
+	// expand the JSON-LD object so that we are working with full URIs, not compacted into prefixes
+  dataPromise.then(data => {
+		dispatch(traverseJSONLD(dispatch, docUri, params, jsonld.fromRDF(data)));
+	}).catch(err => console.error(err));
 	return {type: TRAVERSAL_HOP}
 }
 
 function traverseJSONLD(dispatch, docUri, params, dataPromise) {
-  console.log("in traverseJSONLD for doc ", docUri, "with blacklist ", params["objectUriBlacklist"]);
+	console.log("in traverseJSONLD for doc ", docUri, "with exclude list ", params["ignoreObjectUri"]);
   // expand the JSON-LD object so that we are working with full URIs, not compacted into prefixes
-  dataPromise.then((data) => {
-		// If it's not a string, then it's a JSONLD object. Turn it into string
-		// if(typeof(data)!=="string") {
-		// 	console.log("CONVERTING", data, typeof(data));
-		// 	data = JSON.stringify(data);
-		// }
-		console.log(data);
-		console.log("attempting to expand: ", data);
-		jsonld.expand(data, (err, expanded) => {
-			if (err) {
-				console.log("EXPANSION ERROR: ", docUri, err);
-			}
-			console.log("Got expanded json: ", expanded);
-			// flatten the expanded JSON-LD object so that each described entity has an ID at the top-level of the tree
-			jsonld.flatten(expanded, (err, flattened) => {
-				const skolemized = skolemize(flattened, docUri);
-				dispatch({
-					type: FETCH_GRAPH_DOCUMENT,
-					payload:  { 
-						data: skolemized,
-						uri: docUri
-					}
-				});
-				// convert the flattened array of JSON-LD structures into a lookup table using each entity's URI ("@id")
-				let idLookup = {};
-				Object.entries(skolemized).forEach(([key, value]) => {
-					idLookup[value["@id"]] = value;
-				});
-				Object.entries(idLookup).forEach(([subjectUri, subjectDescription]) => {
-					// iterating through each entity within the document as the subject,
-					// look at its description (set of predicate-object tuples).
-					Object.entries(subjectDescription).forEach(([pred, objs]) => {
-						// because JSON-LD, objs could be a single object or an array of objects
-						// therefore, ensure consistency:
-						objs = Array.isArray(objs) ? objs : [objs];
-						objs.map((obj) => {
-							if (obj === Object(obj)) {
-								// our *RDF* object is a *JAVASCRIPT* object
-								// but because we've flattened our document, we know that it will contain only an @id
-								// and that all of its other descriptors will be associated with that @id at the top-level
-								// (which we will handle in another iteration)
-								// CHECK FOR OBJECTIVES HERE
-								//console.log("<>", subjectUri, pred, obj["@id"], docUri);
-								// Now recurse (if black/whitelist conditions and hop counter allow)
-								if (passesTraversalConstraints(obj, params)) {
-									//                  console.log("registering next traversal!", obj["@id"])
-									dispatch(registerTraversal(obj["@id"], {
-										...params,
-										// Remember that we've already visited the current document to avoid loops
-										"objectUriBlacklist": params["objectUriBlacklist"].concat(docUri.split("#")[0]),
-										"numHops": params["numHops"] - 1
-									}))
-								}
-							} else {
-								// our *RDF* object is a literal
-								// n.b. exceptions where pred is @type, @id, etc. There, the obj is still a URI, not a literal
+  dataPromise.then(data => {
+    console.log("attempting to expand: ", data);
+		jsonld.expand(data).then(expanded => {
+      console.log("Got expanded json: ", expanded);
+      // flatten the expanded JSON-LD object so that each described entity has an ID at the top-level of the tree
+      jsonld.flatten(expanded).then(flattened => {
+        const skolemized = skolemize(flattened, docUri);
+        dispatch({
+          type: FETCH_GRAPH_DOCUMENT,
+          payload:  { 
+            data: skolemized,
+            uri: docUri
+          }
+        });
+        // convert the flattened array of JSON-LD structures into a lookup table using each entity's URI ("@id")
+        let idLookup = {};
+        Object.entries(skolemized).forEach(([key, value]) => {
+          idLookup[value["@id"]] = value;
+        });
+        Object.entries(idLookup).forEach(([subjectUri, subjectDescription]) => {
+          // iterating through each entity within the document as the subject,
+          // look at its description (set of predicate-object tuples).
+          Object.entries(subjectDescription).forEach(([pred, objs]) => {
+            // because JSON-LD, objs could be a single object or an array of objects
+            // therefore, ensure consistency:
+            objs = Array.isArray(objs) ? objs : [objs];
+            objs.map((obj) => {
+              if (obj === Object(obj)) {
+                // our *RDF* object is a *JAVASCRIPT* object
+                // but because we've flattened our document, we know that it will contain only an @id
+                // and that all of its other descriptors will be associated with that @id at the top-level
+                // (which we will handle in another iteration)
+                // CHECK FOR OBJECTIVES HERE
+                //console.log("<>", subjectUri, pred, obj["@id"], docUri);
+                // Now recurse (if exclusion/inclusion conditions and hop counter allow)
+                if (passesTraversalConstraints(obj, params)) {
+//                  console.log("registering next traversal!", obj["@id"])
+                  dispatch(registerTraversal(obj["@id"], {
+                    ...params,
+                    // Remember that we've already visited the current document to avoid loops
+                    "ignoreObjectUri": params["ignoreObjectUri"].concat(docUri.split("#")[0]),
+                    "numHops": params["numHops"] - 1
+                  }));
+                }
+              } else {
+                // our *RDF* object is a literal
+                // n.b. exceptions where pred is @type, @id, etc. There, the obj is still a URI, not a literal
                 // Could test for those explicitly here.
 								// CHECK FOR OBJECTIVES HERE
 								//	console.log("||", subjectUri, pred, obj, docUri)
@@ -396,8 +429,8 @@ function traverseJSONLD(dispatch, docUri, params, dataPromise) {
 						});
 					})
 				});
-      })
-    });
+      });
+    }).catch(error=>console.log("EXPANSION ERROR: ", docUri, err));
   });
   return {type: TRAVERSAL_HOP}
 }
@@ -418,67 +451,66 @@ function passesTraversalConstraints(obj, params) {
     return false;
   }
 
-  const resourceUri = obj["@id"].split("#")[0]; // don't traverse fragments of a blacklisted resource...
+  const resourceUri = obj["@id"].split("#")[0]; // don't traverse fragments of an excluded resource...
 
   // test: object URI doesn't violate constraints
-  if (params["objectUriWhitelist"].length) {
-    // URI whitelist specified:
-    // only pass if included in URI whitelist AND not in URI blacklist
-    if (!params["objectUriWhitelist"].includes(resourceUri) ||
-        params["objectUriBlacklist"].includes(resourceUri)) {
-      //console.log("Test 3: object blacklisted (and not in whitelist)", obj, params)
+  if (params["extendObjectUri"].length) {
+    // URI inclusion list specified:
+    // only pass if included in URI inclusion list AND not in URI exclusion list
+    if (!params["extendObjectUri"].includes(resourceUri) ||
+        params["ignoreObjectUri"].includes(resourceUri)) {
+      //console.log("Test 3: object excluded (and not in inclusion list)", obj, params)
       return false;
     }
   } else {
-    // no URI whitelist
-    // only pass if not in URI blacklist
-    if (params["objectUriBlacklist"].includes(resourceUri)) {
-      //console.log("Test 4: object blacklisted (without whitelist)", obj, params)
+    // no URI inclusion list
+    // only pass if not in URI exclusion list
+    if (params["ignoreObjectUri"].includes(resourceUri)) {
+      //console.log("Test 4: object excluded (without inclusion list)", obj, params)
       return false;
     }
   }
 
   // test: object URI doesn't violate PREFIX constraints
-  const prefixBlackListed = params["objectPrefixBlacklist"].filter((pre) => {
+  const prefixExcluded = params["ignoreObjectPrefix"].filter(pre => {
     return resourceUri.startsWith(pre.split("#")[0]);
   });
-  // only pass if prefix not blacklisted
-  if (prefixBlackListed.length) {
-    //console.log("Test 5: prefix blacklisted", obj, params)
+  // only pass if prefix not excluded
+  if (prefixExcluded.length) {
+    //console.log("Test 5: prefix excluded", obj, params)
     return false;
   }
-  if (params["objectPrefixWhitelist"].length) {
-    // Prefix whitelist specified:
-    const prefixWhiteListed = params["objectPrefixWhitelist"].filter((pre) => {
+  if (params["extendObjectPrefix"].length) {
+    // Prefix inclusion list specified:
+    const prefixIncluded = params["extendObjectPrefix"].filter(pre => {
       return resourceUri.startsWith(pre);
     });
-    // only pass if included in prefix whitelist
-    if (prefixWhiteListed.length === 0) {
-      //console.log("Test 6: prefix not in specified whitelist", obj, params)
+    // only pass if included in prefix inclusion list
+    if (prefixIncluded.length === 0) {
+      //console.log("Test 6: prefix not in specified inclusion list", obj, params)
       return false
     }
   }
-  //console.log("Object passes all traversal constraint tests", obj, params, params["objectPrefixWhitelist"], params["objectPrefixBlacklist"], params["objectUriBlacklist"]);
+  //console.log("Object passes all traversal constraint tests", obj, params, params["extendObjectPrefix"], params["ignoreObjectPrefix"], params["ignoreObjectUri"]);
   return true;
 }
 
 
 export function checkTraversalObjectives(graph, objectives) {
   // check a given json-ld structure against a set of objectives (json-ld frames)
-  return (dispatch) => {
+  return dispatch => {
     objectives.map((obj, ix) => {
-      jsonld.frame(graph, obj, (err, framed) => {
-        if (err) {
-          console.log("FRAMING ERROR: ", objectives[ix], err);
-        } else {
-          dispatch({
-            type: APPLY_TRAVERSAL_OBJECTIVE,
-            payload: {ix, framed}
-          })
-        }
-      })
-    })
-  }
+      jsonld.frame(graph, obj).then(framed => {
+        dispatch({
+          type: APPLY_TRAVERSAL_OBJECTIVE,
+          payload: {
+            ix,
+            framed
+          }
+        });
+      }).catch(err=>console.log("FRAMING ERROR: ", objectives[ix], err));
+    });
+  };
 }
 
 export function setTraversalObjectives(objectives) {
@@ -574,7 +606,7 @@ function processComponentAnnotation(annotation, conceptualScore = "") {
   }
   annotation = ensureArray(annotation, "oa:hasTarget");
   // console.log("Processing component annotation: ", annotation, conceptualScore)
-  const targets = annotation["oa:hasTarget"].map((target) => {
+  const targets = annotation["oa:hasTarget"].map(target => {
     return {
       "@id": target["@id"],
       // DW TODO 20170830 may need to validate whether @type exists
@@ -582,7 +614,7 @@ function processComponentAnnotation(annotation, conceptualScore = "") {
     }
   });
   return (dispatch) => {
-    targets.map((target) => {
+    targets.map(target => {
       dispatch(fetchComponentTarget(target["@id"], conceptualScore))
     });
     dispatch({
@@ -600,87 +632,71 @@ function processComponentAnnotation(annotation, conceptualScore = "") {
 export function fetchComponentTarget(uri, conceptualScore = "") {
   // console.log("FETCH_COMPONENT_TARGET ACTION ON URI: ", uri);
   const promise = auth.fetch(uri, {headers: {'Accept': 'application/ld+json'}, mode: 'cors'});
-  return (dispatch) => {
-    promise.then((data) => {
+  return dispatch => {
+    promise.then(data => {
       // console.log("Attemping to frame data", data);
-      if (!"content-type" in data.headers ||
-          (data.headers.get("Content-Type") !== "application/json" &&
-              data.headers.get("Content-Type") !== "application/ld+json")
-      ) {
+      if (!"content-type" in data.headers || data.headers.get("Content-Type") !== "application/json" && data.headers.get("Content-Type") !== "application/ld+json") {
         // console.log("Converting to JSON...");
         // need to convert triples to json
         // TODO handle arbitrary RDF format here (currently requires ntriples)
-        jsonld.fromRDF(data.data, (err, doc) => {
-          if (err) {
-            console.log("ERROR CONVERTING NQUADS TO JSON-LD: ", err);
-          } else {
-            dispatch(processComponentTarget(doc, uri, conceptualScore));
-          }
-        });
+        jsonld.fromRDF(data.data, {format: 'application/n-quads'}).then(doc => {
+          dispatch(processComponentTarget(doc, uri, conceptualScore));
+        }).catch(err => console.log("ERROR CONVERTING NQUADS TO JSON-LD: ", err));
       } else {
         // already in json format
         dispatch(processComponentTarget(data.data, uri, conceptualScore));
       }
     });
-  }
+	};
 }
 
 function processComponentTarget(data, uri, conceptualScore) {
   // console.log("PROCESS_COMPONENT_TARGET ACTION ON URI: ", uri);
   return (dispatch) => {
-    jsonld.frame(data, {"@id": uri}, (err, framed) => {
-      if (err) {
-        // console.log("FRAMING ERROR in processComponentTarget:", err)
-        return {
-          type: ANNOTATION_NOT_HANDLED
-        }
-      } else {
-        jsonld.compact(framed, context, (err, compacted) => {
-          if (err) {
-            console.log("COMPACTING ERROR in processComponentTarget:", err)
-          } else {
-            dispatch({
-              type: FETCH_COMPONENT_TARGET,
-              payload: {
-                conceptualScore: conceptualScore,
-                structureTarget: uri
-              }
-            });
-            // console.log("COMPACTED: ", compacted);
-            let typecheck = compacted;
-            typecheck = ensureArray(typecheck, "@type");
-            // have we found a segment?
-            // console.log("TYPECHECK: ", typecheck)
-            if (typecheck["@type"].includes(SEGMENT) || typecheck["@type"].includes(MUZICODE)) {
-              // TODO jsonldify context
-              // TODO refine muzicode semantics for this
-              // found a segment or muzicode!
-              // hand it off to the reducer to process the embodibag
-              // nb this is a different route to larrymeld (via expression)
-              // i.e. there is no partonomy here. So send the segment itself as the part.
-              dispatch({
-                type: FETCH_MANIFESTATIONS,
-                payload: {
-                  target: compacted,
-                  part: compacted
-                }
-              });
-            } else {
-              // if not, continue following links via the target's expression
-              dispatch(fetchTargetExpression(compacted));
-            }
+    jsonld.frame(data, { "@id": uri }).then(framed => {
+      jsonld.compact(framed, context).then(compacted => {
+        dispatch({
+          type: FETCH_COMPONENT_TARGET,
+          payload: {
+            conceptualScore: conceptualScore,
+            structureTarget: uri
           }
-        })
-      }
-    })
-  }
+        }); // console.log("COMPACTED: ", compacted);
+				
+        let typecheck = compacted;
+        typecheck = ensureArray(typecheck, "@type"); // have we found a segment?
+        // console.log("TYPECHECK: ", typecheck)
+				
+        if (typecheck["@type"].includes(SEGMENT) || typecheck["@type"].includes(MUZICODE)) {
+          // TODO jsonldify context
+          // TODO refine muzicode semantics for this
+          // found a segment or muzicode!
+          // hand it off to the reducer to process the embodibag
+          // nb this is a different route to larrymeld (via expression)
+          // i.e. there is no partonomy here. So send the segment itself as the part.
+          dispatch({
+            type: FETCH_MANIFESTATIONS,
+            payload: {
+              target: compacted,
+              part: compacted
+            }
+          });
+        } else {
+          // if not, continue following links via the target's expression
+          dispatch(fetchTargetExpression(compacted));
+        }
+      }).catch(err => console.log("COMPACTING ERROR in processComponentTarget:", err));
+    }).catch(err => {
+      type: ANNOTATION_NOT_HANDLED
+    });
+  };
 }
 
 
 export function fetchTargetExpression(compacted) {
   // traverse from the provided Expression, via a Segment, to Manifestation(s)
   // console.log("In fetchTargetExpression: ", compacted);
-  return (dispatch) => {
+  return dispatch => {
     dispatch({
       type: FETCH_TARGET_EXPRESSION,
       payload: compacted
