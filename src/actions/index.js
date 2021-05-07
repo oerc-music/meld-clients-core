@@ -215,18 +215,18 @@ export function registerTraversal(docUri, suppliedParams = {}) {
   }
 
   // For older app compatibility, map old parameter names to new
-  const oldParamsMap = (
-    ( "objectPrefixWhitelist",    "extendObjectPrefix"    ),
-    ( "objectUriWhitelist",       "extendObjectUri"       ),
-    ( "objectTypeWhitelist",      "extendObjectType"      ),
-    ( "objectPrefixBlacklist",    "ignoreObjectPrefix"    ),
-    ( "objectUriBlacklist",       "ignoreObjectUri"       ),
-    ( "objectTypeBlacklist",      "ignoreObjectType"      ),
-    ( "propertyPrefixWhitelist",  "followPropertyPrefix"  ),
-    ( "propertyUriWhitelist",     "followPropertyUri"     ),
-    ( "propertyPrefixBlacklist",  "ignorePpropertyPrefix" ),
-    ( "propertyUriBlacklist",     "ignorePropertyUri"     )
-  ) ;
+  const oldParamsMap = [
+    [ "objectPrefixWhitelist",    "extendObjectPrefix"    ],
+    [ "objectUriWhitelist",       "extendObjectUri"       ],
+    [ "objectTypeWhitelist",      "extendObjectType"      ],
+    [ "objectPrefixBlacklist",    "ignoreObjectPrefix"    ],
+    [ "objectUriBlacklist",       "ignoreObjectUri"       ],
+    [ "objectTypeBlacklist",      "ignoreObjectType"      ],
+    [ "propertyPrefixWhitelist",  "followPropertyPrefix"  ],
+    [ "propertyUriWhitelist",     "followPropertyUri"     ],
+    [ "propertyPrefixBlacklist",  "ignorePropertyPrefix" ],
+    [ "propertyUriBlacklist",     "ignorePropertyUri"     ]
+  ] ;
   for ( var i in oldParamsMap ) {
     var oldkey = oldParamsMap[i][0];
     var newkey = oldParamsMap[i][1];
@@ -240,7 +240,7 @@ export function registerTraversal(docUri, suppliedParams = {}) {
     "ignoreObjectType",    
     "followPropertyPrefix", 
     "followPropertyUri",
-    "ignorePpropertyPrefix",
+    "ignorePropertyPrefix",
     "ignorePropertyUri"
     );
   for (key in unimplementedParams) {
@@ -249,9 +249,6 @@ export function registerTraversal(docUri, suppliedParams = {}) {
     }
   }
 
-  console.log("FETCHING: ", docUri, params);
-
-  
 	docUri = new URL(docUri, document.URL).toString();
   if(passesTraversalConstraints({"@id":docUri}, params)) { 
     return ({
