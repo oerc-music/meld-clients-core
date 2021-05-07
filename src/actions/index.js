@@ -260,7 +260,6 @@ export function registerTraversal(docUri, suppliedParams = {}) {
       type: TRAVERSAL_CONSTRAINED
     })
   }
-
 }
 
 export function traverse(docUri, params) {
