@@ -529,6 +529,7 @@ export function setTraversalObjectives(objectives) {
 
 
 export function fetchSessionGraph(uri, etag = "") {
+  console.warn("DEPRECATION WARNING: The function fetchSessionGraph is considered deprecated as of meld-clients-core v2.0.0 and will be subject to removal in future versions. Please upgrade your application to use the registerTraversal and traverse functions instead.");
   // console.log("FETCH_SESSION_GRAPH ACTION ON URI: ", uri, " with etag: ", etag);
   // TODO add etag to header as If-None-Match and enable corresponding support on server
   // so that it can respond with 304 instead of 200 (i.e. so it can ommit file body)
@@ -604,6 +605,7 @@ export function fetchGraph(uri) {
 }
 
 function processComponentAnnotation(annotation, conceptualScore = "") {
+  console.warn("DEPRECATION WARNING: The function processComponentAnnotation is considered deprecated as of meld-clients-core v2.0.0 and will be subject to removal in future versions. Please upgrade your application to use the registerTraversal and traverse functions instead.");
   if ("meld:state" in annotation && annotation["meld:state"]["@id"] === "meld:processed") {
     // We can skip this processed annotation
     return {
@@ -637,6 +639,7 @@ function processComponentAnnotation(annotation, conceptualScore = "") {
 
 
 export function fetchComponentTarget(uri, conceptualScore = "") {
+  console.warn("DEPRECATION WARNING: The function fetchComponentTarget is considered deprecated as of meld-clients-core v2.0.0 and will be subject to removal in future versions. Please upgrade your application to use the registerTraversal and traverse functions instead.");
   // console.log("FETCH_COMPONENT_TARGET ACTION ON URI: ", uri);
   const promise = auth.fetch(uri, {headers: {'Accept': 'application/ld+json'}, mode: 'cors'});
   return dispatch => {
@@ -658,6 +661,7 @@ export function fetchComponentTarget(uri, conceptualScore = "") {
 }
 
 function processComponentTarget(data, uri, conceptualScore) {
+  console.warn("DEPRECATION WARNING: The function processComponentTarget is considered deprecated as of meld-clients-core v2.0.0 and will be subject to removal in future versions. Please upgrade your application to use the checkTraversalObjectives function instead.");
   // console.log("PROCESS_COMPONENT_TARGET ACTION ON URI: ", uri);
   return (dispatch) => {
     jsonld.frame(data, { "@id": uri }).then(framed => {
@@ -701,6 +705,7 @@ function processComponentTarget(data, uri, conceptualScore) {
 
 
 export function fetchTargetExpression(compacted) {
+  console.warn("DEPRECATION WARNING: The function fetchTargetExpression is considered deprecated as of meld-clients-core v2.0.0 and will be subject to removal in future versions. Please upgrade your application to use the registerTraversal and traverse functions instead.");
   // traverse from the provided Expression, via a Segment, to Manifestation(s)
   // console.log("In fetchTargetExpression: ", compacted);
   return dispatch => {
@@ -781,6 +786,7 @@ export function fetchTargetExpression(compacted) {
 
 
 export function fetchWork(target, parts, work, expressionObj) {
+  console.warn("DEPRECATION WARNING: The function fetchWork is considered deprecated as of meld-clients-core v2.0.0 and will be subject to removal in future versions. Please upgrade your application to use the registerTraversal and traverse functions instead.");
   // console.log("STARTING FETCHWORK WITH ", work, parts, expressionObj);
   return (dispatch) => {
     dispatch({
@@ -880,6 +886,7 @@ export function fetchWork(target, parts, work, expressionObj) {
 }
 
 export function fetchStructure(target, parts, segline) {
+  console.warn("DEPRECATION WARNING: The function fetchStructure is considered deprecated as of meld-clients-core v2.0.0 and will be subject to removal in future versions. Please upgrade your application to use the registerTraversal and traverse functions instead.");
   return (dispatch) => {
     dispatch({
       type: FETCH_STRUCTURE,
@@ -926,6 +933,8 @@ export function fetchStructure(target, parts, segline) {
 }
 
 export function fetchConceptualScore(session, uri) {
+  console.warn("DEPRECATION WARNING: The function fetchConceptualScore is considered deprecated as of meld-clients-core v2.0.0 and will be subject to removal in future versions. Please upgrade your application to use the registerTraversal and traverse functions instead.");
+  return (dispatch) => {
   // console.log("FETCH_CONCEPTUAL_SCORE ON URI: ", uri);
   const promise = auth.fetch(uri, {headers: {'Accept': 'application/ld+json'}});
 
@@ -957,7 +966,8 @@ export function fetchConceptualScore(session, uri) {
           )
         )
       }*/
-    })
+      })
+    }
   }
 }
 
