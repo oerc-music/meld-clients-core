@@ -57,7 +57,7 @@ export default function (state = {mediaResources: {}}, action) {
       return update(state, {
         "mediaResources": {
           [action.payload.uri]: {
-            $set: {
+            $merge: {
               "currentTime": action.payload.time,
             }
           }
