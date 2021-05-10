@@ -10,6 +10,7 @@ The table below lists the applications that use the `meld` framework, listing ve
 | Delius String Quartet annotation - 1. annotator | [GitHub](https://github.com/oerc-music/delius-annotation) | http://delius-playback.linkedmusic.org/playback | 2.0.0 | |
 | Delius String Quartet annotation - 2. playback  | [GitHub](https://github.com/oerc-music/delius-annotation) | [delius-annotation.linkedmusic.org](https://delius-annotation.linkedmusic.org/) | 2.0.0 | |
 | Music Scholars' Score annotator | [GitHub](https://github.com/trompamusic/music-scholars-annotator) | [trompamusic.github.io/music-scholars-annotator](https://trompamusic.github.io/music-scholars-annotator/) | 2.0.0 | |
+| Selectable Score Demo | [GitHub](https://github.com/trompamusic/selectable-score-demo) | | 2.0.0 |
 | Listening Through Time (enhanced podcast) |  | [nyphil.linkedmusic.org](https://nyphil.linkedmusic.org/) | 2.0.0 | |
 | Hello MELD 1-5 (training and testing applications) | [GitHub](https://github.com/oerc-music/meld-hello-meld) |  | 2.0.0 |  |
 | Climb! Performance Archive | [GitHub](https://github.com/cgreenhalgh/climb-archive) | | 0.9.0 | |
