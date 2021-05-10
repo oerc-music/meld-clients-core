@@ -65,6 +65,7 @@ export const TRAVERSAL_HOP = "TRAVERSAL_HOP";
 export const TRAVERSAL_FAILED = "TRAVERSAL_FAILED";
 export const TRAVERSAL_UNNECCESSARY = "TRAVERSAL_UNNECCESSARY";
 export const TRAVERSAL_CONSTRAINED = "TRAVERSAL_CONSTRAINED";
+export const IGNORE_TRAVERSAL_OBJECTIVE_CHECK_ON_EMPTY_GRAPH ="IGNORE_TRAVERSAL_OBJECTIVE_CHECK_ON_EMPTY_GRAPH";
 export const RUN_TRAVERSAL = "RUN_TRAVERSAL";
 export const REGISTER_TRAVERSAL = "REGISTER_TRAVERSAL";
 export const UPDATE_LATEST_RENDERED_PAGENUM = "UPDATE_LATEST_RENDERED_PAGENUM";
@@ -507,6 +508,10 @@ export function checkTraversalObjectives(graph, objectives) {
           });
         }).catch(err=>console.log("FRAMING ERROR: ", objectives[ix], err));
       });
+    }
+  } else { 
+    return {
+      type: IGNORE_TRAVERSAL_OBJECTIVE_CHECK_ON_EMPTY_GRAPH
     }
   }
 }
