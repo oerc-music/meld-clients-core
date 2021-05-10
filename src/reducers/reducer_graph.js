@@ -154,10 +154,12 @@ export default function (state = INIT_STATE, action) {
     case APPLY_TRAVERSAL_OBJECTIVE:
       // an objective has been applied against the graph. Store the outcome at the
       // appropriate index.
-      console.log("Graph reducer: Applying traversal objective", action, state)
       let updatedOutcomes = state.outcomes;
       updatedOutcomes[action.payload.ix] = action.payload.framed;
       let updatedOutcomesHash = JSum.digest(updatedOutcomes, 'md5', 'hex');
+      if(action.payload.ix === state.objectives.length-1) { 
+        console.log("About to switch on allObjectivesApplied with", updatedOutcomes, state)
+      }
       return update(state, {
         outcomes: {
           $set: updatedOutcomes
