@@ -492,27 +492,31 @@ function passesTraversalConstraints(obj, params) {
   return true;
 }
 
-
 export function checkTraversalObjectives(graph, objectives) {
   // check a given json-ld structure against a set of objectives (json-ld frames)
-  if(graph.length) { 
+  if (graph.length) {
     return dispatch => {
-      objectives.map((obj, ix) => {
-        jsonld.frame(graph, obj).then(framed => {
+      let framingPromises = [];
+      objectives.forEach( (obj) => {
+        framingPromises.push(jsonld.frame(graph, obj))
+      })
+      Promise.allSettled(framingPromises).then( (framedResolved) =>  {
+        framedResolved.forEach( (resolvedFrame, ix) => {
+          const framed = resolvedFrame["value"];
           dispatch({
             type: APPLY_TRAVERSAL_OBJECTIVE,
             payload: {
               ix,
               framed
             }
-          });
-        }).catch(err=>console.log("FRAMING ERROR: ", objectives[ix], err));
-      });
+          })
+        })
+      })
     }
-  } else { 
+  } else {
     return {
       type: IGNORE_TRAVERSAL_OBJECTIVE_CHECK_ON_EMPTY_GRAPH
-    }
+    };
   }
 }
 
