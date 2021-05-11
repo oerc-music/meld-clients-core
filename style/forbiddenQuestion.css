@@ -1,6 +1,7 @@
 div.TEIContainer {
-  display: none;
+    display: none;
 }
+
 /*
 @keyframes pulse_animation {
 	0% { transform: scale(1,1); }
@@ -21,32 +22,52 @@ div.TEIContainer {
 }
 */
 @keyframes pulse_animation {
-	0% { transform: rotate(0deg); }
-	20% { transform: rotate(2deg); }
-	30% { transform: rotate(4deg); }
-	40% { transform: rotate(8deg); }
-	50% { transform: rotate(2deg); }
-	60% { transform: rotate(-2deg); }
-	70% { transform: rotate(-8deg); }
-	80% { transform: rotate(-2ddeg); }
-	100% { transform: rotate(0deg); }
+    0% {
+        transform: rotate(0deg);
+    }
+    20% {
+        transform: rotate(2deg);
+    }
+    30% {
+        transform: rotate(4deg);
+    }
+    40% {
+        transform: rotate(8deg);
+    }
+    50% {
+        transform: rotate(2deg);
+    }
+    60% {
+        transform: rotate(-2deg);
+    }
+    70% {
+        transform: rotate(-8deg);
+    }
+    80% {
+        transform: rotate(-2 ddeg);
+    }
+    100% {
+        transform: rotate(0deg);
+    }
 }
 
 div.TEIContainer {
-  left: 630px;
-  top: 15px;
-  width: 370px;
-  font-size: 91%;
+    left: 630px;
+    top: 15px;
+    width: 370px;
+    font-size: 91%;
 }
+
 div.TEIContainer.commentary {
-  display: block;
+    display: block;
 }
+
 svg.orchestralRibbon {
-  position: absolute;
-  left: 640px;
-  bottom: 15px;
+    position: absolute;
+    left: 640px;
+    bottom: 15px;
 }
 
 div.scorepane {
-  width: 620px;
+    width: 620px;
 }

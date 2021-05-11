@@ -1,2 +1,2 @@
-console.log("Arf!");
-export default const vrvTk = new verovio.toolkit();
+const vrvTk = new verovio.toolkit();
+export default vrvTk;
