@@ -127,8 +127,11 @@ class TEI extends Component {
         }
       });
 			if((pref.oa+"motivatedBy") in annotation
-				 && annotation[pref.oa+"motivatedBy"]["@id"]===(pref.meldterm + "personInfo")) {
-				this.handleMELDActions(annotation, annotation[pref.oa+"hasTarget"]);
+				 && annotation[pref.oa+"motivatedBy"]["@id"]===(pref.meldterm + "personInfo")) {	
+				var myFrags = Array.isArray(annotation[pref.oa+"hasTarget"])
+						? annotation[pref.oa+"hasTarget"]
+						: [annotation[pref.oa+"hasTarget"]];
+        this.handleMELDActions(annotation, myFrags);
 			}
     });
 		this.findOtherRefs();
