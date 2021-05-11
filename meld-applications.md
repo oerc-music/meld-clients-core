@@ -17,8 +17,8 @@ The table below lists the applications that use the MELD framework, listing vers
 | Selectable Score Demo | [GitHub](https://github.com/trompamusic/selectable-score-demo) | | 2.0.0 (current) | | Yes |
 | Listening Through Time (enhanced podcast) |  | [nyphil.linkedmusic.org](https://nyphil.linkedmusic.org/) | 2.0.0 (current) | |Yes |
 | Hello MELD 1-5 (training and testing applications) | [GitHub](https://github.com/oerc-music/meld-hello-meld) |  | 2.0.0 (current) |  |Yes |
-| Climb! Performance Archive | [GitHub](https://github.com/cgreenhalgh/climb-archive) | | 0.9.0 | |No|
-| Climb! | | | 0.9.0 | |No|
+| Climb! Performance Archive | [GitHub](https://github.com/cgreenhalgh/climb-archive) | | 0.9.0 (unmaintained) | |No|
+| Climb! | | | 0.9.0 (unmaintained) | |No|
 
 Please be aware that many of these applications are prototypes or demonstrators. They should not be assumed to be polished, finished and complete products.
 
