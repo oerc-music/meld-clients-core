@@ -141,7 +141,7 @@ class TEI extends Component {
 		// For some cross references, it makes more sense to discover the
 		// references themselves. Here, we find TEI refs and see if we
 		// know about the thing they refer to.
-		if(!(performances in this.props.performances)) return;
+		if(!("performances" in this.props.performances)) return;
 		var refs = document.querySelectorAll('.TEIContainer *[ref]');
 		for(var i=0; i<refs.length; i++){
 			var refURI = refs[i].getAttributeNS(null, 'ref');
