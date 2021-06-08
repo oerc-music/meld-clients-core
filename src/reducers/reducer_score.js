@@ -70,7 +70,7 @@ export function ScoreReducer(state = {
   pageCount: 0,
   triggerNextSession: "",
   triggerPrevSession: "",
-  vrvTk: new verovio.toolkit(),
+  //vrvTk: new verovio.toolkit(),
   options: { // default, unless overridden in FETCH_SCORE or SCORE_SET_OPTIONS
     ignoreLayout: 1,
     adjustPageHeight: 1,
@@ -84,6 +84,21 @@ export function ScoreReducer(state = {
   let currentPage;
   let options;
   const pageCount = state.vrvTk.getPageCount();
+  // Delay initializing state.vrvTk until action is required.
+  // NOTE: reducers are pure functions, and must not mutate the supplied state value.
+  //       This code creates a new state value with an updated toolkit reference, and then
+  //       assigns that to the local 'state' parameter variable.
+  //
+  //       Cleaner code would use a new variable for the updated state value, and use that 
+  //       consistently through the rest of the function @@TODO@@
+  //
+  if ( !state.vrvTk ) {
+    vrvTk = verovio.toolkit();
+    state = update(state, {
+        vrvTk: { $set: vrvTk }
+        }
+  }
+
   switch (action.type) {
     case FETCH_SCORE:
       url = action.payload.config.url;
