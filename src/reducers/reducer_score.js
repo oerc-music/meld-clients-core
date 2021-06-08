@@ -95,8 +95,9 @@ export function ScoreReducer(state = {
   if ( !state.vrvTk ) {
     vrvTk = verovio.toolkit();
     state = update(state, {
-        vrvTk: { $set: vrvTk }
+        vrvTk: { "$set": vrvTk }
         }
+    )
   }
 
   switch (action.type) {
