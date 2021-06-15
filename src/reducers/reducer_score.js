@@ -94,6 +94,7 @@ export function ScoreReducer(state = {
   //
   if ( !state.vrvTk ) {
     let vrvTk = verovio.toolkit();
+    console.log("reducer_score.ScoreReducer: initialize sdtate.vrvTk "+vrvTk)
     state = update(state, {
         vrvTk: { "$set": vrvTk }
         }
@@ -102,6 +103,7 @@ export function ScoreReducer(state = {
 
   switch (action.type) {
     case FETCH_SCORE:
+      console.log("reducer_score action FETCH_SCORE: state.vrvTk "+state.vrvTk)
       url = action.payload.config.url;
       currentPage = url in state.pageState 
         ? state.pageState[url].currentPage : 1;
