@@ -83,7 +83,7 @@ export function ScoreReducer(state = {
   let url;
   let currentPage;
   let options;
-  const pageCount = state.vrvTk.getPageCount();
+  // const pageCount = state.vrvTk.getPageCount();
   // Delay initializing state.vrvTk until action is required.
   // NOTE: reducers are pure functions, and must not mutate the supplied state value.
   //       This code creates a new state value with an updated toolkit reference, and then
@@ -272,7 +272,7 @@ export function ScoreReducer(state = {
       if(action.payload.pageNum !== state.pageState[url].currentPage) { 
         console.warn(`Mismatch in page numbers: received ${action.payload.pageNum} expected ${state.pageState[url].currentPage}`);
       }
-      if(action.payload.pageNum === pageCount) {
+      if(action.payload.pageNum === state.vrvTk.getPageCount()) {
         // we've left the last page, set up a transfer to the next session
         // console.log("TRIGGERING")
         console.info("Attempted SCORE_NEXT_PAGE while on last page of score");
