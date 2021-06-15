@@ -93,7 +93,9 @@ export function ScoreReducer(state = {
   //       consistently through the rest of the function @@TODO@@
   //
   if ( !state.vrvTk ) {
-    let vrvTk = new verovio.toolkit();
+    // See: https://stackoverflow.com/questions/9107240
+    var globalscope = (function () { return this || (1, eval)('this'); }()) ;
+    let vrvTk = new globalscope.verovio.toolkit();
     console.log("reducer_score.ScoreReducer: initialize state.vrvTk: verovio "+verovio+", vrvTk "+vrvTk);
     state = update(state, {
         vrvTk: { "$set": vrvTk }
