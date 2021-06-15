@@ -70,7 +70,7 @@ export function ScoreReducer(state = {
   pageCount: 0,
   triggerNextSession: "",
   triggerPrevSession: "",
-  //vrvTk: new verovio.toolkit(),
+  vrvTk: null,  //delay this until loaded: vrvTk: new verovio.toolkit(),
   options: { // default, unless overridden in FETCH_SCORE or SCORE_SET_OPTIONS
     ignoreLayout: 1,
     adjustPageHeight: 1,
