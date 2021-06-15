@@ -94,7 +94,7 @@ export function ScoreReducer(state = {
   //
   if ( !state.vrvTk ) {
     let vrvTk = verovio.toolkit();
-    console.log("reducer_score.ScoreReducer: initialize state.vrvTk: verovio "+verovio.toolkit+", vrvTk "+vrvTk);
+    console.log("reducer_score.ScoreReducer: initialize state.vrvTk: verovio "+verovio.vrvToolkit+", vrvTk "+vrvTk);
     state = update(state, {
         vrvTk: { "$set": vrvTk }
         }
