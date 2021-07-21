@@ -98,7 +98,7 @@ const context = {
 export function fetchScore(url, options) {
   console.log("FETCH_SCORE ACTION on URI: ", url);
   return(dispatch) => { 
-    fetch(url, {mode: 'cors'})
+    fetch(url, {mode: 'cors', credentials: 'omit'})
       .then(response => {
         return response.text()
       })
