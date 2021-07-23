@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { fetch } from '@inrupt/solid-client-authn-browser';
+import { fetch as solid_fetch } from '@inrupt/solid-client-authn-browser';
 import jsonld from 'jsonld';
 import querystring from 'querystring';
 import { v4 as uuidv4 } from 'uuid';
@@ -98,7 +98,7 @@ const context = {
 export function fetchScore(url, options) {
   console.log("FETCH_SCORE ACTION on URI: ", url);
   return(dispatch) => { 
-    fetch(url, {mode: 'cors', credentials: 'omit'})
+    fetch(url, {mode: 'cors'})
       .then(response => {
         return response.text()
       })
@@ -116,9 +116,9 @@ export function fetchScore(url, options) {
 
 export function fetchRibbonContent(url) {
   // console.log("FETCH_RIBBON_CONTENT ACTION on URI: ", uri);
-  const promise = fetch(url);
+  const promise = solid_fetch(url);
   return dispatch => { 
-    fetch(url, {mode: 'cors'})
+    solid_fetch(url, {mode: 'cors'})
       .then(response => {
         return response.text()
       })
@@ -271,7 +271,7 @@ export function traverse(docUri, params) {
   }
 
   console.log("FETCHING: ", docUri, params);
-  const promise = fetch(docUri, {
+  const promise = solid_fetch(docUri, {
     headers: headers,
     mode: 'cors'
   });
@@ -533,7 +533,7 @@ export function fetchSessionGraph(uri, etag = "") {
   // console.log("FETCH_SESSION_GRAPH ACTION ON URI: ", uri, " with etag: ", etag);
   // TODO add etag to header as If-None-Match and enable corresponding support on server
   // so that it can respond with 304 instead of 200 (i.e. so it can ommit file body)
-  const promise = fetch(uri, {
+  const promise = solid_fetch(uri, {
     headers: {'Accept': 'application/ld+json', 'If-None-Match': etag},
     mode: 'cors'
   });
@@ -584,7 +584,7 @@ export function fetchSessionGraph(uri, etag = "") {
 
 export function fetchGraph(uri) {
   // console.log("FETCH_GRAPH ACTION ON URI: ", uri);
-  const promise = fetch(uri);
+  const promise = solid_fetch(uri);
 
   return (dispatch) => {
     promise.then(({data}) => {
@@ -641,7 +641,7 @@ function processComponentAnnotation(annotation, conceptualScore = "") {
 export function fetchComponentTarget(uri, conceptualScore = "") {
   console.warn("DEPRECATION WARNING: The function fetchComponentTarget is considered deprecated as of meld-clients-core v2.0.0 and will be subject to removal in future versions. Please upgrade your application to use the registerTraversal and traverse functions instead.");
   // console.log("FETCH_COMPONENT_TARGET ACTION ON URI: ", uri);
-  const promise = fetch(uri, {headers: {'Accept': 'application/ld+json'}, mode: 'cors'});
+  const promise = solid_fetch(uri, {headers: {'Accept': 'application/ld+json'}, mode: 'cors'});
   return dispatch => {
     promise.then(data => {
       // console.log("Attemping to frame data", data);
@@ -798,7 +798,7 @@ export function fetchWork(target, parts, work, expressionObj) {
         chords: expressionObj
       }
     });
-    fetch(work).then((data) => {
+    solid_fetch(work).then((data) => {
       jsonld.fromRDF(data.data, (err, doc) => {
         if (err) {
           console.log("ERROR TRANSLATING NQUADS TO JSONLD: ", err, data.data)
@@ -896,7 +896,7 @@ export function fetchStructure(target, parts, segline) {
         structure: segline
       }
     });
-    fetch(segline).then((data) => {
+    solid_fetch(segline).then((data) => {
       jsonld.fromRDF(data.data, (err, doc) => {
         if (err) {
           console.log("ERROR TRANSLATING NQUADS TO JSONLD: ", err, data.data)
@@ -936,7 +936,7 @@ export function fetchConceptualScore(session, uri) {
   console.warn("DEPRECATION WARNING: The function fetchConceptualScore is considered deprecated as of meld-clients-core v2.0.0 and will be subject to removal in future versions. Please upgrade your application to use the registerTraversal and traverse functions instead.");
   return (dispatch) => {
   // console.log("FETCH_CONCEPTUAL_SCORE ON URI: ", uri);
-  const promise = fetch(uri, {headers: {'Accept': 'application/ld+json'}});
+  const promise = solid_fetch(uri, {headers: {'Accept': 'application/ld+json'}});
 
   return (dispatch) => {
     promise.then((response) => {
@@ -1118,7 +1118,7 @@ export function postAnnotation(session, etag, json, retries = MAX_RETRIES, callb
   return (dispatch) => {
     if (retries) {
       console.log("Posting annotation: ", session, etag, json)
-      fetch(session, {
+      solid_fetch(session, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/ld+json', 
@@ -1138,7 +1138,7 @@ export function postAnnotation(session, etag, json, retries = MAX_RETRIES, callb
         if (error.response.status == 412) {
           console.log("Mid-air collision while attempting to POST annotation. Retrying.", session, etag, json);
           // GET the session resource to figure out new etag
-          fetch(session).then((response) => {
+          solid_fetch(session).then((response) => {
             return (dispatch) => {
               // and try again
               setTimeout(() => {
@@ -1181,7 +1181,7 @@ export function markAnnotationProcessed(session, etag, annotation, retries = MAX
       if (error.response.status == 412) {
         console.log("Mid-air collision while attempting to MARK annotation processed. Retrying.", session, etag, annotation);
         // GET the session resource to figure out new etag
-        fetch(session).then((response) => {
+        solid_fetch(session).then((response) => {
           // and try again
           return (dispatch) => {
             setTimeout(() => {
@@ -1232,7 +1232,7 @@ export function patchAndProcessAnnotation(action, session, etag, annotation, suc
         if (error.response.status == 412) {
           console.log("Mid-air collision while attempting to PATCH annotation. Retrying.", session, etag, annotation);
           // GET the session resource to figure out new etag
-          fetch(session).then((response) => {
+          solid_fetch(session).then((response) => {
             // and try again
             return (dispatch) => {
               setTimeout(() => {
@@ -1269,7 +1269,7 @@ export function updateMuzicodes(muzicodesUri, session, mei = "") {
     "meldmei": mei
   });
 
-  fetch(muzicodesUri, params);
+  solid_fetch(muzicodesUri, params);
   return ({
     type: MUZICODES_UPDATED
   })
@@ -1307,7 +1307,7 @@ export function createSession(sessionsUri, scoreUri, {session = "", etag = "", r
   return (dispatch) => {
     if (retries) {
       // console.log("Trying to create session: ", sessionsUri, scoreUri, etag, retries, performerUri);
-      fetch(sessionsUri).then((getResponse) => {
+      solid_fetch(sessionsUri).then((getResponse) => {
         axios.post(
             sessionsUri,
             JSON.stringify({
