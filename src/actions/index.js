@@ -406,7 +406,7 @@ function traverseJSONLD(dispatch, docUri, params, dataPromise) {
                 // CHECK FOR OBJECTIVES HERE
                 //console.log("<>", subjectUri, pred, obj["@id"], docUri);
                 // Now recurse (if exclusion/inclusion conditions and hop counter allow)
-                if (passesTraversalConstraints(obj, params)) {
+                if (passesTraversalConstraints(obj, params, pred)) {
 //                  console.log("registering next traversal!", obj["@id"])
                   dispatch(registerTraversal(obj["@id"], {
                     ...params,
@@ -432,7 +432,7 @@ function traverseJSONLD(dispatch, docUri, params, dataPromise) {
   return {type: TRAVERSAL_HOP}
 }
 
-function passesTraversalConstraints(obj, params) {
+function passesTraversalConstraints(obj, params, predicate) {
   // filter function that returns TRUE if uri should be traversed to
   // (with a given set of constraints in the params)
   //
@@ -488,6 +488,22 @@ function passesTraversalConstraints(obj, params) {
       return false
     }
   }
+	// // are there prescribed predicates prefixes to follow?
+	if(pred && params["followPropertyPrefix"].length){
+	 	if(!params["followPropertyPrefix"].some(pref => pred.startsWith(pref))) {
+	 		//console.log("Test 7: predicate's prefix not in inclusion list", pref, params["followPropertyPrefix"]);
+	 		return false;
+	 	}
+	}
+	// are there prescribed predicates to follow?
+	if(pred && params["followPropertyUri"].length){
+	 	if(!(pred in params["followPropertyUri"])){
+	 		//console.log("Test 8: predicate not in inclusion list", pref, params["followPropertyUri"]);
+	 		return false;
+	 	}
+	}
+
+	
   //console.log("Object passes all traversal constraint tests", obj, params, params["extendObjectPrefix"], params["ignoreObjectPrefix"], params["ignoreObjectUri"]);
   return true;
 }
