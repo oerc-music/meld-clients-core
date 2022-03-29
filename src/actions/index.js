@@ -497,13 +497,13 @@ function passesTraversalConstraints(obj, params, predicate) {
 	}
 	// are there prescribed predicates to follow?
 	if(predicate && params["followPropertyUri"].length){
-	 	if(!(predicate in params["followPropertyUri"])){
+	 	if(params["followPropertyUri"].indexOf(predicate) === -1){
 	 		//console.log("Test 8: predicate not in inclusion list", pref, params["followPropertyUri"]);
 	 		return false;
 	 	}
 	}
 
-	
+
   //console.log("Object passes all traversal constraint tests", obj, params, params["extendObjectPrefix"], params["ignoreObjectPrefix"], params["ignoreObjectUri"]);
   return true;
 }
