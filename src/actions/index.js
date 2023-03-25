@@ -285,27 +285,34 @@ export function traverse(docUri, params) {
       if (response.status == 304) {
         dispatch({type: TRAVERSAL_UNNECCESSARY});
         return; // file not modified, i.e. etag matched, no updates required
+      } else if (response.status == 404) {
+        dispatch({type: TRAVERSAL_FAILED});
+        return; // no document found
       }
-      console.log(response.headers.get("Content-Type"));
+      //console.log(response.headers.get("Content-Type"));
+			// Content-Type is not a compulsory field, and .get returns null if it's absent
+			const CType = response.headers.get("Content-Type") || "";
+			const assumeNQ = true; // This is a hack to deal with unrecognisable files. For now, assume it's RDF. Revisit this.
       // attempt to decide content type (either explicitly provided or by file suffix)
       // and proceed with traversal accordingly
       if (docUri.endsWith(".json") || docUri.endsWith(".jsonld") || docUri.endsWith(".json-ld") ||
-          response.headers.get("Content-Type").startsWith("application/ld+json") ||
-          response.headers.get("Content-Type").startsWith("application/json")) {
+          CType.startsWith("application/ld+json") ||
+          CType.startsWith("application/json")) {
         // treat as JSON-LD document
         dispatch(traverseJSONLD(dispatch, docUri, params, response.json()));
       } else if (docUri.endsWith(".ttl") || docUri.endsWith(".n3") || docUri.endsWith(".rdf") ||
           docUri.endsWith(".nt") ||
-          response.headers.get("Content-Type").startsWith("application/rdf+xml") ||
-          response.headers.get("Content-Type").startsWith("application/x-turtle") ||
-          response.headers.get("Content-Type").startsWith("text/turtle")) {
+          CType.startsWith("application/rdf+xml") ||
+          CType.startsWith("application/x-turtle") ||
+          CType.startsWith("text/turtle")) {
         // treat as RDF document
         // TODO: Translate RDF to JSON-LD, then proceed with traverseJSONLD as above
         dispatch({type: TRAVERSAL_FAILED});
         console.log("Can't handle this document: (We currently only support nq and JSON-LD)", docUri, response)
 				// dispatch(traverseRDF(dispatch, docUri, params, response.text()));
 			} else if (docUri.endsWith(".nq") || 
-								 response.headers.get("Content-Type").startsWith("application/nquads")) {
+								 CType.startsWith("application/nquads") ||
+								 (CType === "" && assumeNQ)) {
 				dispatch(traverseRDF(dispatch, docUri, params, response.text()));
       } else {
         dispatch({type: TRAVERSAL_FAILED});
