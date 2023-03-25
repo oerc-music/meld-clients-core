@@ -198,8 +198,9 @@ export function registerTraversal(docUri, suppliedParams = {}) {
   const defaultParams = {
     extendObjectPrefix: [], extendObjectUri: [], extendObjectType: [],
     ignoreObjectPrefix: [], ignoreObjectUri: [], ignoreObjectType: [],
+		ignoreObjectExtension: ["gif", "jpeg", "jpg", "mei", "mp3", "mp4", "png", "pdf", "tei", "wav", "jpg", "jpeg"], // NEW: don't load these expecting RDF
     followPropertyPrefix: [], followPropertyUri: [],
-    ignorePpropertyPrefix: [], ignorePropertyUri: [],
+    ignorePropertyPrefix: [], ignorePropertyUri: [],
     objectives: {}, numHops: MAX_TRAVERSAL_HOPS,
     useEtag: false, etag: ""
   };
@@ -502,6 +503,14 @@ function passesTraversalConstraints(obj, params, predicate) {
 	 		return false;
 	 	}
 	}
+	// Does the URL have an extension that implies this isn't RDF?
+	const suffixExcluded = params["ignoreObjectExtension"].filter(extension => {
+    return resourceUri.split("#")[0].endsWith(extension);
+  });
+  if (suffixExcluded.length) {
+    console.log("Test 9: object excluded based on extension", obj, params);
+    return false;
+  }
 
 	
   //console.log("Object passes all traversal constraint tests", obj, params, params["extendObjectPrefix"], params["ignoreObjectPrefix"], params["ignoreObjectUri"]);
