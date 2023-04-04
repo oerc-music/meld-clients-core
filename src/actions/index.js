@@ -427,7 +427,7 @@ function traverseJSONLD(dispatch, docUri, params, dataPromise) {
 					})
 				});
       });
-    }).catch(error=>console.log("EXPANSION ERROR: ", docUri, err));
+    }).catch(error=>console.log("EXPANSION ERROR: ", docUri, error));
   });
   return {type: TRAVERSAL_HOP}
 }
