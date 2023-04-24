@@ -3,7 +3,7 @@ import auth from 'solid-auth-client';
 import jsonld from 'jsonld';
 import querystring from 'querystring';
 import { v4 as uuidv4 } from 'uuid';
-import {prefix} from '../library/prefixes.js'; 
+import {prefix} from '../library/prefixes.js';
 import {
   ANNOTATION_HANDLED,
   ANNOTATION_NOT_HANDLED,
@@ -77,8 +77,8 @@ export const MAX_TRAVERSAL_HOPS = 10;
 export const RETRY_DELAY = 10;
 
 // TODO move context somewhere global -- most framing happens server side
-// anyway, but in cases where the framed URI contains a fragment ("#"), 
-// we have to do it client-side		
+// anyway, but in cases where the framed URI contains a fragment ("#"),
+// we have to do it client-side
 const context = {
   "popRoles": "http://pop.linkedmusic.org/roles/",
   "mo": "http://purl.org/ontology/mo/",
@@ -96,8 +96,8 @@ const context = {
 };
 
 export function fetchScore(url, options) {
-  console.log("FETCH_SCORE ACTION on URI: ", url);
-  return(dispatch) => { 
+  console.debug("FETCH_SCORE ACTION on URI: ", url);
+  return(dispatch) => {
     auth.fetch(url, {mode: 'cors'})
       .then(response => {
         return response.text()
@@ -105,8 +105,8 @@ export function fetchScore(url, options) {
       .then(data => {
         dispatch({
           type: FETCH_SCORE,
-          payload: { 
-            data, 
+          payload: {
+            data,
             config: { url, options }
           }
         });
@@ -115,9 +115,9 @@ export function fetchScore(url, options) {
 }
 
 export function fetchRibbonContent(url) {
-  // console.log("FETCH_RIBBON_CONTENT ACTION on URI: ", uri);
+  // console.debug("FETCH_RIBBON_CONTENT ACTION on URI: ", uri);
   const promise = auth.fetch(url);
-  return dispatch => { 
+  return dispatch => {
     auth.fetch(url, {mode: 'cors'})
       .then(response => {
         return response.text()
@@ -125,8 +125,8 @@ export function fetchRibbonContent(url) {
       .then(data => {
         dispatch({
           type: FETCH_RIBBON_CONTENT,
-          payload: { 
-            data, 
+          payload: {
+            data,
             config: { url }
           }
         })
@@ -209,7 +209,7 @@ export function registerTraversal(docUri, suppliedParams = {}) {
   var key;
   for (key in suppliedParams) {
     if ( !(key in params) ) {
-      console.log("registerTraversal: unrecognized option: ", key);
+      console.debug("registerTraversal: unrecognized option: ", key);
     } else {
 			params[key] = suppliedParams[key];
 		}
@@ -238,25 +238,25 @@ export function registerTraversal(docUri, suppliedParams = {}) {
 
   const unimplementedParams = (
     "extendObjectType",
-    "ignoreObjectType",    
-    "followPropertyPrefix", 
+    "ignoreObjectType",
+    "followPropertyPrefix",
     "followPropertyUri",
     "ignorePropertyPrefix",
     "ignorePropertyUri"
     );
   for (key in unimplementedParams) {
     if ( (key in params) ) {
-      console.log("registerTraversal: unimplemented option: ", key);
+      console.debug("registerTraversal: unimplemented option: ", key);
     }
   }
 
 	docUri = new URL(docUri, document.URL).toString();
-  if(passesTraversalConstraints({"@id":docUri}, params)) { 
+  if(passesTraversalConstraints({"@id":docUri}, params)) {
     return ({
       type: REGISTER_TRAVERSAL,
       payload: {docUri, params}
     })
-  } else { 
+  } else {
     return ({
       type: TRAVERSAL_CONSTRAINED
     })
@@ -270,7 +270,7 @@ export function traverse(docUri, params) {
     headers['If-None-Match'] = params["etag"];
   }
 
-  console.log("FETCHING: ", docUri, params);
+  console.debug("FETCHING: ", docUri, params);
   const promise = auth.fetch(docUri, {
     headers: headers,
     mode: 'cors'
@@ -285,7 +285,7 @@ export function traverse(docUri, params) {
         dispatch({type: TRAVERSAL_UNNECCESSARY});
         return; // file not modified, i.e. etag matched, no updates required
       }
-      console.log(response.headers.get("Content-Type"));
+      console.debug(response.headers.get("Content-Type"));
       // attempt to decide content type (either explicitly provided or by file suffix)
       // and proceed with traversal accordingly
       if (docUri.endsWith(".json") || docUri.endsWith(".jsonld") || docUri.endsWith(".json-ld") ||
@@ -301,19 +301,19 @@ export function traverse(docUri, params) {
         // treat as RDF document
         // TODO: Translate RDF to JSON-LD, then proceed with traverseJSONLD as above
         dispatch({type: TRAVERSAL_FAILED});
-        console.log("Can't handle this document: (We currently only support nq and JSON-LD)", docUri, response)
+        console.debug("Can't handle this document: (We currently only support nq and JSON-LD)", docUri, response)
 				// dispatch(traverseRDF(dispatch, docUri, params, response.text()));
-			} else if (docUri.endsWith(".nq") || 
+			} else if (docUri.endsWith(".nq") ||
 								 response.headers.get("Content-Type").startsWith("application/nquads")) {
 				dispatch(traverseRDF(dispatch, docUri, params, response.text()));
       } else {
         dispatch({type: TRAVERSAL_FAILED});
-        console.log("Don't know how to treat this document: ", docUri, response)
+        console.debug("Don't know how to treat this document: ", docUri, response)
       }
       // appropriately handle content types
       //			if(isRDF(response.headers.get("Content-Type"))) {
       //				toNQuads(
-      //					
+      //
       //			}
       //			switch(response.headers.get("Content-Type")) {
       //				// If we are working with RDF, we need to convert it to JSON-LD.
@@ -326,18 +326,18 @@ export function traverse(docUri, params) {
       //
     }).catch(err => {
       dispatch({type: TRAVERSAL_FAILED});
-      console.log("Could not retrieve ", docUri, err);
+      console.debug("Could not retrieve ", docUri, err);
     });
     return {type: TRAVERSAL_PREHOP};
   }
 }
 
 
-//helper function: 
+//helper function:
 // skolemize blank nodes to prevent identifier clashes between documents
 // by detecting "_:<blank-node-identifier>"
-// and replacing with document uri appended with  /genid/<blank-node-identifier> 
-// by virtue of traversal mechanism, we only ever visit each document once, 
+// and replacing with document uri appended with  /genid/<blank-node-identifier>
+// by virtue of traversal mechanism, we only ever visit each document once,
 // so clashes with the same document should not occur.
 function skolemize(obj, docUri) {
   if (Array.isArray(obj)) {
@@ -360,7 +360,7 @@ function skolemize(obj, docUri) {
 
 
 function traverseRDF(dispatch, docUri, params, dataPromise){
-  console.log("in traverseRDF for doc ", docUri, "with exclude list ", params["ignoreObjectUri"]);
+  console.debug("in traverseRDF for doc ", docUri, "with exclude list ", params["ignoreObjectUri"]);
 	// expand the JSON-LD object so that we are working with full URIs, not compacted into prefixes
   dataPromise.then(data => {
 		dispatch(traverseJSONLD(dispatch, docUri, params, jsonld.fromRDF(data)));
@@ -369,18 +369,18 @@ function traverseRDF(dispatch, docUri, params, dataPromise){
 }
 
 function traverseJSONLD(dispatch, docUri, params, dataPromise) {
-	console.log("in traverseJSONLD for doc ", docUri, "with exclude list ", params["ignoreObjectUri"]);
+	console.debug("in traverseJSONLD for doc ", docUri, "with exclude list ", params["ignoreObjectUri"]);
   // expand the JSON-LD object so that we are working with full URIs, not compacted into prefixes
   dataPromise.then(data => {
-    console.log("attempting to expand: ", data);
+    console.debug("attempting to expand: ", data);
 		jsonld.expand(data).then(expanded => {
-      console.log("Got expanded json: ", expanded);
+      console.debug("Got expanded json: ", expanded);
       // flatten the expanded JSON-LD object so that each described entity has an ID at the top-level of the tree
       jsonld.flatten(expanded).then(flattened => {
         const skolemized = skolemize(flattened, docUri);
         dispatch({
           type: FETCH_GRAPH_DOCUMENT,
-          payload:  { 
+          payload:  {
             data: skolemized,
             uri: docUri
           }
@@ -404,10 +404,10 @@ function traverseJSONLD(dispatch, docUri, params, dataPromise) {
                 // and that all of its other descriptors will be associated with that @id at the top-level
                 // (which we will handle in another iteration)
                 // CHECK FOR OBJECTIVES HERE
-                //console.log("<>", subjectUri, pred, obj["@id"], docUri);
+                //console.debug("<>", subjectUri, pred, obj["@id"], docUri);
                 // Now recurse (if exclusion/inclusion conditions and hop counter allow)
                 if (passesTraversalConstraints(obj, params, pred)) {
-//                  console.log("registering next traversal!", obj["@id"])
+//                  console.debug("registering next traversal!", obj["@id"])
                   dispatch(registerTraversal(obj["@id"], {
                     ...params,
                     // Remember that we've already visited the current document to avoid loops
@@ -420,14 +420,14 @@ function traverseJSONLD(dispatch, docUri, params, dataPromise) {
                 // n.b. exceptions where pred is @type, @id, etc. There, the obj is still a URI, not a literal
                 // Could test for those explicitly here.
 								// CHECK FOR OBJECTIVES HERE
-								//	console.log("||", subjectUri, pred, obj, docUri)
-								
+								//	console.debug("||", subjectUri, pred, obj, docUri)
+
 							}
 						});
 					})
 				});
       });
-    }).catch(error=>console.log("EXPANSION ERROR: ", docUri, error));
+    }).catch(error=>console.debug("EXPANSION ERROR: ", docUri, error));
   });
   return {type: TRAVERSAL_HOP}
 }
@@ -438,13 +438,13 @@ function passesTraversalConstraints(obj, params, predicate) {
   //
   // test: ensure we haven't run out of hops
   if (params["numHops"] === 0) {
-    //console.log("Test 1: Out of hops", obj, params)
+    //console.debug("Test 1: Out of hops", obj, params)
     return false;
   }
 
   // test: ensure obj is not a literal
   if (!("@id" in obj)) {
-   // ////console.log("Test 2: Found a literal", obj, params)
+   // ////console.debug("Test 2: Found a literal", obj, params)
     return false;
   }
 
@@ -456,14 +456,14 @@ function passesTraversalConstraints(obj, params, predicate) {
     // only pass if included in URI inclusion list AND not in URI exclusion list
     if (!params["extendObjectUri"].includes(resourceUri) ||
         params["ignoreObjectUri"].includes(resourceUri)) {
-      //console.log("Test 3: object excluded (and not in inclusion list)", obj, params)
+      //console.debug("Test 3: object excluded (and not in inclusion list)", obj, params)
       return false;
     }
   } else {
     // no URI inclusion list
     // only pass if not in URI exclusion list
     if (params["ignoreObjectUri"].includes(resourceUri)) {
-      //console.log("Test 4: object excluded (without inclusion list)", obj, params)
+      //console.debug("Test 4: object excluded (without inclusion list)", obj, params)
       return false;
     }
   }
@@ -474,7 +474,7 @@ function passesTraversalConstraints(obj, params, predicate) {
   });
   // only pass if prefix not excluded
   if (prefixExcluded.length) {
-    //console.log("Test 5: prefix excluded", obj, params)
+    //console.debug("Test 5: prefix excluded", obj, params)
     return false;
   }
   if (params["extendObjectPrefix"].length) {
@@ -484,27 +484,27 @@ function passesTraversalConstraints(obj, params, predicate) {
     });
     // only pass if included in prefix inclusion list
     if (prefixIncluded.length === 0) {
-      //console.log("Test 6: prefix not in specified inclusion list", obj, params)
+      //console.debug("Test 6: prefix not in specified inclusion list", obj, params)
       return false
     }
   }
 	// // are there prescribed predicates prefixes to follow?
 	if(predicate && params["followPropertyPrefix"].length){
 	 	if(!params["followPropertyPrefix"].some(pref => predicate.startsWith(pref))) {
-	 		//console.log("Test 7: predicate's prefix not in inclusion list", pref, params["followPropertyPrefix"]);
+	 		//console.debug("Test 7: predicate's prefix not in inclusion list", pref, params["followPropertyPrefix"]);
 	 		return false;
 	 	}
 	}
 	// are there prescribed predicates to follow?
 	if(predicate && params["followPropertyUri"].length){
 	 	if(params["followPropertyUri"].indexOf(predicate) === -1){
-	 		//console.log("Test 8: predicate not in inclusion list", pref, params["followPropertyUri"]);
+	 		//console.debug("Test 8: predicate not in inclusion list", pref, params["followPropertyUri"]);
 	 		return false;
 	 	}
 	}
 
 
-  //console.log("Object passes all traversal constraint tests", obj, params, params["extendObjectPrefix"], params["ignoreObjectPrefix"], params["ignoreObjectUri"]);
+  //console.debug("Object passes all traversal constraint tests", obj, params, params["extendObjectPrefix"], params["ignoreObjectPrefix"], params["ignoreObjectUri"]);
   return true;
 }
 
@@ -546,7 +546,7 @@ export function setTraversalObjectives(objectives) {
 
 export function fetchSessionGraph(uri, etag = "") {
   console.warn("DEPRECATION WARNING: The function fetchSessionGraph is considered deprecated as of meld-clients-core v2.0.0 and will be subject to removal in future versions. Please upgrade your application to use the registerTraversal and traverse functions instead.");
-  // console.log("FETCH_SESSION_GRAPH ACTION ON URI: ", uri, " with etag: ", etag);
+  // console.debug("FETCH_SESSION_GRAPH ACTION ON URI: ", uri, " with etag: ", etag);
   // TODO add etag to header as If-None-Match and enable corresponding support on server
   // so that it can respond with 304 instead of 200 (i.e. so it can ommit file body)
   const promise = auth.fetch(uri, {
@@ -567,7 +567,7 @@ export function fetchSessionGraph(uri, etag = "") {
         if ("mo:performance_of" in session) {
           dispatch(fetchConceptualScore(session["@id"], session["mo:performance_of"]["@id"]));
         } else {
-          console.log("SESSION IS NOT A PERFORMANCE OF A SCORE: ", session);
+          console.debug("SESSION IS NOT A PERFORMANCE OF A SCORE: ", session);
         }
       }
       if (response.headers.etag !== etag) {
@@ -599,7 +599,7 @@ export function fetchSessionGraph(uri, etag = "") {
 }
 
 export function fetchGraph(uri) {
-  // console.log("FETCH_GRAPH ACTION ON URI: ", uri);
+  // console.debug("FETCH_GRAPH ACTION ON URI: ", uri);
   const promise = auth.fetch(uri);
 
   return (dispatch) => {
@@ -630,7 +630,7 @@ function processComponentAnnotation(annotation, conceptualScore = "") {
     }
   }
   annotation = ensureArray(annotation, "oa:hasTarget");
-  // console.log("Processing component annotation: ", annotation, conceptualScore)
+  // console.debug("Processing component annotation: ", annotation, conceptualScore)
   const targets = annotation["oa:hasTarget"].map(target => {
     return {
       "@id": target["@id"],
@@ -656,18 +656,18 @@ function processComponentAnnotation(annotation, conceptualScore = "") {
 
 export function fetchComponentTarget(uri, conceptualScore = "") {
   console.warn("DEPRECATION WARNING: The function fetchComponentTarget is considered deprecated as of meld-clients-core v2.0.0 and will be subject to removal in future versions. Please upgrade your application to use the registerTraversal and traverse functions instead.");
-  // console.log("FETCH_COMPONENT_TARGET ACTION ON URI: ", uri);
+  // console.debug("FETCH_COMPONENT_TARGET ACTION ON URI: ", uri);
   const promise = auth.fetch(uri, {headers: {'Accept': 'application/ld+json'}, mode: 'cors'});
   return dispatch => {
     promise.then(data => {
-      // console.log("Attemping to frame data", data);
+      // console.debug("Attemping to frame data", data);
       if (!"content-type" in data.headers || data.headers.get("Content-Type") !== "application/json" && data.headers.get("Content-Type") !== "application/ld+json") {
-        // console.log("Converting to JSON...");
+        // console.debug("Converting to JSON...");
         // need to convert triples to json
         // TODO handle arbitrary RDF format here (currently requires ntriples)
         jsonld.fromRDF(data.data, {format: 'application/n-quads'}).then(doc => {
           dispatch(processComponentTarget(doc, uri, conceptualScore));
-        }).catch(err => console.log("ERROR CONVERTING NQUADS TO JSON-LD: ", err));
+        }).catch(err => console.debug("ERROR CONVERTING NQUADS TO JSON-LD: ", err));
       } else {
         // already in json format
         dispatch(processComponentTarget(data.data, uri, conceptualScore));
@@ -678,7 +678,7 @@ export function fetchComponentTarget(uri, conceptualScore = "") {
 
 function processComponentTarget(data, uri, conceptualScore) {
   console.warn("DEPRECATION WARNING: The function processComponentTarget is considered deprecated as of meld-clients-core v2.0.0 and will be subject to removal in future versions. Please upgrade your application to use the checkTraversalObjectives function instead.");
-  // console.log("PROCESS_COMPONENT_TARGET ACTION ON URI: ", uri);
+  // console.debug("PROCESS_COMPONENT_TARGET ACTION ON URI: ", uri);
   return (dispatch) => {
     jsonld.frame(data, { "@id": uri }).then(framed => {
       jsonld.compact(framed, context).then(compacted => {
@@ -688,12 +688,12 @@ function processComponentTarget(data, uri, conceptualScore) {
             conceptualScore: conceptualScore,
             structureTarget: uri
           }
-        }); // console.log("COMPACTED: ", compacted);
-				
+        }); // console.debug("COMPACTED: ", compacted);
+
         let typecheck = compacted;
         typecheck = ensureArray(typecheck, "@type"); // have we found a segment?
-        // console.log("TYPECHECK: ", typecheck)
-				
+        // console.debug("TYPECHECK: ", typecheck)
+
         if (typecheck["@type"].includes(SEGMENT) || typecheck["@type"].includes(MUZICODE)) {
           // TODO jsonldify context
           // TODO refine muzicode semantics for this
@@ -712,7 +712,7 @@ function processComponentTarget(data, uri, conceptualScore) {
           // if not, continue following links via the target's expression
           dispatch(fetchTargetExpression(compacted));
         }
-      }).catch(err => console.log("COMPACTING ERROR in processComponentTarget:", err));
+      }).catch(err => console.debug("COMPACTING ERROR in processComponentTarget:", err));
     }).catch(err => {
       type: ANNOTATION_NOT_HANDLED
     });
@@ -723,7 +723,7 @@ function processComponentTarget(data, uri, conceptualScore) {
 export function fetchTargetExpression(compacted) {
   console.warn("DEPRECATION WARNING: The function fetchTargetExpression is considered deprecated as of meld-clients-core v2.0.0 and will be subject to removal in future versions. Please upgrade your application to use the registerTraversal and traverse functions instead.");
   // traverse from the provided Expression, via a Segment, to Manifestation(s)
-  // console.log("In fetchTargetExpression: ", compacted);
+  // console.debug("In fetchTargetExpression: ", compacted);
   return dispatch => {
     dispatch({
       type: FETCH_TARGET_EXPRESSION,
@@ -764,7 +764,7 @@ export function fetchTargetExpression(compacted) {
       }
       // does it have any parts?
       let parts = [];
-      // console.log("part check: ", target)
+      // console.debug("part check: ", target)
       if (PART in target) {
         // sometimes we may have multiple parts or part sequences; sometimes only one
         // so ensure we have an array to work with (even if it's length one)
@@ -789,13 +789,13 @@ export function fetchTargetExpression(compacted) {
         if (REALIZATION_OF in target) {
           dispatch(fetchWork(compacted, parts, target[REALIZATION_OF]["@id"], expressionObj));
         } else {
-          console.log("Target is an unrealized expression: ", target);
+          console.debug("Target is an unrealized expression: ", target);
         }
       } else {
-        console.log("Target expression without parts", target);
+        console.debug("Target expression without parts", target);
       }
     } else {
-      console.log("fetchTargetExpression attempted on a non-Expression! ", target);
+      console.debug("fetchTargetExpression attempted on a non-Expression! ", target);
     }
   }
 }
@@ -803,7 +803,7 @@ export function fetchTargetExpression(compacted) {
 
 export function fetchWork(target, parts, work, expressionObj) {
   console.warn("DEPRECATION WARNING: The function fetchWork is considered deprecated as of meld-clients-core v2.0.0 and will be subject to removal in future versions. Please upgrade your application to use the registerTraversal and traverse functions instead.");
-  // console.log("STARTING FETCHWORK WITH ", work, parts, expressionObj);
+  // console.debug("STARTING FETCHWORK WITH ", work, parts, expressionObj);
   return (dispatch) => {
     dispatch({
       type: FETCH_WORK,
@@ -817,15 +817,15 @@ export function fetchWork(target, parts, work, expressionObj) {
     auth.fetch(work).then((data) => {
       jsonld.fromRDF(data.data, (err, doc) => {
         if (err) {
-          console.log("ERROR TRANSLATING NQUADS TO JSONLD: ", err, data.data)
+          console.debug("ERROR TRANSLATING NQUADS TO JSONLD: ", err, data.data)
         } else {
           jsonld.frame(doc, {"@id": work}, (err, framed) => {
             if (err) {
-              console.log("FRAMING ERROR in fetchWork:", err)
+              console.debug("FRAMING ERROR in fetchWork:", err)
             } else {
               jsonld.compact(framed, context, (err, compacted) => {
                 if (err) {
-                  console.log("COMPACTING ERROR in fetchWork:", err)
+                  console.debug("COMPACTING ERROR in fetchWork:", err)
                 } else {
                   work = compacted;
                   // Check if there is a segment line, in which case fetch manifestations
@@ -841,9 +841,9 @@ export function fetchWork(target, parts, work, expressionObj) {
                       "http://purl.org/vocab/frbr/core#realizationOf": work[PART_OF]["@id"]
                     }, (err, framed) => {
                       if (err) {
-                        console.log("FRAMING ERROR when fetching parent work", err)
+                        console.debug("FRAMING ERROR when fetching parent work", err)
                       } else {
-                        // console.log("Attached score:", framed);
+                        // console.debug("Attached score:", framed);
                         const attachedScore = framed["@graph"][0];
                         if (attachedScore && "@type" in attachedScore && attachedScore["@type"] === SCORE) {
                           // FIXME breaks with multiple types
@@ -853,9 +853,9 @@ export function fetchWork(target, parts, work, expressionObj) {
                             // are attached in same file
                             // FIXME enable external pub_scores
                             attachedScore[PUBLISHED_AS].map((pubScore) => {
-                              // console.log("FOUND PUB SCORE: ", pubScore);
+                              // console.debug("FOUND PUB SCORE: ", pubScore);
                               if (HAS_PERFORMANCE_MEDIUM in pubScore) {
-                                // console.log("FOUND PERF MEDIUM: ", pubScore[HAS_PERFORMANCE_MEDIUM]);
+                                // console.debug("FOUND PERF MEDIUM: ", pubScore[HAS_PERFORMANCE_MEDIUM]);
                                 dispatch({
                                   type: REGISTER_PUBLISHED_PERFORMANCE_SCORE,
                                   payload: {
@@ -871,16 +871,16 @@ export function fetchWork(target, parts, work, expressionObj) {
                                   dispatch(fetchRibbonContent(pubScore["@id"]));
                                 }
                               } else {
-                                // console.log("Published score without performance medium: ", pubScore["@id"]);
+                                // console.debug("Published score without performance medium: ", pubScore["@id"]);
                               }
                             })
                           } else {
-                            // console.log("Unpublished score: ", attachedScore);
+                            // console.debug("Unpublished score: ", attachedScore);
                           }
                           if (HAS_STRUCTURE in attachedScore) {
                             dispatch(fetchStructure(target, parts, attachedScore[HAS_STRUCTURE]["@id"]));
                           } else {
-                            // console.log("Score ", attachedScore["@id"], " attached to work ", work["@id"], " has no segment line!!");
+                            // console.debug("Score ", attachedScore["@id"], " attached to work ", work["@id"], " has no segment line!!");
                           }
                         } else {
                           // no attached Score, so we have to recurse on the parent work
@@ -889,7 +889,7 @@ export function fetchWork(target, parts, work, expressionObj) {
                       }
                     });
                   } else {
-                    // console.log("Found work without segmentLine or partonomy! ", work);
+                    // console.debug("Found work without segmentLine or partonomy! ", work);
                   }
                 }
               });
@@ -915,21 +915,21 @@ export function fetchStructure(target, parts, segline) {
     auth.fetch(segline).then((data) => {
       jsonld.fromRDF(data.data, (err, doc) => {
         if (err) {
-          console.log("ERROR TRANSLATING NQUADS TO JSONLD: ", err, data.data)
+          console.debug("ERROR TRANSLATING NQUADS TO JSONLD: ", err, data.data)
         } else {
           // frame the doc in terms of each part of the expression targetted by the annotation
           parts.map((part) => {
             jsonld.frame(doc, {"@id": part}, (err, framed) => {
               if (err) {
-                console.log("FRAMING ERROR in fetchStructure: ", err)
+                console.debug("FRAMING ERROR in fetchStructure: ", err)
               } else {
                 jsonld.compact(framed, context, (err, compacted) => {
                   if (err) {
-                    console.log("COMPACTING ERROR in fetchStructure:", err)
+                    console.debug("COMPACTING ERROR in fetchStructure:", err)
                   } else {
                     // and hand to reducers to process associated embodibags
                     // (manifestations of the expression)
-                    // console.log("fetching manifestations", doc, target, part, compacted);
+                    // console.debug("fetching manifestations", doc, target, part, compacted);
                     dispatch({
                       type: FETCH_MANIFESTATIONS,
                       payload: {
@@ -951,7 +951,7 @@ export function fetchStructure(target, parts, segline) {
 export function fetchConceptualScore(session, uri) {
   console.warn("DEPRECATION WARNING: The function fetchConceptualScore is considered deprecated as of meld-clients-core v2.0.0 and will be subject to removal in future versions. Please upgrade your application to use the registerTraversal and traverse functions instead.");
   return (dispatch) => {
-  // console.log("FETCH_CONCEPTUAL_SCORE ON URI: ", uri);
+  // console.debug("FETCH_CONCEPTUAL_SCORE ON URI: ", uri);
   const promise = auth.fetch(uri, {headers: {'Accept': 'application/ld+json'}});
 
   return (dispatch) => {
@@ -966,7 +966,7 @@ export function fetchConceptualScore(session, uri) {
         });
         dispatch(fetchScore(conceptualScore["mo:published_as"]["@id"]));
       } else {
-        console.log("Unpublished conceptual score: ", conceptualScore)
+        console.debug("Unpublished conceptual score: ", conceptualScore)
       }
       /*if("climb:next" in conceptualScore) {
           //TODO REVISIT FOR JAM -- NO LONGER RELEVANT FOR CLIMB, AS MUZICODES NEEDS TO MAKE A DECISION
@@ -974,7 +974,7 @@ export function fetchConceptualScore(session, uri) {
         // for dynamic meld applications:
         // create a new session for the default next score
         // (which sessionControl will then queue up)
-        console.log("About to create next session for conceptual score: ", conceptualScore);
+        console.debug("About to create next session for conceptual score: ", conceptualScore);
         dispatch(
           createSession(
             session.substr(0,session.lastIndexOf("/")),
@@ -987,12 +987,12 @@ export function fetchConceptualScore(session, uri) {
   }
 }
 
-export function scoreSetOptions(pubScoreUri, options) { 
-  return { 
+export function scoreSetOptions(pubScoreUri, options) {
+  return {
     type: SCORE_SET_OPTIONS,
-    payload: { 
+    payload: {
       options: options,
-      uri: pubScoreUri 
+      uri: pubScoreUri
     }
   }
 }
@@ -1025,7 +1025,7 @@ export function scoreNextPageStatic(pubScoreUri, pageNum, MEI) {
 export function scoreNextPage(session, nextSession, etag, annotation, pubScoreUri, pageNum, MEI) {
   return (dispatch) => {
     if (MEI) {
-      // console.log("Attempting to action SCORE_NEXT_PAGE");
+      // console.debug("Attempting to action SCORE_NEXT_PAGE");
       const action = {
         type: SCORE_NEXT_PAGE,
         payload: {
@@ -1123,36 +1123,36 @@ export function postPrevPageAnnotation(session, etag) {
 
 export function postAnnotation(session, etag, json, retries = MAX_RETRIES, callback = {}) {
   let uuid = uuidv4();
-  if(retries === "") { 
+  if(retries === "") {
     retries = MAX_RETRIES;
   }
-  if(!("id" in json) && !("@id" in json)) { 
+  if(!("id" in json) && !("@id" in json)) {
     // bootstrap a UUID for this annotation
     json["@id"] = session + uuid + ".jsonld";
   }
 
   return (dispatch) => {
     if (retries) {
-      console.log("Posting annotation: ", session, etag, json)
+      console.debug("Posting annotation: ", session, etag, json)
       auth.fetch(session, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/ld+json', 
+          'Content-Type': 'application/ld+json',
           'If-None-Match': etag,
           'Slug': uuid + ".jsonld"
         },
         body: JSON.stringify(json)
-      }).then( (response) => { 
+      }).then( (response) => {
           typeof callback === "function" && callback(response)
       }).catch(function (error) {
         if(!error.response){
-          console.log(error, "Annotation post failed. Giving up.");
+          console.debug(error, "Annotation post failed. Giving up.");
           return {
             type: ANNOTATION_NOT_HANDLED
           }
         }
         if (error.response.status == 412) {
-          console.log("Mid-air collision while attempting to POST annotation. Retrying.", session, etag, json);
+          console.debug("Mid-air collision while attempting to POST annotation. Retrying.", session, etag, json);
           // GET the session resource to figure out new etag
           auth.fetch(session).then((response) => {
             return (dispatch) => {
@@ -1163,7 +1163,7 @@ export function postAnnotation(session, etag, json, retries = MAX_RETRIES, callb
             }
           });
         } else {
-          console.log("Retrying.");
+          console.debug("Retrying.");
           setTimeout(() => {
             dispatch(postAnnotation(session, response.headers.get(etag), json, retries - 1))
           }, RETRY_DELAY);
@@ -1174,7 +1174,7 @@ export function postAnnotation(session, etag, json, retries = MAX_RETRIES, callb
         type: ANNOTATION_POSTED
       }
     } else {
-      console.log("FAILED TO POST ANNOTATION (MAX RETRIES EXCEEDED): ", session, etag, json);
+      console.debug("FAILED TO POST ANNOTATION (MAX RETRIES EXCEEDED): ", session, etag, json);
       return {
         type: ANNOTATION_NOT_HANDLED
       }
@@ -1184,7 +1184,7 @@ export function postAnnotation(session, etag, json, retries = MAX_RETRIES, callb
 
 export function markAnnotationProcessed(session, etag, annotation, retries = MAX_RETRIES) {
   if (retries) {
-    // console.log("PATCHING: ", session, etag, annotation);
+    // console.debug("PATCHING: ", session, etag, annotation);
     const patchJson = JSON.stringify({
       "@id": annotation["@id"],
       "meld:state": {"@id": "meld:processed"}
@@ -1195,7 +1195,7 @@ export function markAnnotationProcessed(session, etag, annotation, retries = MAX
         {headers: {'Content-Type': 'application/ld+json', 'If-None-Match': etag}}
     ).catch(function (error) {
       if (error.response.status == 412) {
-        console.log("Mid-air collision while attempting to MARK annotation processed. Retrying.", session, etag, annotation);
+        console.debug("Mid-air collision while attempting to MARK annotation processed. Retrying.", session, etag, annotation);
         // GET the session resource to figure out new etag
         auth.fetch(session).then((response) => {
           // and try again
@@ -1206,8 +1206,8 @@ export function markAnnotationProcessed(session, etag, annotation, retries = MAX
           }
         });
       } else {
-        console.log("Error while patching annotation: ", error);
-        console.log("Retrying.");
+        console.debug("Error while patching annotation: ", error);
+        console.debug("Retrying.");
         return (dispatch) => {
           setTimeout(() => {
             dispatch(markAnnotationProcessed(session, response.headers.etag, annotation, retries - 1))
@@ -1220,7 +1220,7 @@ export function markAnnotationProcessed(session, etag, annotation, retries = MAX
       type: ANNOTATION_PATCHED
     }
   } else {
-    console.log("FAILED TO PATCH ANNOTATION (MAX RETRIES EXCEEDED): ", session, etag, annotation);
+    console.debug("FAILED TO PATCH ANNOTATION (MAX RETRIES EXCEEDED): ", session, etag, annotation);
     return {
       type: ANNOTATION_NOT_HANDLED
     }
@@ -1229,7 +1229,7 @@ export function markAnnotationProcessed(session, etag, annotation, retries = MAX
 
 export function patchAndProcessAnnotation(action, session, etag, annotation, success = {type: ANNOTATION_PATCHED}, retries = MAX_RETRIES) {
   if (retries) {
-    // console.log("PATCHING: ", session, etag, annotation);
+    // console.debug("PATCHING: ", session, etag, annotation);
     const patchJson = JSON.stringify({
       "@id": annotation["@id"],
       "meld:state": {"@id": "meld:processed"}
@@ -1240,13 +1240,13 @@ export function patchAndProcessAnnotation(action, session, etag, annotation, suc
           patchJson,
           {headers: {'Content-Type': 'application/ld+json', 'If-None-Match': etag}}
       ).then(function (response) {
-        // console.log("Dispatching action: ", action);
+        // console.debug("Dispatching action: ", action);
         dispatch(action);
-        // console.log("Dispatching success callback: ", success)
+        // console.debug("Dispatching success callback: ", success)
         dispatch(success);
       }).catch(function (error) {
         if (error.response.status == 412) {
-          console.log("Mid-air collision while attempting to PATCH annotation. Retrying.", session, etag, annotation);
+          console.debug("Mid-air collision while attempting to PATCH annotation. Retrying.", session, etag, annotation);
           // GET the session resource to figure out new etag
           auth.fetch(session).then((response) => {
             // and try again
@@ -1257,8 +1257,8 @@ export function patchAndProcessAnnotation(action, session, etag, annotation, suc
             }
           });
         } else {
-          console.log("Error while patching annotation: ", error);
-          console.log("Retrying.");
+          console.debug("Error while patching annotation: ", error);
+          console.debug("Retrying.");
           return (dispatch) => {
             setTimeout(() => {
               dispatch(patchAndProcessAnnotation(action, session, response.headers.etag, annotation, success, retries - 1))
@@ -1268,7 +1268,7 @@ export function patchAndProcessAnnotation(action, session, etag, annotation, suc
       });
     }
   } else {
-    console.log("FAILED TO PATCH ANNOTATION (MAX RETRIES EXCEEDED): ", session, etag, annotation);
+    console.debug("FAILED TO PATCH ANNOTATION (MAX RETRIES EXCEEDED): ", session, etag, annotation);
     return {
       type: ANNOTATION_NOT_HANDLED
     }
@@ -1278,7 +1278,7 @@ export function patchAndProcessAnnotation(action, session, etag, annotation, suc
 
 export function updateMuzicodes(muzicodesUri, session, mei = "") {
   // inform the muzicodes service that our session has loaded
-  // console.log("Updating muzicodes:", muzicodesUri, session);
+  // console.debug("Updating muzicodes:", muzicodesUri, session);
   const params = querystring.stringify({
     "name": "meld.load",
     "meldcollection": session,
@@ -1298,13 +1298,13 @@ export function updateMuzicodes(muzicodesUri, session, mei = "") {
 export function ensureArray(theObj, theKey) {
   if (theObj !== null && typeof theObj === 'object') {
     if (!theKey in theObj) {
-      console.log("ensureArray: KEY NOT IN OBJECT!", theKey, theObj);
+      console.debug("ensureArray: KEY NOT IN OBJECT!", theKey, theObj);
     } else if (!Array.isArray(theObj[theKey])) {
       theObj[theKey] = [theObj[theKey]];
     }
     return theObj;
   } else {
-    console.log("ensureArray: Provided structure is NOT AN OBJECT!")
+    console.debug("ensureArray: Provided structure is NOT AN OBJECT!")
   }
 }
 
@@ -1322,7 +1322,7 @@ export function configureTraversalObjectives(objectives) {
 export function createSession(sessionsUri, scoreUri, {session = "", etag = "", retries = MAX_RETRIES, performerUri = "", slug = ""} = {}) {
   return (dispatch) => {
     if (retries) {
-      // console.log("Trying to create session: ", sessionsUri, scoreUri, etag, retries, performerUri);
+      // console.debug("Trying to create session: ", sessionsUri, scoreUri, etag, retries, performerUri);
       auth.fetch(sessionsUri).then((getResponse) => {
         axios.post(
             sessionsUri,
@@ -1362,7 +1362,7 @@ export function createSession(sessionsUri, scoreUri, {session = "", etag = "", r
           }
         }).catch(function (error) {
           if (error.response.status == 412) {
-            console.log("Mid-air collision while attempting to POST annotation. Retrying.");
+            console.debug("Mid-air collision while attempting to POST annotation. Retrying.");
             dispatch(() => {
               setTimeout(() => {
                 dispatch(createSession(sessionsUri, scoreUri, {
@@ -1374,8 +1374,8 @@ export function createSession(sessionsUri, scoreUri, {session = "", etag = "", r
               }, RETRY_DELAY);
             })
           } else {
-            console.log("Error while creating session: ", error);
-            console.log("Retrying.");
+            console.debug("Error while creating session: ", error);
+            console.debug("Retrying.");
             dispatch(() => {
               setTimeout(() => {
                 dispatch(createSession(sessionsUri, scoreUri, {
@@ -1390,7 +1390,7 @@ export function createSession(sessionsUri, scoreUri, {session = "", etag = "", r
         })
       })
     } else {
-      console.log("FAILED TO CREATE SESSION (MAX RETRIES EXCEEDED): ", sessionsUri, scoreUri, response.headers.etag, retries - 1, performerUri);
+      console.debug("FAILED TO CREATE SESSION (MAX RETRIES EXCEEDED): ", sessionsUri, scoreUri, response.headers.etag, retries - 1, performerUri);
       return {
         type: SESSION_NOT_CREATED
       }
