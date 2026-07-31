@@ -4,8 +4,6 @@ import {bindActionCreators} from 'redux';
 import {fetchRibbonContent} from '../actions/index';
 import { Orchestration, mergedInstruments, caption, drawBarLines, drawRibbons } from '../library/MEIRibbonUtils';
 
-import InlineSVG from 'svg-inline-react';
-
 class OrchestralRibbon extends Component {
 	constructor(props) {
 		super(props);
