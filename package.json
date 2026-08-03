@@ -2,18 +2,17 @@
   "name": "meld-clients-core",
   "version": "2.0.0",
   "description": "Music Encoding and Linked Data (MELD) clients core library",
-  "main": "lib/index.js",
   "repository": "git@github.com:musicog/meld-clients-core.git",
   "scripts": {
-    "build": "babel src --out-dir lib",
-    "build-dev": "babel src --out-dir lib --source-maps inline"
+    "build": "babel src --out-dir lib --delete-dir-on-start",
+    "build-dev": "babel src --out-dir lib --source-maps inline --delete-dir-on-start"
   },
   "author": "David M. Weigl, David Lewis, Oxford e-Research Centre, University of Oxford",
   "license": "BSD-3-Clause",
   "devDependencies": {
-    "@babel/cli": "^7.8.4",
-    "@babel/core": "^7.9.0",
-    "@babel/preset-react": "^7.9.1",
+    "@babel/cli": "^7.29.7",
+    "@babel/core": "^7.29.7",
+    "@babel/preset-react": "^7.29.7",
     "chai": "^3.5.0",
     "jsdom": "^8.1.0"
   },
