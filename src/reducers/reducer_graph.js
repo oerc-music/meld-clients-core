@@ -1,11 +1,19 @@
-import update from 'immutability-helper';
-import JSum from 'jsum';
-import { APPLY_TRAVERSAL_OBJECTIVE, ensureArray, FETCH_GRAPH, FETCH_GRAPH_DOCUMENT, FETCH_WORK, SESSION_GRAPH_ETAG, SET_TRAVERSAL_OBJECTIVES } from '../actions/index';
-import { QUEUE_NEXT_SESSION } from '../actions/meldActions';
+import update from "immutability-helper";
+import JSum from "jsum";
+import {
+  APPLY_TRAVERSAL_OBJECTIVE,
+  ensureArray,
+  FETCH_GRAPH,
+  FETCH_GRAPH_DOCUMENT,
+  FETCH_WORK,
+  SESSION_GRAPH_ETAG,
+  SET_TRAVERSAL_OBJECTIVES,
+} from "../actions/index";
+import { QUEUE_NEXT_SESSION } from "../actions/meldActions";
 const INIT_STATE = {
-  //    graph: {  
-  //        annoGraph: {}, 
-  //        targetsById: {}, 
+  //    graph: {
+  //        annoGraph: {},
+  //        targetsById: {},
   //        targetsByType: {}
   //    },
   etags: {},
@@ -16,7 +24,7 @@ const INIT_STATE = {
   objectives: [],
   outcomes: [],
   outcomesHash: "",
-  allObjectivesApplied: false
+  allObjectivesApplied: false,
 };
 export default function (state = INIT_STATE, action) {
   switch (action.type) {
@@ -27,16 +35,15 @@ export default function (state = INIT_STATE, action) {
 
       if (typeof payload === "string") {
         payload = JSON.parse(payload);
-      } 
+      }
 
-
-      payload = ensureArray(payload, "@graph"); 
+      payload = ensureArray(payload, "@graph");
 
       payload = payload["@graph"][0];
 
       if ("ldp:contains" in payload) {
         payload = ensureArray(payload, "ldp:contains");
-        payload["ldp:contains"].map(a => {
+        payload["ldp:contains"].map((a) => {
           if ("meld:state" in a && a["meld:state"]["@id"] == "meld:processed") {
             // Decide whether we want to render the processed annotation
             // ... and modify its motivation if necessary to signal its new purpose
@@ -52,26 +59,27 @@ export default function (state = INIT_STATE, action) {
           }
 
           a = ensureArray(a, "oa:hasTarget");
-          a["oa:hasTarget"].map(targetResource => {
+          a["oa:hasTarget"].map((targetResource) => {
             // lookup target IDs to get types and component annotations
             if (targetResource["@id"] in byId) {
               byId[targetResource["@id"]]["annotations"].push(a);
             } else {
               byId[targetResource["@id"]] = {
-                "type": targetResource["@type"],
-                "annotations": [a]
+                type: targetResource["@type"],
+                annotations: [a],
               };
             } // lookup target type to get target ID
 
-
             if (targetResource["@type"] in byType) {
               byType[targetResource["@type"]].push({
-                [targetResource["@id"]]: true
+                [targetResource["@id"]]: true,
               });
             } else {
-              byType[targetResource["@type"]] = [{
-                [targetResource["@id"]]: true
-              }];
+              byType[targetResource["@type"]] = [
+                {
+                  [targetResource["@id"]]: true,
+                },
+              ];
             }
           });
         });
@@ -81,31 +89,31 @@ export default function (state = INIT_STATE, action) {
 
       return update(state, {
         annoGraph: {
-          $set: payload
+          $set: payload,
         },
         targetsById: {
-          $set: byId
+          $set: byId,
         },
         targetsByType: {
-          $set: byType
-        }
+          $set: byType,
+        },
       });
 
     case SESSION_GRAPH_ETAG:
       return update(state, {
         etags: {
           $set: {
-            [action.payload.uri]: action.payload.etag
-          }
-        }
+            [action.payload.uri]: action.payload.etag,
+          },
+        },
       });
 
     case QUEUE_NEXT_SESSION:
       // console.log("Setting next session: ", action.payload);
       return update(state, {
         nextSession: {
-          $set: action.payload
-        }
+          $set: action.payload,
+        },
       });
 
     case FETCH_WORK:
@@ -113,9 +121,9 @@ export default function (state = INIT_STATE, action) {
         return update(state, {
           info: {
             $merge: {
-              [action.payload.target["@id"]]: action.payload.info
-            }
-          }
+              [action.payload.target["@id"]]: action.payload.info,
+            },
+          },
         });
       }
 
@@ -127,26 +135,26 @@ export default function (state = INIT_STATE, action) {
       // Typically run once on mount.
       return update(state, {
         objectives: {
-          $set: action.payload
+          $set: action.payload,
         },
         outcomes: {
-          $set: new Array(action.payload.length)
-        }
+          $set: new Array(action.payload.length),
+        },
       });
 
     case FETCH_GRAPH_DOCUMENT:
       // new graph fragment has arrived. If we don't have it from a previous traversal, add it to our graph.
-      if(!state.graphDocs.includes(action.payload.uri)) { 
-       // console.log(state.graph, state.graphDocs, action)
+      if (!state.graphDocs.includes(action.payload.uri)) {
+        // console.log(state.graph, state.graphDocs, action)
         return update(state, {
           graph: {
-            $push: action.payload.data 
+            $push: action.payload.data,
           },
-          graphDocs: { 
-            $push: [action.payload.uri]
-          }
+          graphDocs: {
+            $push: [action.payload.uri],
+          },
         });
-      } else { 
+      } else {
         //console.log("FETCH_GRAPH_DOCUMENT: ignoring as already seen: ", action.payload.uri);
       }
       break;
@@ -156,20 +164,25 @@ export default function (state = INIT_STATE, action) {
       // appropriate index.
       let updatedOutcomes = state.outcomes;
       updatedOutcomes[action.payload.ix] = action.payload.framed;
-      let updatedOutcomesHash = JSum.digest(updatedOutcomes, 'md5', 'hex');
-      if(action.payload.ix === state.objectives.length-1) { 
-        console.log("About to switch on allObjectivesApplied with", updatedOutcomes, state)
+      let updatedOutcomesHash = JSum.digest(updatedOutcomes, "md5", "hex");
+      if (action.payload.ix === state.objectives.length - 1) {
+        console.log(
+          "About to switch on allObjectivesApplied with",
+          updatedOutcomes,
+          state,
+        );
       }
       return update(state, {
         outcomes: {
-          $set: updatedOutcomes
+          $set: updatedOutcomes,
         },
         outcomesHash: {
-          $set: updatedOutcomesHash
+          $set: updatedOutcomesHash,
         },
-        allObjectivesApplied: { 
-          $set: action.payload.ix === state.objectives.length-1 ? true : false
-        }
+        allObjectivesApplied: {
+          $set:
+            action.payload.ix === state.objectives.length - 1 ? true : false,
+        },
       });
 
     default:

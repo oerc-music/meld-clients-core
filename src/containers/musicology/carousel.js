@@ -1,7 +1,7 @@
-import React, {Component} from 'react';
-import {connect} from 'react-redux';
-import {bindActionCreators} from 'redux';
-import Carousel from 'react-3d-carousel';
+import React, { Component } from "react";
+import { connect } from "react-redux";
+import { bindActionCreators } from "redux";
+import Carousel from "react-3d-carousel";
 
 class MEICarousel extends Component {
   constructor(props) {
@@ -10,8 +10,8 @@ class MEICarousel extends Component {
       score: {},
       width: 400,
       layout: this.props.layout,
-      ease: 'linear',
-      duration: 400
+      ease: "linear",
+      duration: 400,
     };
     this.handleChange = this.handleChange.bind(this);
   }
@@ -35,30 +35,32 @@ class MEICarousel extends Component {
 
   render() {
     console.log("Carousel sees :", this.props.score);
-    if ("MEI" in this.props.score && Object.keys(this.props.score["MEI"]).length) {
+    if (
+      "MEI" in this.props.score &&
+      Object.keys(this.props.score["MEI"]).length
+    ) {
       return (
-          <div className="carouselWrapper">
-            <Carousel width={this.state.width}
-                      images={
-                        Object.keys(this.props.score.MEI).map(
-                            (k) => k.replace(".mei", ".svg")
-                        )
-                      }
-                      motif={this.props.motif}
-                      onMotifChange={this.props.onMotifChange}
-                      ease={this.state.ease}
-                      duration={this.state.duration}
-                      layout={this.state.layout}/>
-          </div>
+        <div className="carouselWrapper">
+          <Carousel
+            width={this.state.width}
+            images={Object.keys(this.props.score.MEI).map((k) =>
+              k.replace(".mei", ".svg"),
+            )}
+            motif={this.props.motif}
+            onMotifChange={this.props.onMotifChange}
+            ease={this.state.ease}
+            duration={this.state.duration}
+            layout={this.state.layout}
+          />
+        </div>
       );
     }
-    return <div/>
+    return <div />;
   }
 }
 
-
-function mapStateToProps({score}) {
-  return {score};
+function mapStateToProps({ score }) {
+  return { score };
 }
 
 function mapDispatchToProps(dispatch) {
