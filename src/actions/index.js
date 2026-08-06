@@ -1,5 +1,4 @@
 import axios from "axios";
-import auth from "solid-auth-client";
 import jsonld from "jsonld";
 import querystring from "querystring";
 import { v4 as uuidv4 } from "uuid";
@@ -12,6 +11,7 @@ import {
   ANNOTATION_SKIPPED,
 } from "./meldActions";
 
+export const SET_FETCH_FUNCTION = "SET_FETCH_FUNCTION";
 export const SET_TRAVERSAL_OBJECTIVES = "SET_TRAVERSAL_OBJECTIVES";
 export const APPLY_TRAVERSAL_OBJECTIVE = "APPLY_OBJECTIVE";
 export const HAS_BODY = "oa:hasBody";
@@ -101,11 +101,22 @@ const context = {
   mc: "http://meld.linkedmusic.org/climb/muzicodeTypes/",
 };
 
+export function setFetchFunction(fetchFn) {
+  return {
+    type: SET_FETCH_FUNCTION,
+    payload: fetchFn,
+  };
+}
+
+export function getCurrentFetch(state) {
+  return state.sessionControl.fetchFunction || fetch;
+}
+
 export function fetchScore(url, options) {
   console.log("FETCH_SCORE ACTION on URI: ", url);
-  return (dispatch) => {
-    auth
-      .fetch(url, { mode: "cors" })
+  return (dispatch, getState) => {
+    const fetchFn = getCurrentFetch(getState());
+    fetchFn(url, { mode: "cors" })
       .then((response) => {
         return response.text();
       })
@@ -123,10 +134,9 @@ export function fetchScore(url, options) {
 
 export function fetchRibbonContent(url) {
   // console.log("FETCH_RIBBON_CONTENT ACTION on URI: ", uri);
-  const promise = auth.fetch(url);
-  return (dispatch) => {
-    auth
-      .fetch(url, { mode: "cors" })
+  return (dispatch, getState) => {
+    const fetchFn = getCurrentFetch(getState());
+    fetchFn(url, { mode: "cors" })
       .then((response) => {
         return response.text();
       })
@@ -286,11 +296,12 @@ export function traverse(docUri, params) {
   }
 
   console.log("FETCHING: ", docUri, params);
-  const promise = auth.fetch(docUri, {
-    headers: headers,
-    mode: "cors",
-  });
-  return (dispatch) => {
+  return (dispatch, getState) => {
+    const fetchFn = getCurrentFetch(getState());
+    const promise = fetchFn(docUri, {
+      headers: headers,
+      mode: "cors",
+    });
     dispatch({
       type: RUN_TRAVERSAL,
       payload: { docUri },
@@ -612,12 +623,12 @@ export function fetchSessionGraph(uri, etag = "") {
   // console.log("FETCH_SESSION_GRAPH ACTION ON URI: ", uri, " with etag: ", etag);
   // TODO add etag to header as If-None-Match and enable corresponding support on server
   // so that it can respond with 304 instead of 200 (i.e. so it can ommit file body)
-  const promise = auth.fetch(uri, {
-    headers: { "Accept": "application/ld+json", "If-None-Match": etag },
-    mode: "cors",
-  });
-
-  return (dispatch) => {
+  return (dispatch, getState) => {
+    const fetchFn = getCurrentFetch(getState());
+    const promise = fetchFn(uri, {
+      headers: { "Accept": "application/ld+json", "If-None-Match": etag },
+      mode: "cors",
+    });
     promise.then((response) => {
       if (response.status == 304) {
         return; // don't need to do any new work
@@ -676,9 +687,9 @@ export function fetchSessionGraph(uri, etag = "") {
 
 export function fetchGraph(uri) {
   // console.log("FETCH_GRAPH ACTION ON URI: ", uri);
-  const promise = auth.fetch(uri);
-
-  return (dispatch) => {
+  return (dispatch, getState) => {
+    const fetchFn = getCurrentFetch(getState());
+    const promise = fetchFn(uri);
     promise.then(({ data }) => {
       // dispatch the graph data
       dispatch({
@@ -738,11 +749,12 @@ export function fetchComponentTarget(uri, conceptualScore = "") {
     "DEPRECATION WARNING: The function fetchComponentTarget is considered deprecated as of meld-clients-core v2.0.0 and will be subject to removal in future versions. Please upgrade your application to use the registerTraversal and traverse functions instead.",
   );
   // console.log("FETCH_COMPONENT_TARGET ACTION ON URI: ", uri);
-  const promise = auth.fetch(uri, {
-    headers: { Accept: "application/ld+json" },
-    mode: "cors",
-  });
-  return (dispatch) => {
+  return (dispatch, getState) => {
+    const fetchFn = getCurrentFetch(getState());
+    const promise = fetchFn(uri, {
+      headers: { Accept: "application/ld+json" },
+      mode: "cors",
+    });
     promise.then((data) => {
       // console.log("Attemping to frame data", data);
       if (
@@ -924,7 +936,9 @@ export function fetchWork(target, parts, work, expressionObj) {
     "DEPRECATION WARNING: The function fetchWork is considered deprecated as of meld-clients-core v2.0.0 and will be subject to removal in future versions. Please upgrade your application to use the registerTraversal and traverse functions instead.",
   );
   // console.log("STARTING FETCHWORK WITH ", work, parts, expressionObj);
-  return (dispatch) => {
+  return (dispatch, getState) => {
+    const fetchFn = getCurrentFetch(getState());
+    const promise = fetchFn(work);
     dispatch({
       type: FETCH_WORK,
       payload: {
@@ -934,7 +948,7 @@ export function fetchWork(target, parts, work, expressionObj) {
         chords: expressionObj,
       },
     });
-    auth.fetch(work).then((data) => {
+    promise.then((data) => {
       jsonld.fromRDF(data.data, (err, doc) => {
         if (err) {
           console.log("ERROR TRANSLATING NQUADS TO JSONLD: ", err, data.data);
@@ -1053,7 +1067,9 @@ export function fetchStructure(target, parts, segline) {
   console.warn(
     "DEPRECATION WARNING: The function fetchStructure is considered deprecated as of meld-clients-core v2.0.0 and will be subject to removal in future versions. Please upgrade your application to use the registerTraversal and traverse functions instead.",
   );
-  return (dispatch) => {
+  return (dispatch, getState) => {
+    const fetchFn = getCurrentFetch(getState());
+    const promise = fetchFn(segline);
     dispatch({
       type: FETCH_STRUCTURE,
       payload: {
@@ -1062,7 +1078,7 @@ export function fetchStructure(target, parts, segline) {
         structure: segline,
       },
     });
-    auth.fetch(segline).then((data) => {
+    promise.then((data) => {
       jsonld.fromRDF(data.data, (err, doc) => {
         if (err) {
           console.log("ERROR TRANSLATING NQUADS TO JSONLD: ", err, data.data);
@@ -1102,9 +1118,9 @@ export function fetchConceptualScore(session, uri) {
   console.warn(
     "DEPRECATION WARNING: The function fetchConceptualScore is considered deprecated as of meld-clients-core v2.0.0 and will be subject to removal in future versions. Please upgrade your application to use the registerTraversal and traverse functions instead.",
   );
-  return (dispatch) => {
-    // console.log("FETCH_CONCEPTUAL_SCORE ON URI: ", uri);
-    const promise = auth.fetch(uri, {
+  return (dispatch, getState) => {
+    const fetchFn = getCurrentFetch(getState());
+    const promise = fetchFn(uri, {
       headers: { Accept: "application/ld+json" },
     });
 
@@ -1309,19 +1325,19 @@ export function postAnnotation(
     json["@id"] = session + uuid + ".jsonld";
   }
 
-  return (dispatch) => {
+  return (dispatch, getState) => {
+    const fetchFn = getCurrentFetch(getState());
     if (retries) {
       console.log("Posting annotation: ", session, etag, json);
-      auth
-        .fetch(session, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/ld+json",
-            "If-None-Match": etag,
-            "Slug": uuid + ".jsonld",
-          },
-          body: JSON.stringify(json),
-        })
+      fetchFn(session, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/ld+json",
+          "If-None-Match": etag,
+          "Slug": uuid + ".jsonld",
+        },
+        body: JSON.stringify(json),
+      })
         .then((response) => {
           typeof callback === "function" && callback(response);
         })
@@ -1340,7 +1356,7 @@ export function postAnnotation(
               json,
             );
             // GET the session resource to figure out new etag
-            auth.fetch(session).then((response) => {
+            fetchFn(session).then((response) => {
               return (dispatch) => {
                 // and try again
                 setTimeout(() => {
@@ -1415,7 +1431,7 @@ export function markAnnotationProcessed(
             annotation,
           );
           // GET the session resource to figure out new etag
-          auth.fetch(session).then((response) => {
+          fetch(session).then((response) => {
             // and try again
             return (dispatch) => {
               setTimeout(() => {
@@ -1479,7 +1495,7 @@ export function patchAndProcessAnnotation(
       "@id": annotation["@id"],
       "meld:state": { "@id": "meld:processed" },
     });
-    return (dispatch) => {
+    return (dispatch, getState) => {
       axios
         .patch(session, patchJson, {
           headers: {
@@ -1502,7 +1518,8 @@ export function patchAndProcessAnnotation(
               annotation,
             );
             // GET the session resource to figure out new etag
-            auth.fetch(session).then((response) => {
+            const fetchFn = getCurrentFetch(getState());
+            fetchFn(session).then((response) => {
               // and try again
               return (dispatch) => {
                 setTimeout(() => {
@@ -1553,17 +1570,21 @@ export function patchAndProcessAnnotation(
 }
 
 export function updateMuzicodes(muzicodesUri, session, mei = "") {
-  // inform the muzicodes service that our session has loaded
-  // console.log("Updating muzicodes:", muzicodesUri, session);
-  const params = querystring.stringify({
-    name: "meld.load",
-    meldcollection: session,
-    meldmei: mei,
-  });
+  return (dispatch, getState) => {
+    const fetchFn = getCurrentFetch(getState());
+    const params = querystring.stringify({
+      name: "meld.load",
+      meldcollection: session,
+      meldmei: mei,
+    });
 
-  auth.fetch(muzicodesUri, params);
-  return {
-    type: MUZICODES_UPDATED,
+    fetchFn(muzicodesUri, params)
+      .then((response) => {
+        dispatch({ type: MUZICODES_UPDATED });
+      })
+      .catch((error) => {
+        console.log("Failed to update muzicodes:", error);
+      });
   };
 }
 
@@ -1605,10 +1626,11 @@ export function createSession(
     slug = "",
   } = {},
 ) {
-  return (dispatch) => {
+  return (dispatch, getState) => {
+    const fetchFn = getCurrentFetch(getState());
     if (retries) {
       // console.log("Trying to create session: ", sessionsUri, scoreUri, etag, retries, performerUri);
-      auth.fetch(sessionsUri).then((getResponse) => {
+      fetchFn(sessionsUri).then((getResponse) => {
         axios
           .post(
             sessionsUri,
