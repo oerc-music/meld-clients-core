@@ -1,16 +1,26 @@
-import update from 'immutability-helper';
-import {FETCH_MANIFESTATIONS, FETCH_TEI} from '../actions/index'
+import update from "immutability-helper";
+import { FETCH_MANIFESTATIONS, FETCH_TEI } from "../actions/index";
 
-const EMBODIMENT = 'frbr:embodiment';
+const EMBODIMENT = "frbr:embodiment";
 const ASSOCIATED = "http://example.com/must-revisit-these/associatedWith";
-const MEMBER = 'rdfs:member';
-const TEITYPE = 'meld:TEIEmbodiment';
-const LIBRETTOTYPE = 'mo:PublishedLibretto';
+const MEMBER = "rdfs:member";
+const TEITYPE = "meld:TEIEmbodiment";
+const LIBRETTOTYPE = "mo:PublishedLibretto";
 
-export default function (state = {TEI: {}, componentTargets: {}, fragImages: {}, librettoTargets: {}}, action) {
+export default function (
+  state = {
+    TEI: {},
+    componentTargets: {},
+    fragImages: {},
+    librettoTargets: {},
+  },
+  action,
+) {
   switch (action.type) {
     case FETCH_TEI:
-      return update(state, {TEI: {$merge: {[action.payload.uri]: action.payload.data}}});
+      return update(state, {
+        TEI: { $merge: { [action.payload.uri]: action.payload.data } },
+      });
 
     case FETCH_MANIFESTATIONS:
       // find associated TEI
@@ -48,7 +58,10 @@ export default function (state = {TEI: {}, componentTargets: {}, fragImages: {},
               }
               fragments = fragments.concat(TEIFrags);
             } else {
-              console.log("TEI Reducer: Embodiment with unknown type", embodiment);
+              console.log(
+                "TEI Reducer: Embodiment with unknown type",
+                embodiment,
+              );
             }
             //fragments[fragtype] = embodiment[MEMBER].map( (member) => {
           } else {
@@ -56,8 +69,8 @@ export default function (state = {TEI: {}, componentTargets: {}, fragImages: {},
           }
         });
         return update(state, {
-          componentTargets: {$merge: {[target["@id"]]: fragments}},
-          librettoTargets: {$merge: {[target["@id"]]: libretto}}
+          componentTargets: { $merge: { [target["@id"]]: fragments } },
+          librettoTargets: { $merge: { [target["@id"]]: libretto } },
         });
       }
 
@@ -89,5 +102,4 @@ export default function (state = {TEI: {}, componentTargets: {}, fragImages: {},
     default:
       return state;
   }
-
-};
+}

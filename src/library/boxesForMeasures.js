@@ -4,19 +4,22 @@ export function boxesForMeasures(verovioSVG, extraClasses) {
   // N.B. I'm not removing previously-drawn barBoxes.
   var barBoxes = [];
   var SVGNS = "http://www.w3.org/2000/svg";
-  var page = verovioSVG.getElementsByClassName('page-margin')[0];
-  var systems = verovioSVG.getElementsByClassName('system');
+  var page = verovioSVG.getElementsByClassName("page-margin")[0];
+  var systems = verovioSVG.getElementsByClassName("system");
   if (!extraClasses) extraClasses = "";
   for (var sysi = 0; sysi < systems.length; sysi++) {
-    var sysMeasures = systems[sysi].getElementsByClassName('measure');
+    var sysMeasures = systems[sysi].getElementsByClassName("measure");
     var sysBBox = systems[sysi].getBBox();
     var maxHeight = sysBBox.height;
     var maxy = sysBBox.y;
     var vu = getStafflineGap(sysMeasures[0]) / 4;
     for (var measi = 0; measi < sysMeasures.length; measi++) {
       var box = document.createElementNS(SVGNS, "rect");
-      var staff1 = sysMeasures[measi].getElementsByClassName('staff')[0];
-      var staffLines = Array.prototype.filter.call(staff1.children, (x) => x.tagName === "path");
+      var staff1 = sysMeasures[measi].getElementsByClassName("staff")[0];
+      var staffLines = Array.prototype.filter.call(
+        staff1.children,
+        (x) => x.tagName === "path",
+      );
       var bbox = staffLines[0].getBBox();
       // console.log(bbox);
       box.setAttributeNS(null, "id", sysMeasures[measi].id + "-box");
@@ -24,7 +27,7 @@ export function boxesForMeasures(verovioSVG, extraClasses) {
       box.setAttributeNS(null, "x", bbox.x + vu);
       box.setAttributeNS(null, "y", maxy);
       box.setAttributeNS(null, "height", maxHeight);
-      box.setAttributeNS(null, "width", bbox.width - (2 * vu));
+      box.setAttributeNS(null, "width", bbox.width - 2 * vu);
       // Rounded corners
       box.setAttributeNS(null, "rx", vu);
       box.setAttributeNS(null, "ry", vu);
@@ -41,7 +44,7 @@ function getStafflineGap(measure) {
   // Verovio does these has no clear analogue in MEI. Also, they have
   // no class and aren't grouped separately, so are easiest detected
   // by their position in the file
-  var staff = measure.getElementsByClassName('staff')[0];
+  var staff = measure.getElementsByClassName("staff")[0];
   var kids = staff.children;
   if (kids[0].tagName === "path" && kids[1].tagName === "path") {
     var pos1 = kids[0].getAttributeNS(null, "d").split(" ")[1];
@@ -51,4 +54,3 @@ function getStafflineGap(measure) {
     console.log("My assumptions about staves are wrong for measure:", measure);
   }
 }
-

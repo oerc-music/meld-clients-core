@@ -1,26 +1,36 @@
-import React, {Component} from 'react';
+import React, { Component } from "react";
 
 export default class MyImage extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      positions: {}
+      positions: {},
     };
     this.handleClick = this.handleClick.bind(this);
   }
 
   resize() {
-    var rules = document.styleSheets[0].cssRules || document.stylesheets[0].rules;
+    var rules =
+      document.styleSheets[0].cssRules || document.stylesheets[0].rules;
     var i = 0;
-    while (!rules[i].selectorText || rules[i].selectorText.indexOf("img") === -1) {
+    while (
+      !rules[i].selectorText ||
+      rules[i].selectorText.indexOf("img") === -1
+    ) {
       i++;
     }
     if (i == rules.length) {
-      document.styleSheets[0].insertRule('.wrapper img {width:' + this.props.width + "px, height: " + this.props.height + "}");
+      document.styleSheets[0].insertRule(
+        ".wrapper img {width:" +
+          this.props.width +
+          "px, height: " +
+          this.props.height +
+          "}",
+      );
     } else {
       var declaration = rules[i].style;
-      declaration.setProperty('max-height', this.props.height + "px");
-      declaration.setProperty('max-width', this.props.width + "px");
+      declaration.setProperty("max-height", this.props.height + "px");
+      declaration.setProperty("max-width", this.props.width + "px");
     }
   }
 
@@ -28,9 +38,7 @@ export default class MyImage extends Component {
     if (this.props.height) {
       this.resize();
     }
-    return (
-        <img src={this.props.uri} onClick={this.handleClick}/>
-    )
+    return <img src={this.props.uri} onClick={this.handleClick} />;
   }
 
   handleClick() {
@@ -42,4 +50,3 @@ export default class MyImage extends Component {
     }
   }
 }
-

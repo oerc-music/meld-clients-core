@@ -12,4 +12,37 @@ To include the MELD Clients Core in your MELD app, add the following entry to th
 
 MELD Clients Core depends on a number of npm modules, including React, Redux, and Redux-Thunk (web application framework), solid-auth-client (authenticated HTTP communication with Solid Pods), and "jsonld" and "n3" (Linked Data functionalities around RDF graph handling and JSON-LD conversion). A full list of dependencies is available in the package.json file.
 
+Distribution
+------------
+
+This library is normally installed directly via github so we include the compiled output in the repository.
+Recompile the source and commit it when you make a change.
+
+```
+npm ci
+npm run build
+```
+
+Use `npm ci` rather than `npm install` to install dependencies from package-lock.
+
+To upgrade a dependency, change `package.json`, run `npm install` once, and commit `package-lock.json`
+
+Formatting
+----------
+
+`src/` is formatted with [Prettier](https://prettier.io), and CI checks it:
+
+```
+npm run format         # reformat src/ in place
+npm run format:check   # report anything unformatted, without writing
+```
+
+Only `src/` is formatted. `lib/` is Babel output and is listed in `.prettierignore`, so never run Prettier over it — its formatting has to stay whatever the build emits.
+
+All of `src/` was reformatted in one commit, which makes `git blame` point at that commit for almost every line. To have blame skip it, run this once per clone:
+
+```
+git config blame.ignoreRevsFile .git-blame-ignore-revs
+```
+
 MELD Clients Core also includes JavaScript components of Verovio, a music engraving library developed by the RISM Digital Center (see [rism-digital/verovio](http://github.com/rism-digital/verovio) repository).

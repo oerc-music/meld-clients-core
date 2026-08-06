@@ -1,17 +1,16 @@
-import React, {Component} from 'react';
+import React, { Component } from "react";
 import {
   fetchSessionGraph,
   postNextPageAnnotation,
   resetNextSessionTrigger,
   scoreNextPage,
   scorePrevPage,
-  transitionToSession
-} from '../actions/index';
-import {connect} from 'react-redux';
-import {bindActionCreators} from 'redux';
-import {withRouter} from 'react-router';
-import Score from '../containers/score';
-
+  transitionToSession,
+} from "../actions/index";
+import { connect } from "react-redux";
+import { bindActionCreators } from "redux";
+import { withRouter } from "react-router";
+import Score from "../containers/score";
 
 class Jam extends Component {
   constructor(props) {
@@ -23,13 +22,11 @@ class Jam extends Component {
       // start polling
       this.doPoll();
     }
-
   }
 
   doPoll() {
     const graphUri = this.props.location.query.session;
-    if ('etags' in this.props.graph &&
-        graphUri in this.props.graph.etags) {
+    if ("etags" in this.props.graph && graphUri in this.props.graph.etags) {
       this.props.fetchSessionGraph(graphUri, this.props.graph.etags[graphUri]);
     } else {
       this.props.fetchSessionGraph(graphUri);
@@ -43,10 +40,10 @@ class Jam extends Component {
         // have we got a next session queued up?
         if (this.props.graph.nextSession) {
           this.props.transitionToSession(
-              this.props.graph.annoGraph["@id"],
-              this.props.graph.nextSession
+            this.props.graph.annoGraph["@id"],
+            this.props.graph.nextSession,
           );
-          return <div>Loading next session...</div>
+          return <div>Loading next session...</div>;
         } else {
           // if not, ignore this request and reset trigger
           this.props.resetNextSessionTrigger();
@@ -59,7 +56,14 @@ class Jam extends Component {
       if (this.props.graph && this.props.graph.annoGraph) {
         session = this.props.graph.annoGraph["@id"];
         etag = this.props.graph.etags[session];
-        console.log("session: ", session, " etag: ", etag, " etags: ", this.props.graph.etags);
+        console.log(
+          "session: ",
+          session,
+          " etag: ",
+          etag,
+          " etags: ",
+          this.props.graph.etags,
+        );
       }
 
       const byId = this.props.graph.targetsById;
@@ -71,54 +75,89 @@ class Jam extends Component {
         const annotationTargets = conceptualScores[cS];
         let annotations = Object.keys(byId).map((t) => {
           if (annotationTargets && annotationTargets.includes(t)) {
-            return byId[t].annotations
+            return byId[t].annotations;
           }
         });
         console.log("WORKING WITH: ", annotations);
         return (
-            <div key={"wrapper" + pS}>
-              <Score key={pS} uri={pS} annotations={annotations} session={session} etag={etag}
-                     nextSession={this.props.nextSession}/>;
-
-              <div id="prev" key={"prev" + pS} onClick={() => {
-                console.log("prev clicked, ps: ", pS, this.props.score.pageNum, this.props.score.MEI);
-                this.props.scorePrevPage(pS, this.props.score.pageNum, this.props.score.MEI[pS])
-              }}> Previous </div>
-              <div id="next" key={"next" + pS} onClick={() => {
-                console.log("next clicked, ps: ", pS, this.props.score.pageNum, this.props.score.MEI);
+          <div key={"wrapper" + pS}>
+            <Score
+              key={pS}
+              uri={pS}
+              annotations={annotations}
+              session={session}
+              etag={etag}
+              nextSession={this.props.nextSession}
+            />
+            ;
+            <div
+              id="prev"
+              key={"prev" + pS}
+              onClick={() => {
+                console.log(
+                  "prev clicked, ps: ",
+                  pS,
+                  this.props.score.pageNum,
+                  this.props.score.MEI,
+                );
+                this.props.scorePrevPage(
+                  pS,
+                  this.props.score.pageNum,
+                  this.props.score.MEI[pS],
+                );
+              }}
+            >
+              {" "}
+              Previous{" "}
+            </div>
+            <div
+              id="next"
+              key={"next" + pS}
+              onClick={() => {
+                console.log(
+                  "next clicked, ps: ",
+                  pS,
+                  this.props.score.pageNum,
+                  this.props.score.MEI,
+                );
                 //this.props.scoreNextPage(pS, this.props.score.pageNum, this.props.score.MEI[pS])
                 this.props.postNextPageAnnotation(session, etag);
-              }}> Next
-              </div>
+              }}
+            >
+              {" "}
+              Next
             </div>
-        )
+          </div>
+        );
       });
       return (
-          <div>
-            <link rel="stylesheet" href="../../style/jam.css" type="text/css"/>
-            <div id="annotations"></div>
-            {scores}
-          </div>
-      )
+        <div>
+          <link rel="stylesheet" href="../../style/jam.css" type="text/css" />
+          <div id="annotations"></div>
+          {scores}
+        </div>
+      );
     }
-    return (<div>Loading...</div>);
+    return <div>Loading...</div>;
   }
-
 }
 
-function mapStateToProps({graph, score}) {
-  return {graph, score}
+function mapStateToProps({ graph, score }) {
+  return { graph, score };
 }
 
 function mapDispatchToProps(dispatch) {
-  return bindActionCreators({
-    fetchSessionGraph,
-    scorePrevPage,
-    scoreNextPage,
-    postNextPageAnnotation,
-    transitionToSession,
-    resetNextSessionTrigger
-  }, dispatch);
+  return bindActionCreators(
+    {
+      fetchSessionGraph,
+      scorePrevPage,
+      scoreNextPage,
+      postNextPageAnnotation,
+      transitionToSession,
+      resetNextSessionTrigger,
+    },
+    dispatch,
+  );
 }
 
 withRouter(Jam);
