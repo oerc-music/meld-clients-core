@@ -27,4 +27,22 @@ Use `npm ci` rather than `npm install` to install dependencies from package-lock
 
 To upgrade a dependency, change `package.json`, run `npm install` once, and commit `package-lock.json`
 
+Formatting
+----------
+
+`src/` is formatted with [Prettier](https://prettier.io), and CI checks it:
+
+```
+npm run format         # reformat src/ in place
+npm run format:check   # report anything unformatted, without writing
+```
+
+Only `src/` is formatted. `lib/` is Babel output and is listed in `.prettierignore`, so never run Prettier over it — its formatting has to stay whatever the build emits.
+
+All of `src/` was reformatted in one commit, which makes `git blame` point at that commit for almost every line. To have blame skip it, run this once per clone:
+
+```
+git config blame.ignoreRevsFile .git-blame-ignore-revs
+```
+
 MELD Clients Core also includes JavaScript components of Verovio, a music engraving library developed by the RISM Digital Center (see [rism-digital/verovio](http://github.com/rism-digital/verovio) repository).
