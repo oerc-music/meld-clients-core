@@ -198,8 +198,9 @@ export function registerTraversal(docUri, suppliedParams = {}) {
   const defaultParams = {
     extendObjectPrefix: [], extendObjectUri: [], extendObjectType: [],
     ignoreObjectPrefix: [], ignoreObjectUri: [], ignoreObjectType: [],
+		ignoreObjectExtension: ["gif", "jpeg", "jpg", "mei", "mp3", "mp4", "png", "pdf", "tei", "wav", "jpg", "jpeg"], // NEW: don't load these expecting RDF
     followPropertyPrefix: [], followPropertyUri: [],
-    ignorePpropertyPrefix: [], ignorePropertyUri: [],
+    ignorePropertyPrefix: [], ignorePropertyUri: [],
     objectives: {}, numHops: MAX_TRAVERSAL_HOPS,
     useEtag: false, etag: ""
   };
@@ -284,27 +285,34 @@ export function traverse(docUri, params) {
       if (response.status == 304) {
         dispatch({type: TRAVERSAL_UNNECCESSARY});
         return; // file not modified, i.e. etag matched, no updates required
+      } else if (response.status == 404) {
+        dispatch({type: TRAVERSAL_FAILED});
+        return; // no document found
       }
-      console.log(response.headers.get("Content-Type"));
+      //console.log(response.headers.get("Content-Type"));
+			// Content-Type is not a compulsory field, and .get returns null if it's absent
+			const CType = response.headers.get("Content-Type") || "";
+			const assumeNQ = true; // This is a hack to deal with unrecognisable files. For now, assume it's RDF. Revisit this.
       // attempt to decide content type (either explicitly provided or by file suffix)
       // and proceed with traversal accordingly
       if (docUri.endsWith(".json") || docUri.endsWith(".jsonld") || docUri.endsWith(".json-ld") ||
-          response.headers.get("Content-Type").startsWith("application/ld+json") ||
-          response.headers.get("Content-Type").startsWith("application/json")) {
+          CType.startsWith("application/ld+json") ||
+          CType.startsWith("application/json")) {
         // treat as JSON-LD document
         dispatch(traverseJSONLD(dispatch, docUri, params, response.json()));
       } else if (docUri.endsWith(".ttl") || docUri.endsWith(".n3") || docUri.endsWith(".rdf") ||
           docUri.endsWith(".nt") ||
-          response.headers.get("Content-Type").startsWith("application/rdf+xml") ||
-          response.headers.get("Content-Type").startsWith("application/x-turtle") ||
-          response.headers.get("Content-Type").startsWith("text/turtle")) {
+          CType.startsWith("application/rdf+xml") ||
+          CType.startsWith("application/x-turtle") ||
+          CType.startsWith("text/turtle")) {
         // treat as RDF document
         // TODO: Translate RDF to JSON-LD, then proceed with traverseJSONLD as above
         dispatch({type: TRAVERSAL_FAILED});
         console.log("Can't handle this document: (We currently only support nq and JSON-LD)", docUri, response)
 				// dispatch(traverseRDF(dispatch, docUri, params, response.text()));
 			} else if (docUri.endsWith(".nq") || 
-								 response.headers.get("Content-Type").startsWith("application/nquads")) {
+								 CType.startsWith("application/nquads") ||
+								 (CType === "" && assumeNQ)) {
 				dispatch(traverseRDF(dispatch, docUri, params, response.text()));
       } else {
         dispatch({type: TRAVERSAL_FAILED});
@@ -502,6 +510,14 @@ function passesTraversalConstraints(obj, params, predicate) {
 	 		return false;
 	 	}
 	}
+	// Does the URL have an extension that implies this isn't RDF?
+	const suffixExcluded = params["ignoreObjectExtension"].filter(extension => {
+    return resourceUri.split("#")[0].endsWith(extension);
+  });
+  if (suffixExcluded.length) {
+    console.log("Test 9: object excluded based on extension", obj, params);
+    return false;
+  }
 
 	
   //console.log("Object passes all traversal constraint tests", obj, params, params["extendObjectPrefix"], params["ignoreObjectPrefix"], params["ignoreObjectUri"]);
