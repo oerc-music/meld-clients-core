@@ -12,6 +12,8 @@ import {
   TRANSITION_TO_NEXT_SESSION,
   UPDATE_LATEST_RENDERED_PAGENUM,
   SCORE_SET_OPTIONS,
+  SCORE_LOAD_REQUESTED,
+  SCORE_LOAD_FAILED,
 } from "../actions/index";
 const EMBODIMENT = "frbr:embodiment";
 const MEITYPE = "meld:MEIEmbodiment";
@@ -75,6 +77,8 @@ export function ScoreReducer(
     publishedScores: {},
     conceptualScores: {},
     MEI: {},
+    // url -> { status: "loading" | "loaded" | "failed", options?, error? }
+    loadStatus: {},
     SVG: {},
     pageState: {},
     componentTargets: {},
@@ -143,6 +147,11 @@ export function ScoreReducer(
             [url]: action.payload.data,
           },
         },
+        loadStatus: {
+          $merge: {
+            [url]: { status: "loaded" },
+          },
+        },
         pageState: {
           [url]: {
             $set: {
@@ -153,6 +162,32 @@ export function ScoreReducer(
           },
         },
       });
+    case SCORE_LOAD_REQUESTED:
+      url = action.payload.url;
+      // Keep any previously requested options if this request has none
+      options =
+        action.payload.options ||
+        (url in state.loadStatus ? state.loadStatus[url].options : undefined);
+      return update(state, {
+        loadStatus: {
+          $merge: {
+            [url]: { status: "loading", options },
+          },
+        },
+      });
+
+    case SCORE_LOAD_FAILED:
+      return update(state, {
+        loadStatus: {
+          $merge: {
+            [action.payload.url]: {
+              status: "failed",
+              error: action.payload.error,
+            },
+          },
+        },
+      });
+
     case FETCH_RIBBON_CONTENT:
       /*		var orch =  new Orchestration(action.payload.data);
           var svgRibbon = orch.drawOrchestration(false, 0, 400, 0, 600);
@@ -437,7 +472,7 @@ export function ScoreReducer(
             $set: {
               currentPage: currentPage,
               pageCount: state.vrvTk.getPageCount(),
-              currentOptions: options,
+              currentOptions: action.payload.options,
             },
           },
         },
