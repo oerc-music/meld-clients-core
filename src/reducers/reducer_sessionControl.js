@@ -1,9 +1,18 @@
 import update from "immutability-helper";
 
-import { CREATE_SESSION, MUZICODES_UPDATED } from "../actions/index";
+import {
+  CREATE_SESSION,
+  MUZICODES_UPDATED,
+  SET_FETCH_FUNCTION,
+} from "../actions/index";
 
 export default function (
-  state = { newSessionUri: "", newSessionScore: "", muzicodesUpdated: false },
+  state = {
+    newSessionUri: "",
+    newSessionScore: "",
+    muzicodesUpdated: false,
+    fetchFunction: null,
+  },
   action,
 ) {
   switch (action.type) {
@@ -20,6 +29,10 @@ export default function (
           newSessionScore:
             action.payload.data["@graph"][0]["mo:performance_of"]["@id"],
         },
+      });
+    case SET_FETCH_FUNCTION:
+      return update(state, {
+        $merge: { fetchFunction: action.payload },
       });
     default:
       // console.log("Unknown action: ", action);
