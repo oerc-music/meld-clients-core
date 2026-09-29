@@ -22,6 +22,21 @@ jobs:
       - name: Check src/ is formatted with Prettier
         run: npm run format:check
 
+  test:
+    name: Tests pass
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - run: npm test
+
   build:
     name: lib/ is up to date
     runs-on: ubuntu-latest
