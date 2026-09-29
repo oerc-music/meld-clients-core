@@ -1,5 +1,5 @@
 import { combineReducers } from "redux";
-import GraphReducer from "./reducer_graph";
+import GraphReducer, { createGraphReducer } from "./reducer_graph";
 import { ScoreReducer } from "./reducer_score";
 import TEIReducer from "./reducer_tei";
 import AppReducer from "./reducer_app";
@@ -18,6 +18,14 @@ var reducerSets = {
   traversalPool: TraversalPoolReducer,
   timesync: TimeSyncReducer,
 };
+
+// Options apply to the graph reducer; the default reducers keep hashing enabled.
+export function createReducers(options) {
+  return combineReducers({
+    ...reducerSets,
+    graph: createGraphReducer(options),
+  });
+}
 
 export var reducers = combineReducers(reducerSets);
 
