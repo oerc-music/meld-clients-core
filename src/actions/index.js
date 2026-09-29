@@ -1,4 +1,3 @@
-import axios from "axios";
 import jsonld from "jsonld";
 import querystring from "querystring";
 import { v4 as uuidv4 } from "uuid";
@@ -1451,6 +1450,20 @@ export function postAnnotation(
   };
 }
 
+// Reject on non-2xx responses so that callers can distinguish HTTP errors
+// (e.g. 412 Precondition Failed) from network failures. The rejection
+// carries the Response as `error.response`.
+function rejectOnHttpError(response) {
+  if (!response.ok) {
+    const error = new Error(
+      "Request failed with status " + response.status + " for " + response.url,
+    );
+    error.response = response;
+    throw error;
+  }
+  return response;
+}
+
 export function markAnnotationProcessed(
   session,
   etag,
@@ -1463,58 +1476,53 @@ export function markAnnotationProcessed(
       "@id": annotation["@id"],
       "meld:state": { "@id": "meld:processed" },
     });
-    axios
-      .patch(session, patchJson, {
+    return (dispatch, getState) => {
+      const fetchFn = getCurrentFetch(getState());
+      fetchFn(session, {
+        method: "PATCH",
         headers: {
           "Content-Type": "application/ld+json",
           "If-None-Match": etag,
         },
+        body: patchJson,
       })
-      .catch(function (error) {
-        if (error.response.status == 412) {
-          console.log(
-            "Mid-air collision while attempting to MARK annotation processed. Retrying.",
-            session,
-            etag,
-            annotation,
-          );
-          // GET the session resource to figure out new etag
-          fetch(session).then((response) => {
-            // and try again
-            return (dispatch) => {
+        .then(rejectOnHttpError)
+        .catch(function (error) {
+          if (error.response && error.response.status == 412) {
+            console.log(
+              "Mid-air collision while attempting to MARK annotation processed. Retrying.",
+              session,
+              etag,
+              annotation,
+            );
+            // GET the session resource to figure out new etag
+            fetchFn(session).then((response) => {
+              // and try again
               setTimeout(() => {
                 dispatch(
                   markAnnotationProcessed(
                     session,
-                    response.headers.etag,
+                    response.headers.get("etag"),
                     annotation,
                     retries - 1,
                   ),
                 );
               }, RETRY_DELAY);
-            };
-          });
-        } else {
-          console.log("Error while patching annotation: ", error);
-          console.log("Retrying.");
-          return (dispatch) => {
+            });
+          } else {
+            console.log("Error while patching annotation: ", error);
+            console.log("Retrying.");
             setTimeout(() => {
               dispatch(
-                markAnnotationProcessed(
-                  session,
-                  response.headers.etag,
-                  annotation,
-                  retries - 1,
-                ),
+                markAnnotationProcessed(session, etag, annotation, retries - 1),
               );
             }, RETRY_DELAY);
-          };
-        }
-      })
-      .then("Done?");
+          }
+        });
 
-    return {
-      type: ANNOTATION_PATCHED,
+      dispatch({
+        type: ANNOTATION_PATCHED,
+      });
     };
   } else {
     console.log(
@@ -1544,13 +1552,16 @@ export function patchAndProcessAnnotation(
       "meld:state": { "@id": "meld:processed" },
     });
     return (dispatch, getState) => {
-      axios
-        .patch(session, patchJson, {
-          headers: {
-            "Content-Type": "application/ld+json",
-            "If-None-Match": etag,
-          },
-        })
+      const fetchFn = getCurrentFetch(getState());
+      fetchFn(session, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/ld+json",
+          "If-None-Match": etag,
+        },
+        body: patchJson,
+      })
+        .then(rejectOnHttpError)
         .then(function (response) {
           // console.log("Dispatching action: ", action);
           dispatch(action);
@@ -1558,7 +1569,7 @@ export function patchAndProcessAnnotation(
           dispatch(success);
         })
         .catch(function (error) {
-          if (error.response.status == 412) {
+          if (error.response && error.response.status == 412) {
             console.log(
               "Mid-air collision while attempting to PATCH annotation. Retrying.",
               session,
@@ -1566,41 +1577,36 @@ export function patchAndProcessAnnotation(
               annotation,
             );
             // GET the session resource to figure out new etag
-            const fetchFn = getCurrentFetch(getState());
             fetchFn(session).then((response) => {
               // and try again
-              return (dispatch) => {
-                setTimeout(() => {
-                  dispatch(
-                    patchAndProcessAnnotation(
-                      action,
-                      session,
-                      response.headers.etag,
-                      annotation,
-                      success,
-                      retries - 1,
-                    ),
-                  );
-                }, RETRY_DELAY);
-              };
-            });
-          } else {
-            console.log("Error while patching annotation: ", error);
-            console.log("Retrying.");
-            return (dispatch) => {
               setTimeout(() => {
                 dispatch(
                   patchAndProcessAnnotation(
                     action,
                     session,
-                    response.headers.etag,
+                    response.headers.get("etag"),
                     annotation,
                     success,
                     retries - 1,
                   ),
                 );
               }, RETRY_DELAY);
-            };
+            });
+          } else {
+            console.log("Error while patching annotation: ", error);
+            console.log("Retrying.");
+            setTimeout(() => {
+              dispatch(
+                patchAndProcessAnnotation(
+                  action,
+                  session,
+                  etag,
+                  annotation,
+                  success,
+                  retries - 1,
+                ),
+              );
+            }, RETRY_DELAY);
           }
         });
     };
@@ -1679,21 +1685,20 @@ export function createSession(
     if (retries) {
       // console.log("Trying to create session: ", sessionsUri, scoreUri, etag, retries, performerUri);
       fetchFn(sessionsUri).then((getResponse) => {
-        axios
-          .post(
-            sessionsUri,
-            JSON.stringify({
-              "@type": ["mo:Performance", "ldp:BasicContainer"],
-              "mo:performance_of": { "@id": scoreUri },
-            }),
-            {
-              headers: {
-                "Content-Type": "application/ld+json",
-                "If-None-Match": getResponse.headers.etag,
-                "Slug": slug,
-              },
-            },
-          )
+        const sessionsEtag = getResponse.headers.get("etag");
+        fetchFn(sessionsUri, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/ld+json",
+            "If-None-Match": sessionsEtag,
+            "Slug": slug,
+          },
+          body: JSON.stringify({
+            "@type": ["mo:Performance", "ldp:BasicContainer"],
+            "mo:performance_of": { "@id": scoreUri },
+          }),
+        })
+          .then(rejectOnHttpError)
           .then((postResponse) => {
             // 1.Note that we've created the session
             // (for real-time client-side queueing)
@@ -1709,44 +1714,31 @@ export function createSession(
                 postAnnotation(session, etag, {
                   "oa:hasTarget": { "@id": session },
                   "oa:motivatedBy": { "@id": "motivation:queueNextSession" },
-                  "oa:hasBody": { "@id": postResponse.headers.location },
+                  "oa:hasBody": { "@id": postResponse.headers.get("location") },
                 }),
               );
             }
           })
           .catch(function (error) {
-            if (error.response.status == 412) {
+            if (error.response && error.response.status == 412) {
               console.log(
                 "Mid-air collision while attempting to POST annotation. Retrying.",
               );
-              dispatch(() => {
-                setTimeout(() => {
-                  dispatch(
-                    createSession(sessionsUri, scoreUri, {
-                      etag: getResponse.headers.etag,
-                      retries: retries - 1,
-                      performerUri: performerUri,
-                      slug: slug,
-                    }),
-                  );
-                }, RETRY_DELAY);
-              });
             } else {
               console.log("Error while creating session: ", error);
               console.log("Retrying.");
-              dispatch(() => {
-                setTimeout(() => {
-                  dispatch(
-                    createSession(sessionsUri, scoreUri, {
-                      etag: getResponse.headers.etag,
-                      retries: retries - 1,
-                      performerUri: performerUri,
-                      slug: slug,
-                    }),
-                  );
-                }, RETRY_DELAY);
-              });
             }
+            setTimeout(() => {
+              dispatch(
+                createSession(sessionsUri, scoreUri, {
+                  session: session,
+                  etag: etag,
+                  retries: retries - 1,
+                  performerUri: performerUri,
+                  slug: slug,
+                }),
+              );
+            }, RETRY_DELAY);
           });
       });
     } else {
@@ -1754,13 +1746,12 @@ export function createSession(
         "FAILED TO CREATE SESSION (MAX RETRIES EXCEEDED): ",
         sessionsUri,
         scoreUri,
-        response.headers.etag,
-        retries - 1,
+        etag,
         performerUri,
       );
-      return {
+      dispatch({
         type: SESSION_NOT_CREATED,
-      };
+      });
     }
   };
 }
