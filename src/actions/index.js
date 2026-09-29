@@ -359,6 +359,11 @@ export function traverse(docUri, params) {
           dispatch({ type: TRAVERSAL_UNNECCESSARY });
           return; // file not modified, i.e. etag matched, no updates required
         }
+        if (!response.ok) {
+          dispatch({ type: TRAVERSAL_FAILED });
+          console.log("Could not retrieve ", docUri, response.status);
+          return;
+        }
         console.log(response.headers.get("Content-Type"));
         // attempt to decide content type (either explicitly provided or by file suffix)
         // and proceed with traversal accordingly
